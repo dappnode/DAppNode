@@ -6,7 +6,7 @@ General repository of the project dappnode
 
 # Scheme
 
-![Scheme](https://raw.githubusercontent.com/eduadiez/DPS_core/master/Dappnode%20scheme.png)
+![Scheme](https://raw.githubusercontent.com/dappnode/Dappnode/master/scheme/Dappnode_scheme.png)
 
 # Repos
 
