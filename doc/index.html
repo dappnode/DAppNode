@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Public UI</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<style>
+/* Colours */
+/* Dimensions */
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  border: 0; }
+
+/* Global */
+body {
+  font-family: 'Helvetica', sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  background-color: #f9f9f9;
+  color: #0F121A; }
+
+h2 {
+  font-size: 250%;
+  text-align: center;
+  margin: 30px 0 5px 0; }
+
+table {
+  text-align: center;
+  margin: auto; }
+
+ol {
+  margin-left: 2em; }
+
+ol li {
+  list-style-type: decimal-leading-zero;
+  list-style-position: outside; }
+
+tr {
+  vertical-align: middle; }
+
+input, button {
+  padding: 10px;
+  display: inline-block; }
+
+input {
+  font-family: Consolas, monaco, monospace;
+  background-color: #E8E8E8;
+  color: inherit;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px; }
+
+/* General button sizes */
+button {
+  display: inline-block; }
+
+/* Colored highlight button */
+.btnHighlight {
+  background-color: #2979ff;
+  border-radius: 5px;
+  font-size: inherit;
+  color: #f9f9f9; }
+
+.btnHighlight:hover {
+  background-color: #1555c1; }
+
+/* Copy button next to input fields */
+.copyButton {
+  border-top-right-radius: 5px;
+  border-bottom-right-radius: 5px;
+  background-color: #333333;
+  color: #f9f9f9; }
+
+.copyButton:hover {
+  background-color: #111111; }
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  overflow: hidden; }
+
+.HBcontainer {
+  text-align: center; }
+
+.HBbox {
+  display: inline-block;
+  margin: 5px; }
+
+.active {
+  background-color: #2979ff; }
+
+.btnOS {
+  background-color: #333333;
+  border-radius: 5px;
+  font-size: inherit;
+  color: #f9f9f9; }
+
+/* Specifics - Initial "I need a guide button"*/
+#btn_guide {
+  margin: 30px; }
+
+#btn_back {
+  background-color: #f9f9f9; }
+
+ul {
+  margin: 0;
+  padding: 0; }
+
+p {
+  text-align: center; }
+
+/* Header */
+header {
+  background: #0F121A;
+  color: #f9f9f9;
+  padding: 20px 0 20px 0;
+  border-bottom: #2979ff 3px solid; }
+
+header a {
+  color: #f9f9f9;
+  text-decoration: none;
+  text-transform: uppercase;
+  font-size: 16px; }
+
+header li {
+  float: left;
+  display: inline;
+  padding: 0 20px 0 20px; }
+
+header #branding {
+  float: left; }
+
+header #branding h1 {
+  margin: 0; }
+
+header nav {
+  float: right;
+  margin-top: 10px; }
+
+</style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header>
+    <div class='container'>
+      <div id='branding'>
+        <h1>DAppNode</h1>
+      </div>
+      <nav>
+        <ul>
+          <li><a href="https://github.com/dappnode/DAppNode">Docs</a></li>
+          <li><a href="https://github.com/dappnode/DAppNode/wiki/DAppNode-Installation-Guide">Info</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+  <!-- BODY -->
+  <!-- Initial title showcase -->
+  <section>
+    <h2>Setup your DAppNode VPN</h2>
+  </section>
+  <!-- Content container -->
+  <section>
+    <div id='error' class='container'></div>
+  </section>
+  <section id='noGuide'>
+    <div class='container'>
+      <div id='credentials'></div>
+      <div class='HBcontainer'>
+        <button class="btnHighlight" id="btn_guide">I need a guide to install a VPN</button>
+      </div>
+    </div>
+  </section>
+
+  <section id='guide' style="display: none">
+    <div class='container'>
+      <button class="btn" id="btn_back">back</button>
+      <div id='selectorOSContainer' class='header'>
+        <p>Select your operating system</p>
+      </div>
+        <div id='MacOS' style="display:none">
+          <h2>MacOS Automatic setup guide</h2>
+          <div id='downloadLink'></div>
+          <h2>MacOS Manual setup guide</h2>
+          <ol class='ListInstructions'>
+            <li>Open System Preferences and go to the Network section.
+            </li><li>Click the <strong>+</strong> button in the lower-left corner of the window.
+            </li><li>Select <strong>VPN</strong> from the <strong>Interface</strong> drop-down menu.
+            </li><li>Select <strong>L2TP over IPSec</strong> from the <strong>VPN Type</strong> drop-down menu.
+            </li><li>Enter anything you like for the <strong>Service Name</strong>.
+            </li><li>Click <strong>Create</strong>.
+            </li><li>Enter _VPN_SERVER_ for the <strong>Server Address</strong>.
+            </li><li>Enter _VPN_USER_ for the <strong>Account Name</strong>.
+            </li><li>Click the <strong>Authentication Settings</strong> button.
+            </li><li>In the <strong>User Authentication</strong> section, select the <strong>Password</strong> radio button and enter _VPN_PASS_.
+            </li><li>In the <strong>Machine Authentication</strong> section, select the <strong>Shared Secret</strong> radio button and enter _VPN_PSK_.
+            </li><li>Click <strong>OK</strong>.
+            </li><li>Check the <strong>Show VPN status in menu bar</strong> checkbox.
+            </li><li>Click the <strong>Advanced</strong> button and make sure the <strong>Send all traffic over VPN connection</strong> checkbox is checked.
+            </li><li>Click the <strong>TCP/IP</strong> tab, and make sure <strong>Link-local only</strong> is selected in the <strong>Configure IPv6</strong> section.
+            </li><li>Click <strong>OK</strong> to close the Advanced settings, and then click <strong>Apply</strong> to save the VPN connection information.
+            </li>
+          </ol>
+          </div>
+        <div id='Windows' style="display:none">
+          <div id='WindowsOver8'>
+            <h2>Windows 10 and 8.x setup guide</h2>
+            <ol class='ListInstructions'>
+              <li>Right-click on the wireless/network icon in your system tray.
+              </li><li>Select <strong>Open Network and Sharing Center</strong>.
+              </li><li>Click <strong>Set up a new connection or network</strong>.
+              </li><li>Select <strong>Connect to a workplace</strong> and click <strong>Next</strong>.
+              </li><li>Click <strong>Use my Internet connection (VPN)</strong>.
+              </li><li>Enter _VPN_SERVER_ in the <strong>Internet address</strong> field.
+              </li><li>Enter anything you like in the <strong>Destination name</strong> field, and then click <strong>Create</strong>.
+              </li><li>Return to <strong>Network and Sharing Center</strong>. On the left, click <strong>Change adapter settings</strong>.
+              </li><li>Right-click on the new VPN entry and choose <strong>Properties</strong>.
+              </li><li>Click the <strong>Security</strong> tab. Select "Layer 2 Tunneling Protocol with IPsec (L2TP/IPSec)" for the <strong>Type of VPN</strong>.
+              </li><li>Click <strong>Allow these protocols</strong>. Be sure to select the "Challenge Handshake Authentication Protocol (CHAP)" checkbox.
+              </li><li>Click the <strong>Advanced settings</strong> button.
+              </li><li>Select <strong>Use preshared key for authentication</strong> and enter _VPN_PSK_ for the <strong>Key</strong>.
+              </li><li>Click <strong>OK</strong> to close the <strong>Advanced settings</strong>.
+              </li><li>Click <strong>OK</strong> to save the VPN connection details.
+              </li>
+            </ol>
+          </div>
+          <div id="WindowsUnder8">
+            <h2>Windows 7, Vista and XP setup guide</h2>
+            <ol class='ListInstructions'>
+              <li>Click on the Start Menu and go to the Control Panel.
+              </li><li>Go to the <strong>Network and Internet</strong> section.
+              </li><li>Click <strong>Network and Sharing Center</strong>.
+              </li><li>Click <strong>Set up a new connection or network</strong>.
+              </li><li>Select <strong>Connect to a workplace</strong> and click <strong>Next</strong>.
+              </li><li>Click <strong>Use my Internet connection (VPN)</strong>.
+              </li><li>Enter _VPN_SERVER_ in the <strong>Internet address</strong> field.
+              </li><li>Enter anything you like in the <strong>Destination name</strong> field.
+              </li><li>Check the <strong>Don't connect now; just set it up so I can connect later</strong> checkbox.
+              </li><li>Click <strong>Next</strong>.
+              </li><li>Enter _VPN_USER_ in the <strong>User name</strong> field.
+              </li><li>Enter _VPN_PASS_ in the <strong>Password</strong> field.
+              </li><li>Check the <strong>Remember this password</strong> checkbox.
+              </li><li>Click <strong>Create</strong>, and then <strong>Close</strong>.
+              </li><li>Return to <strong>Network and Sharing Center</strong>. On the left, click <strong>Change adapter settings</strong>.
+              </li><li>Right-click on the new VPN entry and choose <strong>Properties</strong>.
+              </li><li>Click the <strong>Options</strong> tab and uncheck <strong>Include Windows logon domain</strong>.
+              </li><li>Click the <strong>Security</strong> tab. Select "Layer 2 Tunneling Protocol with IPsec (L2TP/IPSec)" for the <strong>Type of VPN</strong>.
+              </li><li>Click <strong>Allow these protocols</strong>. Be sure to select the "Challenge Handshake Authentication Protocol (CHAP)" checkbox.
+              </li><li>Click the <strong>Advanced settings</strong> button.
+              </li><li>Select <strong>Use preshared key for authentication</strong> and enter _VPN_PSK_ for the <strong>Key</strong>.
+              </li><li>Click <strong>OK</strong> to close the <strong>Advanced settings</strong>.
+              </li><li>Click <strong>OK</strong> to save the VPN connection details.
+              </li>
+            </ol>
+          </div>
+          <img src="https://www.softether.org/@api/deki/files/366/=02.jpg" alt="Mountain View">
+          </div>
+        <div id='iOS' style="display:none">
+          <h2>iOS setup guide</h2>
+          <ol class='ListInstructions'>
+            <li>Go to Settings -> General -> VPN.
+            </li><li>Tap <strong>Add VPN Configuration...</strong>.
+            </li><li>Tap <strong>Type</strong>. Select <strong>L2TP</strong> and go back.
+            </li><li>Tap <strong>Description</strong> and enter anything you like.
+            </li><li>Tap <strong>Server</strong> and enter _VPN_SERVER_.
+            </li><li>Tap <strong>Account</strong> and enter _VPN_USER_.
+            </li><li>Tap <strong>Password</strong> and enter _VPN_PASS_.
+            </li><li>Tap <strong>Secret</strong> and enter _VPN_PSK_.
+            </li><li>Make sure the <strong>Send All Traffic</strong> switch is ON.
+            </li><li>Tap <strong>Done</strong>.
+            </li><li>Slide the <strong>VPN</strong> switch ON.
+            </li>
+          </ol>
+          </div>
+        <div id='Android' style="display:none">
+          <h2>Android setup guide</h2>
+          <ol class='ListInstructions'>
+            <li>Launch the <strong>Settings</strong> application.
+            </li><li>Tap <strong>More...</strong> in the <strong>Wireless & Networks</strong> section.
+            </li><li>Tap <strong>VPN</strong>.
+            </li><li>Tap <strong>Add VPN Profile</strong> or the <strong>+</strong> icon at top-right of screen.
+            </li><li>Enter anything you like in the <strong>Name</strong> field.
+            </li><li>Select <strong>L2TP/IPSec PSK</strong> in the <strong>Type</strong> drop-down menu.
+            </li><li>Enter _VPN_SERVER_ in the <strong>Server address</strong> field.
+            </li><li>Enter _VPN_PSK_ in the <strong>IPSec pre-shared key</strong> field.
+            </li><li>Tap <strong>Save</strong>.
+            </li><li>Tap the new VPN connection.
+            </li><li>Enter _VPN_USER_ in the <strong>Username</strong> field.
+            </li><li>Enter _VPN_PASS_ in the <strong>Password</strong> field.
+            </li><li>Check the <strong>Save account information</strong> checkbox.
+            </li><li>Tap <strong>Connect</strong>.
+            </li>
+          </ol>
+          </div>
+        <div id='Chromebook' style="display:none">
+          <h2>Chromebook setup guide</h2>
+          <ol class='ListInstructions'>
+            <li>If you haven't already, sign in to your Chromebook.
+            </li><li>Click the status area, where your account picture appears.
+            </li><li>Click <strong>Settings</strong>.
+            </li><li>In the <strong>Internet connection</strong> section, click <strong>Add connection</strong>.
+            </li><li>Click <strong>Add OpenVPN / L2TP</strong>.
+            </li><li>Enter _VPN_SERVER_ for the <strong>Server hostname</strong>.
+            </li><li>Enter anything you like for the <strong>Service name</strong>.
+            </li><li>Make sure <strong>Provider type</strong> is <strong>L2TP/IPSec + pre-shared key</strong>.
+            </li><li>Enter _VPN_PSK_ for the <strong>Pre-shared key</strong>.
+            </li><li>Enter _VPN_USER_ for the <strong>Username</strong>.
+            </li><li>Enter _VPN_PASS_ for the <strong>Password</strong>.
+            </li><li>Click <strong>Connect</strong>.
+            </li>
+          </ol>
+        </div>
+        <div id='Others' style="display:none">
+          <h2>Please, connect with us to request support for your device</h2>
+        </div>
+    </div>
+  </section>
+  <section id='guide'>
+<script type="text/javascript">
+!function(t){function e(n){if(r[n])return r[n].exports;var i=r[n]={i:n,l:!1,exports:{}};return t[n].call(i.exports,i,i.exports,e),i.l=!0,i.exports}var r={};e.m=t,e.c=r,e.d=function(t,r,n){e.o(t,r)||Object.defineProperty(t,r,{configurable:!1,enumerable:!0,get:n})},e.n=function(t){var r=t&&t.__esModule?function(){return t.default}:function(){return t};return e.d(r,"a",r),r},e.o=function(t,e){return Object.prototype.hasOwnProperty.call(t,e)},e.p="",e(e.s=6)}([function(t,e,r){"use strict";(function(t){function n(){return o.TYPED_ARRAY_SUPPORT?2147483647:1073741823}function i(t,e){if(n()<e)throw new RangeError("Invalid typed array length");return o.TYPED_ARRAY_SUPPORT?(t=new Uint8Array(e),t.__proto__=o.prototype):(null===t&&(t=new o(e)),t.length=e),t}function o(t,e,r){if(!(o.TYPED_ARRAY_SUPPORT||this instanceof o))return new o(t,e,r);if("number"==typeof t){if("string"==typeof e)throw new Error("If encoding is specified then the first argument must be a string");return f(this,t)}return s(this,t,e,r)}function s(t,e,r,n){if("number"==typeof e)throw new TypeError('"value" argument must not be a number');return"undefined"!=typeof ArrayBuffer&&e instanceof ArrayBuffer?d(t,e,r,n):"string"==typeof e?c(t,e,r):h(t,e)}function a(t){if("number"!=typeof t)throw new TypeError('"size" argument must be a number');if(t<0)throw new RangeError('"size" argument must not be negative')}function u(t,e,r,n){return a(e),e<=0?i(t,e):void 0!==r?"string"==typeof n?i(t,e).fill(r,n):i(t,e).fill(r):i(t,e)}function f(t,e){if(a(e),t=i(t,e<0?0:0|p(e)),!o.TYPED_ARRAY_SUPPORT)for(var r=0;r<e;++r)t[r]=0;return t}function c(t,e,r){if("string"==typeof r&&""!==r||(r="utf8"),!o.isEncoding(r))throw new TypeError('"encoding" must be a valid string encoding');var n=0|w(e,r);t=i(t,n);var s=t.write(e,r);return s!==n&&(t=t.slice(0,s)),t}function l(t,e){var r=e.length<0?0:0|p(e.length);t=i(t,r);for(var n=0;n<r;n+=1)t[n]=255&e[n];return t}function d(t,e,r,n){if(e.byteLength,r<0||e.byteLength<r)throw new RangeError("'offset' is out of bounds");if(e.byteLength<r+(n||0))throw new RangeError("'length' is out of bounds");return e=void 0===r&&void 0===n?new Uint8Array(e):void 0===n?new Uint8Array(e,r):new Uint8Array(e,r,n),o.TYPED_ARRAY_SUPPORT?(t=e,t.__proto__=o.prototype):t=l(t,e),t}function h(t,e){if(o.isBuffer(e)){var r=0|p(e.length);return t=i(t,r),0===t.length?t:(e.copy(t,0,0,r),t)}if(e){if("undefined"!=typeof ArrayBuffer&&e.buffer instanceof ArrayBuffer||"length"in e)return"number"!=typeof e.length||q(e.length)?i(t,0):l(t,e);if("Buffer"===e.type&&K(e.data))return l(t,e.data)}throw new TypeError("First argument must be a string, Buffer, ArrayBuffer, Array, or array-like object.")}function p(t){if(t>=n())throw new RangeError("Attempt to allocate Buffer larger than maximum size: 0x"+n().toString(16)+" bytes");return 0|t}function g(t){return+t!=t&&(t=0),o.alloc(+t)}function w(t,e){if(o.isBuffer(t))return t.length;if("undefined"!=typeof ArrayBuffer&&"function"==typeof ArrayBuffer.isView&&(ArrayBuffer.isView(t)||t instanceof ArrayBuffer))return t.byteLength;"string"!=typeof t&&(t=""+t);var r=t.length;if(0===r)return 0;for(var n=!1;;)switch(e){case"ascii":case"latin1":case"binary":return r;case"utf8":case"utf-8":case void 0:return $(t).length;case"ucs2":case"ucs-2":case"utf16le":case"utf-16le":return 2*r;case"hex":return r>>>1;case"base64":return H(t).length;default:if(n)return $(t).length;e=(""+e).toLowerCase(),n=!0}}function y(t,e,r){var n=!1;if((void 0===e||e<0)&&(e=0),e>this.length)return"";if((void 0===r||r>this.length)&&(r=this.length),r<=0)return"";if(r>>>=0,e>>>=0,r<=e)return"";for(t||(t="utf8");;)switch(t){case"hex":return C(this,e,r);case"utf8":case"utf-8":return T(this,e,r);case"ascii":return x(this,e,r);case"latin1":case"binary":return O(this,e,r);case"base64":return B(this,e,r);case"ucs2":case"ucs-2":case"utf16le":case"utf-16le":return U(this,e,r);default:if(n)throw new TypeError("Unknown encoding: "+t);t=(t+"").toLowerCase(),n=!0}}function v(t,e,r){var n=t[e];t[e]=t[r],t[r]=n}function m(t,e,r,n,i){if(0===t.length)return-1;if("string"==typeof r?(n=r,r=0):r>2147483647?r=2147483647:r<-2147483648&&(r=-2147483648),r=+r,isNaN(r)&&(r=i?0:t.length-1),r<0&&(r=t.length+r),r>=t.length){if(i)return-1;r=t.length-1}else if(r<0){if(!i)return-1;r=0}if("string"==typeof e&&(e=o.from(e,n)),o.isBuffer(e))return 0===e.length?-1:b(t,e,r,n,i);if("number"==typeof e)return e&=255,o.TYPED_ARRAY_SUPPORT&&"function"==typeof Uint8Array.prototype.indexOf?i?Uint8Array.prototype.indexOf.call(t,e,r):Uint8Array.prototype.lastIndexOf.call(t,e,r):b(t,[e],r,n,i);throw new TypeError("val must be string, number or Buffer")}function b(t,e,r,n,i){function o(t,e){return 1===s?t[e]:t.readUInt16BE(e*s)}var s=1,a=t.length,u=e.length;if(void 0!==n&&("ucs2"===(n=String(n).toLowerCase())||"ucs-2"===n||"utf16le"===n||"utf-16le"===n)){if(t.length<2||e.length<2)return-1;s=2,a/=2,u/=2,r/=2}var f;if(i){var c=-1;for(f=r;f<a;f++)if(o(t,f)===o(e,-1===c?0:f-c)){if(-1===c&&(c=f),f-c+1===u)return c*s}else-1!==c&&(f-=f-c),c=-1}else for(r+u>a&&(r=a-u),f=r;f>=0;f--){for(var l=!0,d=0;d<u;d++)if(o(t,f+d)!==o(e,d)){l=!1;break}if(l)return f}return-1}function A(t,e,r,n){r=Number(r)||0;var i=t.length-r;n?(n=Number(n))>i&&(n=i):n=i;var o=e.length;if(o%2!=0)throw new TypeError("Invalid hex string");n>o/2&&(n=o/2);for(var s=0;s<n;++s){var a=parseInt(e.substr(2*s,2),16);if(isNaN(a))return s;t[r+s]=a}return s}function E(t,e,r,n){return W($(e,t.length-r),t,r,n)}function _(t,e,r,n){return W(G(e),t,r,n)}function S(t,e,r,n){return _(t,e,r,n)}function k(t,e,r,n){return W(H(e),t,r,n)}function P(t,e,r,n){return W(X(e,t.length-r),t,r,n)}function B(t,e,r){return 0===e&&r===t.length?Q.fromByteArray(t):Q.fromByteArray(t.slice(e,r))}function T(t,e,r){r=Math.min(t.length,r);for(var n=[],i=e;i<r;){var o=t[i],s=null,a=o>239?4:o>223?3:o>191?2:1;if(i+a<=r){var u,f,c,l;switch(a){case 1:o<128&&(s=o);break;case 2:u=t[i+1],128==(192&u)&&(l=(31&o)<<6|63&u)>127&&(s=l);break;case 3:u=t[i+1],f=t[i+2],128==(192&u)&&128==(192&f)&&(l=(15&o)<<12|(63&u)<<6|63&f)>2047&&(l<55296||l>57343)&&(s=l);break;case 4:u=t[i+1],f=t[i+2],c=t[i+3],128==(192&u)&&128==(192&f)&&128==(192&c)&&(l=(15&o)<<18|(63&u)<<12|(63&f)<<6|63&c)>65535&&l<1114112&&(s=l)}}null===s?(s=65533,a=1):s>65535&&(s-=65536,n.push(s>>>10&1023|55296),s=56320|1023&s),n.push(s),i+=a}return R(n)}function R(t){var e=t.length;if(e<=J)return String.fromCharCode.apply(String,t);for(var r="",n=0;n<e;)r+=String.fromCharCode.apply(String,t.slice(n,n+=J));return r}function x(t,e,r){var n="";r=Math.min(t.length,r);for(var i=e;i<r;++i)n+=String.fromCharCode(127&t[i]);return n}function O(t,e,r){var n="";r=Math.min(t.length,r);for(var i=e;i<r;++i)n+=String.fromCharCode(t[i]);return n}function C(t,e,r){var n=t.length;(!e||e<0)&&(e=0),(!r||r<0||r>n)&&(r=n);for(var i="",o=e;o<r;++o)i+=z(t[o]);return i}function U(t,e,r){for(var n=t.slice(e,r),i="",o=0;o<n.length;o+=2)i+=String.fromCharCode(n[o]+256*n[o+1]);return i}function I(t,e,r){if(t%1!=0||t<0)throw new RangeError("offset is not uint");if(t+e>r)throw new RangeError("Trying to access beyond buffer length")}function N(t,e,r,n,i,s){if(!o.isBuffer(t))throw new TypeError('"buffer" argument must be a Buffer instance');if(e>i||e<s)throw new RangeError('"value" argument is out of bounds');if(r+n>t.length)throw new RangeError("Index out of range")}function M(t,e,r,n){e<0&&(e=65535+e+1);for(var i=0,o=Math.min(t.length-r,2);i<o;++i)t[r+i]=(e&255<<8*(n?i:1-i))>>>8*(n?i:1-i)}function D(t,e,r,n){e<0&&(e=4294967295+e+1);for(var i=0,o=Math.min(t.length-r,4);i<o;++i)t[r+i]=e>>>8*(n?i:3-i)&255}function L(t,e,r,n,i,o){if(r+n>t.length)throw new RangeError("Index out of range");if(r<0)throw new RangeError("Index out of range")}function Y(t,e,r,n,i){return i||L(t,e,r,4,3.4028234663852886e38,-3.4028234663852886e38),Z.write(t,e,r,n,23,4),r+4}function j(t,e,r,n,i){return i||L(t,e,r,8,1.7976931348623157e308,-1.7976931348623157e308),Z.write(t,e,r,n,52,8),r+8}function F(t){if(t=V(t).replace(tt,""),t.length<2)return"";for(;t.length%4!=0;)t+="=";return t}function V(t){return t.trim?t.trim():t.replace(/^\s+|\s+$/g,"")}function z(t){return t<16?"0"+t.toString(16):t.toString(16)}function $(t,e){e=e||1/0;for(var r,n=t.length,i=null,o=[],s=0;s<n;++s){if((r=t.charCodeAt(s))>55295&&r<57344){if(!i){if(r>56319){(e-=3)>-1&&o.push(239,191,189);continue}if(s+1===n){(e-=3)>-1&&o.push(239,191,189);continue}i=r;continue}if(r<56320){(e-=3)>-1&&o.push(239,191,189),i=r;continue}r=65536+(i-55296<<10|r-56320)}else i&&(e-=3)>-1&&o.push(239,191,189);if(i=null,r<128){if((e-=1)<0)break;o.push(r)}else if(r<2048){if((e-=2)<0)break;o.push(r>>6|192,63&r|128)}else if(r<65536){if((e-=3)<0)break;o.push(r>>12|224,r>>6&63|128,63&r|128)}else{if(!(r<1114112))throw new Error("Invalid code point");if((e-=4)<0)break;o.push(r>>18|240,r>>12&63|128,r>>6&63|128,63&r|128)}}return o}function G(t){for(var e=[],r=0;r<t.length;++r)e.push(255&t.charCodeAt(r));return e}function X(t,e){for(var r,n,i,o=[],s=0;s<t.length&&!((e-=2)<0);++s)r=t.charCodeAt(s),n=r>>8,i=r%256,o.push(i),o.push(n);return o}function H(t){return Q.toByteArray(F(t))}function W(t,e,r,n){for(var i=0;i<n&&!(i+r>=e.length||i>=t.length);++i)e[i+r]=t[i];return i}function q(t){return t!==t}/*!
+ * The buffer module from node.js, for the browser.
+ *
+ * @author   Feross Aboukhadijeh <feross@feross.org> <http://feross.org>
+ * @license  MIT
+ */
+var Q=r(8),Z=r(9),K=r(10);e.Buffer=o,e.SlowBuffer=g,e.INSPECT_MAX_BYTES=50,o.TYPED_ARRAY_SUPPORT=void 0!==t.TYPED_ARRAY_SUPPORT?t.TYPED_ARRAY_SUPPORT:function(){try{var t=new Uint8Array(1);return t.__proto__={__proto__:Uint8Array.prototype,foo:function(){return 42}},42===t.foo()&&"function"==typeof t.subarray&&0===t.subarray(1,1).byteLength}catch(t){return!1}}(),e.kMaxLength=n(),o.poolSize=8192,o._augment=function(t){return t.__proto__=o.prototype,t},o.from=function(t,e,r){return s(null,t,e,r)},o.TYPED_ARRAY_SUPPORT&&(o.prototype.__proto__=Uint8Array.prototype,o.__proto__=Uint8Array,"undefined"!=typeof Symbol&&Symbol.species&&o[Symbol.species]===o&&Object.defineProperty(o,Symbol.species,{value:null,configurable:!0})),o.alloc=function(t,e,r){return u(null,t,e,r)},o.allocUnsafe=function(t){return f(null,t)},o.allocUnsafeSlow=function(t){return f(null,t)},o.isBuffer=function(t){return!(null==t||!t._isBuffer)},o.compare=function(t,e){if(!o.isBuffer(t)||!o.isBuffer(e))throw new TypeError("Arguments must be Buffers");if(t===e)return 0;for(var r=t.length,n=e.length,i=0,s=Math.min(r,n);i<s;++i)if(t[i]!==e[i]){r=t[i],n=e[i];break}return r<n?-1:n<r?1:0},o.isEncoding=function(t){switch(String(t).toLowerCase()){case"hex":case"utf8":case"utf-8":case"ascii":case"latin1":case"binary":case"base64":case"ucs2":case"ucs-2":case"utf16le":case"utf-16le":return!0;default:return!1}},o.concat=function(t,e){if(!K(t))throw new TypeError('"list" argument must be an Array of Buffers');if(0===t.length)return o.alloc(0);var r;if(void 0===e)for(e=0,r=0;r<t.length;++r)e+=t[r].length;var n=o.allocUnsafe(e),i=0;for(r=0;r<t.length;++r){var s=t[r];if(!o.isBuffer(s))throw new TypeError('"list" argument must be an Array of Buffers');s.copy(n,i),i+=s.length}return n},o.byteLength=w,o.prototype._isBuffer=!0,o.prototype.swap16=function(){var t=this.length;if(t%2!=0)throw new RangeError("Buffer size must be a multiple of 16-bits");for(var e=0;e<t;e+=2)v(this,e,e+1);return this},o.prototype.swap32=function(){var t=this.length;if(t%4!=0)throw new RangeError("Buffer size must be a multiple of 32-bits");for(var e=0;e<t;e+=4)v(this,e,e+3),v(this,e+1,e+2);return this},o.prototype.swap64=function(){var t=this.length;if(t%8!=0)throw new RangeError("Buffer size must be a multiple of 64-bits");for(var e=0;e<t;e+=8)v(this,e,e+7),v(this,e+1,e+6),v(this,e+2,e+5),v(this,e+3,e+4);return this},o.prototype.toString=function(){var t=0|this.length;return 0===t?"":0===arguments.length?T(this,0,t):y.apply(this,arguments)},o.prototype.equals=function(t){if(!o.isBuffer(t))throw new TypeError("Argument must be a Buffer");return this===t||0===o.compare(this,t)},o.prototype.inspect=function(){var t="",r=e.INSPECT_MAX_BYTES;return this.length>0&&(t=this.toString("hex",0,r).match(/.{2}/g).join(" "),this.length>r&&(t+=" ... ")),"<Buffer "+t+">"},o.prototype.compare=function(t,e,r,n,i){if(!o.isBuffer(t))throw new TypeError("Argument must be a Buffer");if(void 0===e&&(e=0),void 0===r&&(r=t?t.length:0),void 0===n&&(n=0),void 0===i&&(i=this.length),e<0||r>t.length||n<0||i>this.length)throw new RangeError("out of range index");if(n>=i&&e>=r)return 0;if(n>=i)return-1;if(e>=r)return 1;if(e>>>=0,r>>>=0,n>>>=0,i>>>=0,this===t)return 0;for(var s=i-n,a=r-e,u=Math.min(s,a),f=this.slice(n,i),c=t.slice(e,r),l=0;l<u;++l)if(f[l]!==c[l]){s=f[l],a=c[l];break}return s<a?-1:a<s?1:0},o.prototype.includes=function(t,e,r){return-1!==this.indexOf(t,e,r)},o.prototype.indexOf=function(t,e,r){return m(this,t,e,r,!0)},o.prototype.lastIndexOf=function(t,e,r){return m(this,t,e,r,!1)},o.prototype.write=function(t,e,r,n){if(void 0===e)n="utf8",r=this.length,e=0;else if(void 0===r&&"string"==typeof e)n=e,r=this.length,e=0;else{if(!isFinite(e))throw new Error("Buffer.write(string, encoding, offset[, length]) is no longer supported");e|=0,isFinite(r)?(r|=0,void 0===n&&(n="utf8")):(n=r,r=void 0)}var i=this.length-e;if((void 0===r||r>i)&&(r=i),t.length>0&&(r<0||e<0)||e>this.length)throw new RangeError("Attempt to write outside buffer bounds");n||(n="utf8");for(var o=!1;;)switch(n){case"hex":return A(this,t,e,r);case"utf8":case"utf-8":return E(this,t,e,r);case"ascii":return _(this,t,e,r);case"latin1":case"binary":return S(this,t,e,r);case"base64":return k(this,t,e,r);case"ucs2":case"ucs-2":case"utf16le":case"utf-16le":return P(this,t,e,r);default:if(o)throw new TypeError("Unknown encoding: "+n);n=(""+n).toLowerCase(),o=!0}},o.prototype.toJSON=function(){return{type:"Buffer",data:Array.prototype.slice.call(this._arr||this,0)}};var J=4096;o.prototype.slice=function(t,e){var r=this.length;t=~~t,e=void 0===e?r:~~e,t<0?(t+=r)<0&&(t=0):t>r&&(t=r),e<0?(e+=r)<0&&(e=0):e>r&&(e=r),e<t&&(e=t);var n;if(o.TYPED_ARRAY_SUPPORT)n=this.subarray(t,e),n.__proto__=o.prototype;else{var i=e-t;n=new o(i,void 0);for(var s=0;s<i;++s)n[s]=this[s+t]}return n},o.prototype.readUIntLE=function(t,e,r){t|=0,e|=0,r||I(t,e,this.length);for(var n=this[t],i=1,o=0;++o<e&&(i*=256);)n+=this[t+o]*i;return n},o.prototype.readUIntBE=function(t,e,r){t|=0,e|=0,r||I(t,e,this.length);for(var n=this[t+--e],i=1;e>0&&(i*=256);)n+=this[t+--e]*i;return n},o.prototype.readUInt8=function(t,e){return e||I(t,1,this.length),this[t]},o.prototype.readUInt16LE=function(t,e){return e||I(t,2,this.length),this[t]|this[t+1]<<8},o.prototype.readUInt16BE=function(t,e){return e||I(t,2,this.length),this[t]<<8|this[t+1]},o.prototype.readUInt32LE=function(t,e){return e||I(t,4,this.length),(this[t]|this[t+1]<<8|this[t+2]<<16)+16777216*this[t+3]},o.prototype.readUInt32BE=function(t,e){return e||I(t,4,this.length),16777216*this[t]+(this[t+1]<<16|this[t+2]<<8|this[t+3])},o.prototype.readIntLE=function(t,e,r){t|=0,e|=0,r||I(t,e,this.length);for(var n=this[t],i=1,o=0;++o<e&&(i*=256);)n+=this[t+o]*i;return i*=128,n>=i&&(n-=Math.pow(2,8*e)),n},o.prototype.readIntBE=function(t,e,r){t|=0,e|=0,r||I(t,e,this.length);for(var n=e,i=1,o=this[t+--n];n>0&&(i*=256);)o+=this[t+--n]*i;return i*=128,o>=i&&(o-=Math.pow(2,8*e)),o},o.prototype.readInt8=function(t,e){return e||I(t,1,this.length),128&this[t]?-1*(255-this[t]+1):this[t]},o.prototype.readInt16LE=function(t,e){e||I(t,2,this.length);var r=this[t]|this[t+1]<<8;return 32768&r?4294901760|r:r},o.prototype.readInt16BE=function(t,e){e||I(t,2,this.length);var r=this[t+1]|this[t]<<8;return 32768&r?4294901760|r:r},o.prototype.readInt32LE=function(t,e){return e||I(t,4,this.length),this[t]|this[t+1]<<8|this[t+2]<<16|this[t+3]<<24},o.prototype.readInt32BE=function(t,e){return e||I(t,4,this.length),this[t]<<24|this[t+1]<<16|this[t+2]<<8|this[t+3]},o.prototype.readFloatLE=function(t,e){return e||I(t,4,this.length),Z.read(this,t,!0,23,4)},o.prototype.readFloatBE=function(t,e){return e||I(t,4,this.length),Z.read(this,t,!1,23,4)},o.prototype.readDoubleLE=function(t,e){return e||I(t,8,this.length),Z.read(this,t,!0,52,8)},o.prototype.readDoubleBE=function(t,e){return e||I(t,8,this.length),Z.read(this,t,!1,52,8)},o.prototype.writeUIntLE=function(t,e,r,n){if(t=+t,e|=0,r|=0,!n){N(this,t,e,r,Math.pow(2,8*r)-1,0)}var i=1,o=0;for(this[e]=255&t;++o<r&&(i*=256);)this[e+o]=t/i&255;return e+r},o.prototype.writeUIntBE=function(t,e,r,n){if(t=+t,e|=0,r|=0,!n){N(this,t,e,r,Math.pow(2,8*r)-1,0)}var i=r-1,o=1;for(this[e+i]=255&t;--i>=0&&(o*=256);)this[e+i]=t/o&255;return e+r},o.prototype.writeUInt8=function(t,e,r){return t=+t,e|=0,r||N(this,t,e,1,255,0),o.TYPED_ARRAY_SUPPORT||(t=Math.floor(t)),this[e]=255&t,e+1},o.prototype.writeUInt16LE=function(t,e,r){return t=+t,e|=0,r||N(this,t,e,2,65535,0),o.TYPED_ARRAY_SUPPORT?(this[e]=255&t,this[e+1]=t>>>8):M(this,t,e,!0),e+2},o.prototype.writeUInt16BE=function(t,e,r){return t=+t,e|=0,r||N(this,t,e,2,65535,0),o.TYPED_ARRAY_SUPPORT?(this[e]=t>>>8,this[e+1]=255&t):M(this,t,e,!1),e+2},o.prototype.writeUInt32LE=function(t,e,r){return t=+t,e|=0,r||N(this,t,e,4,4294967295,0),o.TYPED_ARRAY_SUPPORT?(this[e+3]=t>>>24,this[e+2]=t>>>16,this[e+1]=t>>>8,this[e]=255&t):D(this,t,e,!0),e+4},o.prototype.writeUInt32BE=function(t,e,r){return t=+t,e|=0,r||N(this,t,e,4,4294967295,0),o.TYPED_ARRAY_SUPPORT?(this[e]=t>>>24,this[e+1]=t>>>16,this[e+2]=t>>>8,this[e+3]=255&t):D(this,t,e,!1),e+4},o.prototype.writeIntLE=function(t,e,r,n){if(t=+t,e|=0,!n){var i=Math.pow(2,8*r-1);N(this,t,e,r,i-1,-i)}var o=0,s=1,a=0;for(this[e]=255&t;++o<r&&(s*=256);)t<0&&0===a&&0!==this[e+o-1]&&(a=1),this[e+o]=(t/s>>0)-a&255;return e+r},o.prototype.writeIntBE=function(t,e,r,n){if(t=+t,e|=0,!n){var i=Math.pow(2,8*r-1);N(this,t,e,r,i-1,-i)}var o=r-1,s=1,a=0;for(this[e+o]=255&t;--o>=0&&(s*=256);)t<0&&0===a&&0!==this[e+o+1]&&(a=1),this[e+o]=(t/s>>0)-a&255;return e+r},o.prototype.writeInt8=function(t,e,r){return t=+t,e|=0,r||N(this,t,e,1,127,-128),o.TYPED_ARRAY_SUPPORT||(t=Math.floor(t)),t<0&&(t=255+t+1),this[e]=255&t,e+1},o.prototype.writeInt16LE=function(t,e,r){return t=+t,e|=0,r||N(this,t,e,2,32767,-32768),o.TYPED_ARRAY_SUPPORT?(this[e]=255&t,this[e+1]=t>>>8):M(this,t,e,!0),e+2},o.prototype.writeInt16BE=function(t,e,r){return t=+t,e|=0,r||N(this,t,e,2,32767,-32768),o.TYPED_ARRAY_SUPPORT?(this[e]=t>>>8,this[e+1]=255&t):M(this,t,e,!1),e+2},o.prototype.writeInt32LE=function(t,e,r){return t=+t,e|=0,r||N(this,t,e,4,2147483647,-2147483648),o.TYPED_ARRAY_SUPPORT?(this[e]=255&t,this[e+1]=t>>>8,this[e+2]=t>>>16,this[e+3]=t>>>24):D(this,t,e,!0),e+4},o.prototype.writeInt32BE=function(t,e,r){return t=+t,e|=0,r||N(this,t,e,4,2147483647,-2147483648),t<0&&(t=4294967295+t+1),o.TYPED_ARRAY_SUPPORT?(this[e]=t>>>24,this[e+1]=t>>>16,this[e+2]=t>>>8,this[e+3]=255&t):D(this,t,e,!1),e+4},o.prototype.writeFloatLE=function(t,e,r){return Y(this,t,e,!0,r)},o.prototype.writeFloatBE=function(t,e,r){return Y(this,t,e,!1,r)},o.prototype.writeDoubleLE=function(t,e,r){return j(this,t,e,!0,r)},o.prototype.writeDoubleBE=function(t,e,r){return j(this,t,e,!1,r)},o.prototype.copy=function(t,e,r,n){if(r||(r=0),n||0===n||(n=this.length),e>=t.length&&(e=t.length),e||(e=0),n>0&&n<r&&(n=r),n===r)return 0;if(0===t.length||0===this.length)return 0;if(e<0)throw new RangeError("targetStart out of bounds");if(r<0||r>=this.length)throw new RangeError("sourceStart out of bounds");if(n<0)throw new RangeError("sourceEnd out of bounds");n>this.length&&(n=this.length),t.length-e<n-r&&(n=t.length-e+r);var i,s=n-r;if(this===t&&r<e&&e<n)for(i=s-1;i>=0;--i)t[i+e]=this[i+r];else if(s<1e3||!o.TYPED_ARRAY_SUPPORT)for(i=0;i<s;++i)t[i+e]=this[i+r];else Uint8Array.prototype.set.call(t,this.subarray(r,r+s),e);return s},o.prototype.fill=function(t,e,r,n){if("string"==typeof t){if("string"==typeof e?(n=e,e=0,r=this.length):"string"==typeof r&&(n=r,r=this.length),1===t.length){var i=t.charCodeAt(0);i<256&&(t=i)}if(void 0!==n&&"string"!=typeof n)throw new TypeError("encoding must be a string");if("string"==typeof n&&!o.isEncoding(n))throw new TypeError("Unknown encoding: "+n)}else"number"==typeof t&&(t&=255);if(e<0||this.length<e||this.length<r)throw new RangeError("Out of range index");if(r<=e)return this;e>>>=0,r=void 0===r?this.length:r>>>0,t||(t=0);var s;if("number"==typeof t)for(s=e;s<r;++s)this[s]=t;else{var a=o.isBuffer(t)?t:$(new o(t,n).toString()),u=a.length;for(s=0;s<r-e;++s)this[s+e]=a[s%u]}return this};var tt=/[^+\/0-9A-Za-z-_]/g}).call(e,r(1))},function(t,e){var r;r=function(){return this}();try{r=r||Function("return this")()||(0,eval)("this")}catch(t){"object"==typeof window&&(r=window)}t.exports=r},function(t,e,r){var n,i=i||function(t){"use strict";if(!(void 0===t||"undefined"!=typeof navigator&&/MSIE [1-9]\./.test(navigator.userAgent))){var e=t.document,r=function(){return t.URL||t.webkitURL||t},n=e.createElementNS("http://www.w3.org/1999/xhtml","a"),i="download"in n,o=function(t){var e=new MouseEvent("click");t.dispatchEvent(e)},s=/constructor/i.test(t.HTMLElement)||t.safari,a=/CriOS\/[\d]+/.test(navigator.userAgent),u=function(e){(t.setImmediate||t.setTimeout)(function(){throw e},0)},f=function(t){var e=function(){"string"==typeof t?r().revokeObjectURL(t):t.remove()};setTimeout(e,4e4)},c=function(t,e,r){e=[].concat(e);for(var n=e.length;n--;){var i=t["on"+e[n]];if("function"==typeof i)try{i.call(t,r||t)}catch(t){u(t)}}},l=function(t){return/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(t.type)?new Blob([String.fromCharCode(65279),t],{type:t.type}):t},d=function(e,u,d){d||(e=l(e));var h,p=this,g=e.type,w="application/octet-stream"===g,y=function(){c(p,"writestart progress write writeend".split(" "))};if(p.readyState=p.INIT,console.log("save_link",n),i)return h=r().createObjectURL(e),void setTimeout(function(){n.href=h,n.download=u,o(n),y(),f(h),p.readyState=p.DONE});!function(){if((a||w&&s)&&t.FileReader){var n=new FileReader;return n.onloadend=function(){var e=a?n.result:n.result.replace(/^data:[^;]*;/,"data:attachment/file;");t.open(e,"_blank")||(t.location.href=e),e=void 0,p.readyState=p.DONE,y()},n.readAsDataURL(e),void(p.readyState=p.INIT)}if(h||(h=r().createObjectURL(e)),w)t.location.href=h;else{t.open(h,"_blank")||(console.log("### 4"),t.location.href=h)}p.readyState=p.DONE,y(),f(h)}()},h=d.prototype,p=function(t,e,r){return new d(t,e||t.name||"download",r)};return"undefined"!=typeof navigator&&navigator.msSaveOrOpenBlob?(console.log("IE 10+ (native saveAs)"),function(t,e,r){return e=e||t.name||"download",r||(t=l(t)),navigator.msSaveOrOpenBlob(t,e)}):(h.abort=function(){},h.readyState=h.INIT=0,h.WRITING=1,h.DONE=2,h.error=h.onwritestart=h.onprogress=h.onwrite=h.onabort=h.onerror=h.onwriteend=null,p)}}("undefined"!=typeof self&&self||"undefined"!=typeof window&&window||this.content);void 0!==t&&t.exports?t.exports.saveAs=i:null!==r(11)&&null!==r(3)&&void 0!==(n=function(){return i}.call(e,r,e,t))&&(t.exports=n)},function(t,e){(function(e){t.exports=e}).call(e,{})},function(t,e,r){t.exports=r(14).default,t.exports.default=t.exports},function(t,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(t){return{_VPN_SERVER_:t.server,_VPN_NAME_:t.name,_VPN_USER_:t.user,_VPN_PASS_:t.pass,_VPN_PSK_:Base64.encode(t.psk)}}},function(t,e,r){"use strict";function n(t){return t&&t.__esModule?t:{default:t}}r(7);var i=r(2),o=(n(i),r(12)),s=n(o),a=r(13),u=n(a),f=r(17),c=n(f),l=r(18),d=n(l),h=r(19),p=(n(h),r(20)),g=n(p),w=r(21),y=n(w),v=r(22),m=n(v),b=r(23),A=n(b);r(24);var E=(0,u.default)(),_=(0,s.default)(navigator.userAgent),S={MacOS:"MacOS",Windows:"Windows",iOS:"iOS",Android:"Android",Chromebook:"Chromebook",Others:"Others"};$(document).ready(function(){E?((0,A.default)(E),(0,g.default)(E),(0,d.default)(),(0,c.default)(S,_),(0,m.default)(E,_)):(0,y.default)()})},function(t,e){},function(t,e,r){"use strict";function n(t){var e=t.length;if(e%4>0)throw new Error("Invalid string. Length must be a multiple of 4");return"="===t[e-2]?2:"="===t[e-1]?1:0}function i(t){return 3*t.length/4-n(t)}function o(t){var e,r,i,o,s,a=t.length;o=n(t),s=new l(3*a/4-o),r=o>0?a-4:a;var u=0;for(e=0;e<r;e+=4)i=c[t.charCodeAt(e)]<<18|c[t.charCodeAt(e+1)]<<12|c[t.charCodeAt(e+2)]<<6|c[t.charCodeAt(e+3)],s[u++]=i>>16&255,s[u++]=i>>8&255,s[u++]=255&i;return 2===o?(i=c[t.charCodeAt(e)]<<2|c[t.charCodeAt(e+1)]>>4,s[u++]=255&i):1===o&&(i=c[t.charCodeAt(e)]<<10|c[t.charCodeAt(e+1)]<<4|c[t.charCodeAt(e+2)]>>2,s[u++]=i>>8&255,s[u++]=255&i),s}function s(t){return f[t>>18&63]+f[t>>12&63]+f[t>>6&63]+f[63&t]}function a(t,e,r){for(var n,i=[],o=e;o<r;o+=3)n=(t[o]<<16)+(t[o+1]<<8)+t[o+2],i.push(s(n));return i.join("")}function u(t){for(var e,r=t.length,n=r%3,i="",o=[],s=0,u=r-n;s<u;s+=16383)o.push(a(t,s,s+16383>u?u:s+16383));return 1===n?(e=t[r-1],i+=f[e>>2],i+=f[e<<4&63],i+="=="):2===n&&(e=(t[r-2]<<8)+t[r-1],i+=f[e>>10],i+=f[e>>4&63],i+=f[e<<2&63],i+="="),o.push(i),o.join("")}e.byteLength=i,e.toByteArray=o,e.fromByteArray=u;for(var f=[],c=[],l="undefined"!=typeof Uint8Array?Uint8Array:Array,d="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",h=0,p=d.length;h<p;++h)f[h]=d[h],c[d.charCodeAt(h)]=h;c["-".charCodeAt(0)]=62,c["_".charCodeAt(0)]=63},function(t,e){e.read=function(t,e,r,n,i){var o,s,a=8*i-n-1,u=(1<<a)-1,f=u>>1,c=-7,l=r?i-1:0,d=r?-1:1,h=t[e+l];for(l+=d,o=h&(1<<-c)-1,h>>=-c,c+=a;c>0;o=256*o+t[e+l],l+=d,c-=8);for(s=o&(1<<-c)-1,o>>=-c,c+=n;c>0;s=256*s+t[e+l],l+=d,c-=8);if(0===o)o=1-f;else{if(o===u)return s?NaN:1/0*(h?-1:1);s+=Math.pow(2,n),o-=f}return(h?-1:1)*s*Math.pow(2,o-n)},e.write=function(t,e,r,n,i,o){var s,a,u,f=8*o-i-1,c=(1<<f)-1,l=c>>1,d=23===i?Math.pow(2,-24)-Math.pow(2,-77):0,h=n?0:o-1,p=n?1:-1,g=e<0||0===e&&1/e<0?1:0;for(e=Math.abs(e),isNaN(e)||e===1/0?(a=isNaN(e)?1:0,s=c):(s=Math.floor(Math.log(e)/Math.LN2),e*(u=Math.pow(2,-s))<1&&(s--,u*=2),e+=s+l>=1?d/u:d*Math.pow(2,1-l),e*u>=2&&(s++,u/=2),s+l>=c?(a=0,s=c):s+l>=1?(a=(e*u-1)*Math.pow(2,i),s+=l):(a=e*Math.pow(2,l-1)*Math.pow(2,i),s=0));i>=8;t[r+h]=255&a,h+=p,a/=256,i-=8);for(s=s<<i|a,f+=i;f>0;t[r+h]=255&s,h+=p,s/=256,f-=8);t[r+h-p]|=128*g}},function(t,e){var r={}.toString;t.exports=Array.isArray||function(t){return"[object Array]"==r.call(t)}},function(t,e){t.exports=function(){throw new Error("define cannot be used indirect")}},function(t,e,r){var n;!function(i,o){"use strict";var s="model",a="name",u="type",f="vendor",c="version",l="mobile",d="tablet",h={extend:function(t,e){var r={};for(var n in t)e[n]&&e[n].length%2==0?r[n]=e[n].concat(t[n]):r[n]=t[n];return r},has:function(t,e){return"string"==typeof t&&-1!==e.toLowerCase().indexOf(t.toLowerCase())},lowerize:function(t){return t.toLowerCase()},major:function(t){return"string"==typeof t?t.replace(/[^\d\.]/g,"").split(".")[0]:void 0},trim:function(t){return t.replace(/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,"")}},p={rgx:function(t,e){for(var r,n,i,o,s,a,u=0;u<e.length&&!s;){var f=e[u],c=e[u+1];for(r=n=0;r<f.length&&!s;)if(s=f[r++].exec(t))for(i=0;i<c.length;i++)a=s[++n],o=c[i],"object"==typeof o&&o.length>0?2==o.length?"function"==typeof o[1]?this[o[0]]=o[1].call(this,a):this[o[0]]=o[1]:3==o.length?"function"!=typeof o[1]||o[1].exec&&o[1].test?this[o[0]]=a?a.replace(o[1],o[2]):void 0:this[o[0]]=a?o[1].call(this,a,o[2]):void 0:4==o.length&&(this[o[0]]=a?o[3].call(this,a.replace(o[1],o[2])):void 0):this[o]=a||void 0;u+=2}},str:function(t,e){for(var r in e)if("object"==typeof e[r]&&e[r].length>0){for(var n=0;n<e[r].length;n++)if(h.has(e[r][n],t))return"?"===r?void 0:r}else if(h.has(e[r],t))return"?"===r?void 0:r;return t}},g={browser:{oldsafari:{version:{"1.0":"/8",1.2:"/1",1.3:"/3","2.0":"/412","2.0.2":"/416","2.0.3":"/417","2.0.4":"/419","?":"/"}}},device:{amazon:{model:{"Fire Phone":["SD","KF"]}},sprint:{model:{"Evo Shift 4G":"7373KT"},vendor:{HTC:"APA",Sprint:"Sprint"}}},os:{windows:{version:{ME:"4.90","NT 3.11":"NT3.51","NT 4.0":"NT4.0",2000:"NT 5.0",XP:["NT 5.1","NT 5.2"],Vista:"NT 6.0",7:"NT 6.1",8:"NT 6.2",8.1:"NT 6.3",10:["NT 6.4","NT 10.0"],RT:"ARM"}}}},w={browser:[[/(opera\smini)\/([\w\.-]+)/i,/(opera\s[mobiletab]+).+version\/([\w\.-]+)/i,/(opera).+version\/([\w\.]+)/i,/(opera)[\/\s]+([\w\.]+)/i],[a,c],[/(opios)[\/\s]+([\w\.]+)/i],[[a,"Opera Mini"],c],[/\s(opr)\/([\w\.]+)/i],[[a,"Opera"],c],[/(kindle)\/([\w\.]+)/i,/(lunascape|maxthon|netfront|jasmine|blazer)[\/\s]?([\w\.]+)*/i,/(avant\s|iemobile|slim|baidu)(?:browser)?[\/\s]?([\w\.]*)/i,/(?:ms|\()(ie)\s([\w\.]+)/i,/(rekonq)\/([\w\.]+)*/i,/(chromium|flock|rockmelt|midori|epiphany|silk|skyfire|ovibrowser|bolt|iron|vivaldi|iridium|phantomjs|bowser)\/([\w\.-]+)/i],[a,c],[/(trident).+rv[:\s]([\w\.]+).+like\sgecko/i],[[a,"IE"],c],[/(edge)\/((\d+)?[\w\.]+)/i],[a,c],[/(yabrowser)\/([\w\.]+)/i],[[a,"Yandex"],c],[/(puffin)\/([\w\.]+)/i],[[a,"Puffin"],c],[/((?:[\s\/])uc?\s?browser|(?:juc.+)ucweb)[\/\s]?([\w\.]+)/i],[[a,"UCBrowser"],c],[/(comodo_dragon)\/([\w\.]+)/i],[[a,/_/g," "],c],[/(micromessenger)\/([\w\.]+)/i],[[a,"WeChat"],c],[/(QQ)\/([\d\.]+)/i],[a,c],[/m?(qqbrowser)[\/\s]?([\w\.]+)/i],[a,c],[/xiaomi\/miuibrowser\/([\w\.]+)/i],[c,[a,"MIUI Browser"]],[/;fbav\/([\w\.]+);/i],[c,[a,"Facebook"]],[/headlesschrome(?:\/([\w\.]+)|\s)/i],[c,[a,"Chrome Headless"]],[/\swv\).+(chrome)\/([\w\.]+)/i],[[a,/(.+)/,"$1 WebView"],c],[/((?:oculus|samsung)browser)\/([\w\.]+)/i],[[a,/(.+(?:g|us))(.+)/,"$1 $2"],c],[/android.+version\/([\w\.]+)\s+(?:mobile\s?safari|safari)*/i],[c,[a,"Android Browser"]],[/(chrome|omniweb|arora|[tizenoka]{5}\s?browser)\/v?([\w\.]+)/i],[a,c],[/(dolfin)\/([\w\.]+)/i],[[a,"Dolphin"],c],[/((?:android.+)crmo|crios)\/([\w\.]+)/i],[[a,"Chrome"],c],[/(coast)\/([\w\.]+)/i],[[a,"Opera Coast"],c],[/fxios\/([\w\.-]+)/i],[c,[a,"Firefox"]],[/version\/([\w\.]+).+?mobile\/\w+\s(safari)/i],[c,[a,"Mobile Safari"]],[/version\/([\w\.]+).+?(mobile\s?safari|safari)/i],[c,a],[/webkit.+?(gsa)\/([\w\.]+).+?(mobile\s?safari|safari)(\/[\w\.]+)/i],[[a,"GSA"],c],[/webkit.+?(mobile\s?safari|safari)(\/[\w\.]+)/i],[a,[c,p.str,g.browser.oldsafari.version]],[/(konqueror)\/([\w\.]+)/i,/(webkit|khtml)\/([\w\.]+)/i],[a,c],[/(navigator|netscape)\/([\w\.-]+)/i],[[a,"Netscape"],c],[/(swiftfox)/i,/(icedragon|iceweasel|camino|chimera|fennec|maemo\sbrowser|minimo|conkeror)[\/\s]?([\w\.\+]+)/i,/(firefox|seamonkey|k-meleon|icecat|iceape|firebird|phoenix)\/([\w\.-]+)/i,/(mozilla)\/([\w\.]+).+rv\:.+gecko\/\d+/i,/(polaris|lynx|dillo|icab|doris|amaya|w3m|netsurf|sleipnir)[\/\s]?([\w\.]+)/i,/(links)\s\(([\w\.]+)/i,/(gobrowser)\/?([\w\.]+)*/i,/(ice\s?browser)\/v?([\w\._]+)/i,/(mosaic)[\/\s]([\w\.]+)/i],[a,c]],cpu:[[/(?:(amd|x(?:(?:86|64)[_-])?|wow|win)64)[;\)]/i],[["architecture","amd64"]],[/(ia32(?=;))/i],[["architecture",h.lowerize]],[/((?:i[346]|x)86)[;\)]/i],[["architecture","ia32"]],[/windows\s(ce|mobile);\sppc;/i],[["architecture","arm"]],[/((?:ppc|powerpc)(?:64)?)(?:\smac|;|\))/i],[["architecture",/ower/,"",h.lowerize]],[/(sun4\w)[;\)]/i],[["architecture","sparc"]],[/((?:avr32|ia64(?=;))|68k(?=\))|arm(?:64|(?=v\d+;))|(?=atmel\s)avr|(?:irix|mips|sparc)(?:64)?(?=;)|pa-risc)/i],[["architecture",h.lowerize]]],device:[[/\((ipad|playbook);[\w\s\);-]+(rim|apple)/i],[s,f,[u,d]],[/applecoremedia\/[\w\.]+ \((ipad)/],[s,[f,"Apple"],[u,d]],[/(apple\s{0,1}tv)/i],[[s,"Apple TV"],[f,"Apple"]],[/(archos)\s(gamepad2?)/i,/(hp).+(touchpad)/i,/(hp).+(tablet)/i,/(kindle)\/([\w\.]+)/i,/\s(nook)[\w\s]+build\/(\w+)/i,/(dell)\s(strea[kpr\s\d]*[\dko])/i],[f,s,[u,d]],[/(kf[A-z]+)\sbuild\/[\w\.]+.*silk\//i],[s,[f,"Amazon"],[u,d]],[/(sd|kf)[0349hijorstuw]+\sbuild\/[\w\.]+.*silk\//i],[[s,p.str,g.device.amazon.model],[f,"Amazon"],[u,l]],[/\((ip[honed|\s\w*]+);.+(apple)/i],[s,f,[u,l]],[/\((ip[honed|\s\w*]+);/i],[s,[f,"Apple"],[u,l]],[/(blackberry)[\s-]?(\w+)/i,/(blackberry|benq|palm(?=\-)|sonyericsson|acer|asus|dell|meizu|motorola|polytron)[\s_-]?([\w-]+)*/i,/(hp)\s([\w\s]+\w)/i,/(asus)-?(\w+)/i],[f,s,[u,l]],[/\(bb10;\s(\w+)/i],[s,[f,"BlackBerry"],[u,l]],[/android.+(transfo[prime\s]{4,10}\s\w+|eeepc|slider\s\w+|nexus 7|padfone)/i],[s,[f,"Asus"],[u,d]],[/(sony)\s(tablet\s[ps])\sbuild\//i,/(sony)?(?:sgp.+)\sbuild\//i],[[f,"Sony"],[s,"Xperia Tablet"],[u,d]],[/android.+\s([c-g]\d{4}|so[-l]\w+)\sbuild\//i],[s,[f,"Sony"],[u,l]],[/\s(ouya)\s/i,/(nintendo)\s([wids3u]+)/i],[f,s,[u,"console"]],[/android.+;\s(shield)\sbuild/i],[s,[f,"Nvidia"],[u,"console"]],[/(playstation\s[34portablevi]+)/i],[s,[f,"Sony"],[u,"console"]],[/(sprint\s(\w+))/i],[[f,p.str,g.device.sprint.vendor],[s,p.str,g.device.sprint.model],[u,l]],[/(lenovo)\s?(S(?:5000|6000)+(?:[-][\w+]))/i],[f,s,[u,d]],[/(htc)[;_\s-]+([\w\s]+(?=\))|\w+)*/i,/(zte)-(\w+)*/i,/(alcatel|geeksphone|lenovo|nexian|panasonic|(?=;\s)sony)[_\s-]?([\w-]+)*/i],[f,[s,/_/g," "],[u,l]],[/(nexus\s9)/i],[s,[f,"HTC"],[u,d]],[/d\/huawei([\w\s-]+)[;\)]/i,/(nexus\s6p)/i],[s,[f,"Huawei"],[u,l]],[/(microsoft);\s(lumia[\s\w]+)/i],[f,s,[u,l]],[/[\s\(;](xbox(?:\sone)?)[\s\);]/i],[s,[f,"Microsoft"],[u,"console"]],[/(kin\.[onetw]{3})/i],[[s,/\./g," "],[f,"Microsoft"],[u,l]],[/\s(milestone|droid(?:[2-4x]|\s(?:bionic|x2|pro|razr))?(:?\s4g)?)[\w\s]+build\//i,/mot[\s-]?(\w+)*/i,/(XT\d{3,4}) build\//i,/(nexus\s6)/i],[s,[f,"Motorola"],[u,l]],[/android.+\s(mz60\d|xoom[\s2]{0,2})\sbuild\//i],[s,[f,"Motorola"],[u,d]],[/hbbtv\/\d+\.\d+\.\d+\s+\([\w\s]*;\s*(\w[^;]*);([^;]*)/i],[[f,h.trim],[s,h.trim],[u,"smarttv"]],[/hbbtv.+maple;(\d+)/i],[[s,/^/,"SmartTV"],[f,"Samsung"],[u,"smarttv"]],[/\(dtv[\);].+(aquos)/i],[s,[f,"Sharp"],[u,"smarttv"]],[/android.+((sch-i[89]0\d|shw-m380s|gt-p\d{4}|gt-n\d+|sgh-t8[56]9|nexus 10))/i,/((SM-T\w+))/i],[[f,"Samsung"],s,[u,d]],[/smart-tv.+(samsung)/i],[f,[u,"smarttv"],s],[/((s[cgp]h-\w+|gt-\w+|galaxy\snexus|sm-\w[\w\d]+))/i,/(sam[sung]*)[\s-]*(\w+-?[\w-]*)*/i,/sec-((sgh\w+))/i],[[f,"Samsung"],s,[u,l]],[/sie-(\w+)*/i],[s,[f,"Siemens"],[u,l]],[/(maemo|nokia).*(n900|lumia\s\d+)/i,/(nokia)[\s_-]?([\w-]+)*/i],[[f,"Nokia"],s,[u,l]],[/android\s3\.[\s\w;-]{10}(a\d{3})/i],[s,[f,"Acer"],[u,d]],[/android.+([vl]k\-?\d{3})\s+build/i],[s,[f,"LG"],[u,d]],[/android\s3\.[\s\w;-]{10}(lg?)-([06cv9]{3,4})/i],[[f,"LG"],s,[u,d]],[/(lg) netcast\.tv/i],[f,s,[u,"smarttv"]],[/(nexus\s[45])/i,/lg[e;\s\/-]+(\w+)*/i,/android.+lg(\-?[\d\w]+)\s+build/i],[s,[f,"LG"],[u,l]],[/android.+(ideatab[a-z0-9\-\s]+)/i],[s,[f,"Lenovo"],[u,d]],[/linux;.+((jolla));/i],[f,s,[u,l]],[/((pebble))app\/[\d\.]+\s/i],[f,s,[u,"wearable"]],[/android.+;\s(oppo)\s?([\w\s]+)\sbuild/i],[f,s,[u,l]],[/crkey/i],[[s,"Chromecast"],[f,"Google"]],[/android.+;\s(glass)\s\d/i],[s,[f,"Google"],[u,"wearable"]],[/android.+;\s(pixel c)\s/i],[s,[f,"Google"],[u,d]],[/android.+;\s(pixel xl|pixel)\s/i],[s,[f,"Google"],[u,l]],[/android.+(\w+)\s+build\/hm\1/i,/android.+(hm[\s\-_]*note?[\s_]*(?:\d\w)?)\s+build/i,/android.+(mi[\s\-_]*(?:one|one[\s_]plus|note lte)?[\s_]*(?:\d\w)?)\s+build/i,/android.+(redmi[\s\-_]*(?:note)?(?:[\s_]*[\w\s]+)?)\s+build/i],[[s,/_/g," "],[f,"Xiaomi"],[u,l]],[/android.+(mi[\s\-_]*(?:pad)?(?:[\s_]*[\w\s]+)?)\s+build/i],[[s,/_/g," "],[f,"Xiaomi"],[u,d]],[/android.+;\s(m[1-5]\snote)\sbuild/i],[s,[f,"Meizu"],[u,d]],[/android.+a000(1)\s+build/i],[s,[f,"OnePlus"],[u,l]],[/android.+[;\/]\s*(RCT[\d\w]+)\s+build/i],[s,[f,"RCA"],[u,d]],[/android.+[;\/]\s*(Venue[\d\s]*)\s+build/i],[s,[f,"Dell"],[u,d]],[/android.+[;\/]\s*(Q[T|M][\d\w]+)\s+build/i],[s,[f,"Verizon"],[u,d]],[/android.+[;\/]\s+(Barnes[&\s]+Noble\s+|BN[RT])(V?.*)\s+build/i],[[f,"Barnes & Noble"],s,[u,d]],[/android.+[;\/]\s+(TM\d{3}.*\b)\s+build/i],[s,[f,"NuVision"],[u,d]],[/android.+[;\/]\s*(zte)?.+(k\d{2})\s+build/i],[[f,"ZTE"],s,[u,d]],[/android.+[;\/]\s*(gen\d{3})\s+build.*49h/i],[s,[f,"Swiss"],[u,l]],[/android.+[;\/]\s*(zur\d{3})\s+build/i],[s,[f,"Swiss"],[u,d]],[/android.+[;\/]\s*((Zeki)?TB.*\b)\s+build/i],[s,[f,"Zeki"],[u,d]],[/(android).+[;\/]\s+([YR]\d{2}x?.*)\s+build/i,/android.+[;\/]\s+(Dragon[\-\s]+Touch\s+|DT)(.+)\s+build/i],[[f,"Dragon Touch"],s,[u,d]],[/android.+[;\/]\s*(NS-?.+)\s+build/i],[s,[f,"Insignia"],[u,d]],[/android.+[;\/]\s*((NX|Next)-?.+)\s+build/i],[s,[f,"NextBook"],[u,d]],[/android.+[;\/]\s*(Xtreme\_?)?(V(1[045]|2[015]|30|40|60|7[05]|90))\s+build/i],[[f,"Voice"],s,[u,l]],[/android.+[;\/]\s*(LVTEL\-?)?(V1[12])\s+build/i],[[f,"LvTel"],s,[u,l]],[/android.+[;\/]\s*(V(100MD|700NA|7011|917G).*\b)\s+build/i],[s,[f,"Envizen"],[u,d]],[/android.+[;\/]\s*(Le[\s\-]+Pan)[\s\-]+(.*\b)\s+build/i],[f,s,[u,d]],[/android.+[;\/]\s*(Trio[\s\-]*.*)\s+build/i],[s,[f,"MachSpeed"],[u,d]],[/android.+[;\/]\s*(Trinity)[\-\s]*(T\d{3})\s+build/i],[f,s,[u,d]],[/android.+[;\/]\s*TU_(1491)\s+build/i],[s,[f,"Rotor"],[u,d]],[/android.+(KS(.+))\s+build/i],[s,[f,"Amazon"],[u,d]],[/android.+(Gigaset)[\s\-]+(Q.+)\s+build/i],[f,s,[u,d]],[/\s(tablet|tab)[;\/]/i,/\s(mobile)(?:[;\/]|\ssafari)/i],[[u,h.lowerize],f,s],[/(android.+)[;\/].+build/i],[s,[f,"Generic"]]],engine:[[/windows.+\sedge\/([\w\.]+)/i],[c,[a,"EdgeHTML"]],[/(presto)\/([\w\.]+)/i,/(webkit|trident|netfront|netsurf|amaya|lynx|w3m)\/([\w\.]+)/i,/(khtml|tasman|links)[\/\s]\(?([\w\.]+)/i,/(icab)[\/\s]([23]\.[\d\.]+)/i],[a,c],[/rv\:([\w\.]+).*(gecko)/i],[c,a]],os:[[/microsoft\s(windows)\s(vista|xp)/i],[a,c],[/(windows)\snt\s6\.2;\s(arm)/i,/(windows\sphone(?:\sos)*)[\s\/]?([\d\.\s]+\w)*/i,/(windows\smobile|windows)[\s\/]?([ntce\d\.\s]+\w)/i],[a,[c,p.str,g.os.windows.version]],[/(win(?=3|9|n)|win\s9x\s)([nt\d\.]+)/i],[[a,"Windows"],[c,p.str,g.os.windows.version]],[/\((bb)(10);/i],[[a,"BlackBerry"],c],[/(blackberry)\w*\/?([\w\.]+)*/i,/(tizen)[\/\s]([\w\.]+)/i,/(android|webos|palm\sos|qnx|bada|rim\stablet\sos|meego|contiki)[\/\s-]?([\w\.]+)*/i,/linux;.+(sailfish);/i],[a,c],[/(symbian\s?os|symbos|s60(?=;))[\/\s-]?([\w\.]+)*/i],[[a,"Symbian"],c],[/\((series40);/i],[a],[/mozilla.+\(mobile;.+gecko.+firefox/i],[[a,"Firefox OS"],c],[/(nintendo|playstation)\s([wids34portablevu]+)/i,/(mint)[\/\s\(]?(\w+)*/i,/(mageia|vectorlinux)[;\s]/i,/(joli|[kxln]?ubuntu|debian|[open]*suse|gentoo|(?=\s)arch|slackware|fedora|mandriva|centos|pclinuxos|redhat|zenwalk|linpus)[\/\s-]?(?!chrom)([\w\.-]+)*/i,/(hurd|linux)\s?([\w\.]+)*/i,/(gnu)\s?([\w\.]+)*/i],[a,c],[/(cros)\s[\w]+\s([\w\.]+\w)/i],[[a,"Chromium OS"],c],[/(sunos)\s?([\w\.]+\d)*/i],[[a,"Solaris"],c],[/\s([frentopc-]{0,4}bsd|dragonfly)\s?([\w\.]+)*/i],[a,c],[/(haiku)\s(\w+)/i],[a,c],[/cfnetwork\/.+darwin/i,/ip[honead]+(?:.*os\s([\w]+)\slike\smac|;\sopera)/i],[[c,/_/g,"."],[a,"iOS"]],[/(mac\sos\sx)\s?([\w\s\.]+\w)*/i,/(macintosh|mac(?=_powerpc)\s)/i],[[a,"Mac OS"],[c,/_/g,"."]],[/((?:open)?solaris)[\/\s-]?([\w\.]+)*/i,/(aix)\s((\d)(?=\.|\)|\s)[\w\.]*)*/i,/(plan\s9|minix|beos|os\/2|amigaos|morphos|risc\sos|openvms)/i,/(unix)\s?([\w\.]+)*/i],[a,c]]},y=function(t,e){if("object"==typeof t&&(e=t,t=void 0),!(this instanceof y))return new y(t,e).getResult();var r=t||(i&&i.navigator&&i.navigator.userAgent?i.navigator.userAgent:""),n=e?h.extend(w,e):w;return this.getBrowser=function(){var t={name:void 0,version:void 0};return p.rgx.call(t,r,n.browser),t.major=h.major(t.version),t},this.getCPU=function(){var t={architecture:void 0};return p.rgx.call(t,r,n.cpu),t},this.getDevice=function(){var t={vendor:void 0,model:void 0,type:void 0};return p.rgx.call(t,r,n.device),t},this.getEngine=function(){var t={name:void 0,version:void 0};return p.rgx.call(t,r,n.engine),t},this.getOS=function(){var t={name:void 0,version:void 0};return p.rgx.call(t,r,n.os),t},this.getResult=function(){return{ua:this.getUA(),browser:this.getBrowser(),engine:this.getEngine(),os:this.getOS(),device:this.getDevice(),cpu:this.getCPU()}},this.getUA=function(){return r},this.setUA=function(t){return r=t,this},this};y.VERSION="0.7.17",y.BROWSER={NAME:a,MAJOR:"major",VERSION:c},y.CPU={ARCHITECTURE:"architecture"},y.DEVICE={MODEL:s,VENDOR:f,TYPE:u,CONSOLE:"console",MOBILE:l,SMARTTV:"smarttv",TABLET:d,WEARABLE:"wearable",EMBEDDED:"embedded"},y.ENGINE={NAME:a,VERSION:c},y.OS={NAME:a,VERSION:c},void 0!==e?(void 0!==t&&t.exports&&(e=t.exports=y),e.UAParser=y):r(3)?void 0!==(n=function(){return y}.call(e,r,e,t))&&(t.exports=n):i&&(i.UAParser=y);var v=i&&(i.jQuery||i.Zepto);if(void 0!==v){var m=new y;v.ua=m.getResult(),v.ua.get=function(){return m.getUA()},v.ua.set=function(t){m.setUA(t);var e=m.getResult();for(var r in e)v.ua[r]=e[r]}}}("object"==typeof window?window:this)},function(t,e,r){"use strict";function n(t){var e;if(t){var r=location.href.indexOf("?");if(-1==r)return[];e=location.href.substr(r+1)}else e=location.search.substr(1);var n={};return e.split("&").forEach(function(t){if(t){t=t.split("+").join(" ");var e=t.indexOf("="),r=e>-1?t.substr(0,e):t,i=e>-1?decodeURIComponent(t.substr(e+1)):"",o=r.indexOf("[");if(-1==o)n[decodeURIComponent(r)]=i;else{var s=r.indexOf("]",o),a=decodeURIComponent(r.substring(o+1,s));r=decodeURIComponent(r.substring(0,o)),n[r]||(n[r]=[]),a?n[r][a]=i:n[r].push(i)}}}),n}Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(){var t=n();if(!(a in t))return void console.warn("incorrect url format, no otp variable found");var e=t[a],r=o.default.decode(e),i=void 0;try{i=JSON.parse(r)}catch(t){return t instanceof SyntaxError?void console.log("Syntax Error, invalid otp"):void console.log(err)}return["name","pass","psk","server","user"].forEach(function(t){if(!(t in i))return void console.log("The OTP is missing a required key: ",t,i)}),i.psk=s.Base64.encode(i.psk),i};var i=r(4),o=function(t){return t&&t.__esModule?t:{default:t}}(i),s=r(16),a="otp"},function(t,e,r){"use strict";(function(t){function n(e,r){return void 0===r&&(r="utf8"),s(t.isBuffer(e)?e.toString("base64"):new t(e,r).toString("base64"))}function i(e,r){return void 0===r&&(r="utf8"),new t(o(e),"base64").toString(r)}function o(t){return t=t.toString(),u.default(t).replace(/\-/g,"+").replace(/_/g,"/")}function s(t){return t.replace(/=/g,"").replace(/\+/g,"-").replace(/\//g,"_")}function a(e){return new t(o(e),"base64")}var u=r(15),f=n;f.encode=n,f.decode=i,f.toBase64=o,f.fromBase64=s,f.toBuffer=a,Object.defineProperty(e,"__esModule",{value:!0}),e.default=f}).call(e,r(0).Buffer)},function(t,e,r){"use strict";(function(t){function r(e){var r=e.length,n=r%4;if(!n)return e;var i=r,o=4-n,s=r+o,a=new t(s);for(a.write(e);o--;)a.write("=",i++);return a.toString()}Object.defineProperty(e,"__esModule",{value:!0}),e.default=r}).call(e,r(0).Buffer)},function(t,e,r){(function(n){var i,o;!function(e,r){t.exports=r(e)}("undefined"!=typeof self?self:"undefined"!=typeof window?window:void 0!==n?n:this,function(n){"use strict";var s,a=n.Base64;if(void 0!==t&&t.exports)try{s=r(0).Buffer}catch(t){}var u="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",f=function(t){for(var e={},r=0,n=t.length;r<n;r++)e[t.charAt(r)]=r;return e}(u),c=String.fromCharCode,l=function(t){if(t.length<2){var e=t.charCodeAt(0);return e<128?t:e<2048?c(192|e>>>6)+c(128|63&e):c(224|e>>>12&15)+c(128|e>>>6&63)+c(128|63&e)}var e=65536+1024*(t.charCodeAt(0)-55296)+(t.charCodeAt(1)-56320);return c(240|e>>>18&7)+c(128|e>>>12&63)+c(128|e>>>6&63)+c(128|63&e)},d=/[\uD800-\uDBFF][\uDC00-\uDFFFF]|[^\x00-\x7F]/g,h=function(t){return t.replace(d,l)},p=function(t){var e=[0,2,1][t.length%3],r=t.charCodeAt(0)<<16|(t.length>1?t.charCodeAt(1):0)<<8|(t.length>2?t.charCodeAt(2):0);return[u.charAt(r>>>18),u.charAt(r>>>12&63),e>=2?"=":u.charAt(r>>>6&63),e>=1?"=":u.charAt(63&r)].join("")},g=n.btoa?function(t){return n.btoa(t)}:function(t){return t.replace(/[\s\S]{1,3}/g,p)},w=s?s.from&&s.from!==Uint8Array.from?function(t){return(t.constructor===s.constructor?t:s.from(t)).toString("base64")}:function(t){return(t.constructor===s.constructor?t:new s(t)).toString("base64")}:function(t){return g(h(t))},y=function(t,e){return e?w(String(t)).replace(/[+\/]/g,function(t){return"+"==t?"-":"_"}).replace(/=/g,""):w(String(t))},v=function(t){return y(t,!0)},m=new RegExp(["[À-ß][-¿]","[à-ï][-¿]{2}","[ð-÷][-¿]{3}"].join("|"),"g"),b=function(t){switch(t.length){case 4:var e=(7&t.charCodeAt(0))<<18|(63&t.charCodeAt(1))<<12|(63&t.charCodeAt(2))<<6|63&t.charCodeAt(3),r=e-65536;return c(55296+(r>>>10))+c(56320+(1023&r));case 3:return c((15&t.charCodeAt(0))<<12|(63&t.charCodeAt(1))<<6|63&t.charCodeAt(2));default:return c((31&t.charCodeAt(0))<<6|63&t.charCodeAt(1))}},A=function(t){return t.replace(m,b)},E=function(t){var e=t.length,r=e%4,n=(e>0?f[t.charAt(0)]<<18:0)|(e>1?f[t.charAt(1)]<<12:0)|(e>2?f[t.charAt(2)]<<6:0)|(e>3?f[t.charAt(3)]:0),i=[c(n>>>16),c(n>>>8&255),c(255&n)];return i.length-=[0,0,2,1][r],i.join("")},_=n.atob?function(t){return n.atob(t)}:function(t){return t.replace(/[\s\S]{1,4}/g,E)},S=s?s.from&&s.from!==Uint8Array.from?function(t){return(t.constructor===s.constructor?t:s.from(t,"base64")).toString()}:function(t){return(t.constructor===s.constructor?t:new s(t,"base64")).toString()}:function(t){return A(_(t))},k=function(t){return S(String(t).replace(/[-_]/g,function(t){return"-"==t?"+":"/"}).replace(/[^A-Za-z0-9\+\/]/g,""))},P=function(){var t=n.Base64;return n.Base64=a,t};if(n.Base64={VERSION:"2.4.3",atob:_,btoa:g,fromBase64:k,toBase64:y,utob:h,encode:y,encodeURI:v,btou:A,decode:k,noConflict:P},"function"==typeof Object.defineProperty){var B=function(t){return{value:t,enumerable:!1,writable:!0,configurable:!0}};n.Base64.extendString=function(){Object.defineProperty(String.prototype,"fromBase64",B(function(){return k(this)})),Object.defineProperty(String.prototype,"toBase64",B(function(t){return y(this,t)})),Object.defineProperty(String.prototype,"toBase64URI",B(function(){return y(this,!0)}))}}return n.Meteor&&(Base64=n.Base64),void 0!==t&&t.exports?t.exports.Base64=n.Base64:(i=[],void 0!==(o=function(){return n.Base64}.apply(e,i))&&(t.exports=o)),{Base64:n.Base64}})}).call(e,r(1))},function(t,e,r){"use strict";function n(t){return t.os.name.includes("Mac OS")?"MacOS":t.os.name.includes("Android")?"Android":t.os.name.includes("iPhone")?"iPhone":void 0}Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(t,e){var r=$("#selectorOSContainer").html();r+='<div id="selectorOS" class="HBcontainer">';for(var o in t)r+='<div class="HBbox">',r+='<span><button class="btnOS" id="btn_'+o+'">'+t[o]+"</button></span>",r+="</div>";r+="</div>",r+="<p>Your OS: <strong>"+e.os.name+"</strong> "+e.os.version+"</p>",$("#selectorOSContainer").html(r);for(var s=document.getElementById("selectorOS"),a=s.getElementsByClassName("btnOS"),u=0;u<a.length;u++)a[u].addEventListener("click",function(){i(t,this.id.split("_")[1]);var e=document.getElementsByClassName("btnOS active");e.length>0&&(e[0].className=e[0].className.replace(" active","")),this.className+=" active"});var f=n(e);if(f){var c=document.getElementById("btn_"+f);c.className.includes("active")||(c.className+=" active"),i(t,f)}};var i=function(t,e){for(var r in t){var n=document.getElementById(r);Boolean(n)&&(n.style.display="none")}var i=document.getElementById(e);Boolean(i)&&(i.style.display="block")}},function(t,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(){$("#btn_guide").click(function(){$("#guide").show(),$("#noGuide").hide()});$("#btn_back").html("↩ back"),$("#btn_back").click(function(){$("#guide").hide(),$("#noGuide").show()}),window.back=function(){$("#guide").hide(),$("#noGuide").show()}}},function(t,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(t){var e='<div class="dropdown">';e+='<button class="dropbtn" id="dropbtn">Select your OS</button>',e+='<div id="myDropdown" class="dropdown-content">',t.forEach(function(t){e+='<a href="#'+t+'">'+t+"</a>"}),e+="</div></div>",$("#dropdownMenu").html(e),$("#dropbtn").click(function(){$("#myDropdown").toggle()}),window.onclick=function(t){if(!t.target.matches(".dropbtn")){var e=document.getElementById("myDropdown");e.classList.contains("show")&&e.classList.remove("show")}}}},function(t,e,r){"use strict";function n(t,e){var r=Object.assign({},t);delete r.name;var n="";n+='<table align="center">';for(var i in r){n+='<tr><td align="right">'+e[i]+"</td>";var o='<input id="'+i+'" value="'+r[i]+'" readonly="readonly">';o+='<button type="button" class="copyButton">'+u+"</button>",n+="<td>"+o+"</td></tr>"}n+="</table>",$("#credentials").html(n),n=$("#guide").html()}function i(t){var e=$("#guide").html();for(var r in t){var n='<input id="'+r+'" value="'+t[r]+'" readonly="readonly">';n+='<button type="button" class="copyButton">'+u+"</button>",e=e.replaceAll(r,n)}$("#guide").html(e)}function o(){setTimeout(function(){$(".copyButton").on("click",function(){$(this).prev("input").select(),document.execCommand("Copy"),console.log("text copied")})},200)}Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(t){n(t,{pass:"Password",psk:"IPSec PSK",server:"Server address",user:"Username"}),i((0,a.default)(t)),o()};var s=r(5),a=function(t){return t&&t.__esModule?t:{default:t}}(s);String.prototype.replaceAll=function(t,e){return this.replace(new RegExp(t,"g"),e)};var u="copy"},function(t,e,r){"use strict";Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(){var t="<h1>Error</h1>";t+="Invalid link, contact your DAppNode administrator",$("#error").html(t)}},function(t,e,r){"use strict";function n(){var t="<ol>";t+="<li>Download the automatic config file</li>",t+='<button class="btn" onclick="downloadMobileConfig()" class="mobileConfig_DL">DOWNLOAD</button>',t+="<li>Execute the file and follow the steps</li>",t+="</ol>",$("#downloadLink").html(t)}function i(t){var e="<ol>";e+="<li>If you want to setup the VPN automatically, please open this page in any of these browsers:</li>",e+="<p>Chrome, Firefox 20+, Safari 10.1+, Opera 15+, Edge</p>",e+="<p>Your browser: <strong>"+t.browser.name+"</strong> "+t.browser.version+"</p>",e+="</ol>",$("#downloadLink").html(e)}Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(t,e){var r=!0;(e.browser.name.includes("Firefox")&&e.browser.major<20||e.browser.name.includes("Opera")&&e.browser.major<15||e.browser.name.includes("Safari")&&e.browser.major<10)&&(r=!1),r?n():i(e)};try{new Blob}catch(t){console.log("error",t)}},function(t,e,r){"use strict";function n(t){return t&&t.__esModule?t:{default:t}}Object.defineProperty(e,"__esModule",{value:!0}),e.default=function(t){var e=(0,o.default)(t);for(var r in e)u=u.replaceAll(r,e[r]);var n=new Blob([u],{type:"text/plain;charset=utf-8"});window.downloadMobileConfig=function(){a.default.saveAs(n,"test.mobileconfig"),console.log("Downloaded config file")}};var i=r(5),o=n(i),s=r(2),a=n(s);String.prototype.replaceAll=function(t,e){return this.replace(new RegExp(t,"g"),e)};var u='<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n\t<key>PayloadContent</key>\n\t<array>\n\t\t<dict>\n\t\t\t<key>IPSec</key>\n\t\t\t<dict>\n\t\t\t\t<key>AuthenticationMethod</key>\n\t\t\t\t<string>SharedSecret</string>\n\t\t\t\t<key>LocalIdentifierType</key>\n\t\t\t\t<string>KeyID</string>\n\t\t\t\t<key>SharedSecret</key>\n\t\t\t\t<data>\n\t\t\t\tbXRLZFVxYm1QWEQzSnFmaQ==\n\t\t\t\t</data>\n\t\t\t</dict>\n\t\t\t<key>IPv4</key>\n\t\t\t<dict>\n\t\t\t\t<key>OverridePrimary</key>\n\t\t\t\t<integer>1</integer>\n\t\t\t</dict>\n\t\t\t<key>PPP</key>\n\t\t\t<dict>\n\t\t\t\t<key>AuthName</key>\n\t\t\t\t<string>dps_vpn_user</string>\n\t\t\t\t<key>AuthPassword</key>\n\t\t\t\t<string>FgR5ZVBF7UsXrJ9a</string>\n\t\t\t\t<key>CommRemoteAddress</key>\n\t\t\t\t<string>83.53.16.243</string>\n\t\t\t</dict>\n\t\t\t<key>PayloadDescription</key>\n\t\t\t<string>Configura los ajustes de VPN</string>\n\t\t\t<key>PayloadDisplayName</key>\n\t\t\t<string>VPN</string>\n\t\t\t<key>PayloadIdentifier</key>\n\t\t\t<string>com.apple.vpn.managed.8A014553-C168-4467-AF1F-B43E8DAE2658</string>\n\t\t\t<key>PayloadType</key>\n\t\t\t<string>com.apple.vpn.managed</string>\n\t\t\t<key>PayloadUUID</key>\n\t\t\t<string>8A014553-C168-4467-AF1F-B43E8DAE2658</string>\n\t\t\t<key>PayloadVersion</key>\n\t\t\t<integer>1</integer>\n\t\t\t<key>Proxies</key>\n\t\t\t<dict>\n\t\t\t\t<key>HTTPEnable</key>\n\t\t\t\t<integer>0</integer>\n\t\t\t\t<key>HTTPSEnable</key>\n\t\t\t\t<integer>0</integer>\n\t\t\t</dict>\n\t\t\t<key>UserDefinedName</key>\n\t\t\t<string>VPN</string>\n\t\t\t<key>VPNType</key>\n\t\t\t<string>L2TP</string>\n\t\t</dict>\n\t</array>\n\t<key>PayloadDisplayName</key>\n\t<string>VPN</string>\n\t<key>PayloadIdentifier</key>\n\t<string>MacBook-Pro-de-Eduardo.118D3145-B90E-473B-9371-2739041E4B1B</string>\n\t<key>PayloadRemovalDisallowed</key>\n\t<false/>\n\t<key>PayloadType</key>\n\t<string>Configuration</string>\n\t<key>PayloadUUID</key>\n\t<string>326CEF4C-9520-4A33-91FA-EE78F6C3D265</string>\n\t<key>PayloadVersion</key>\n\t<integer>1</integer>\n</dict>\n</plist>\n'},function(t,e,r){"use strict";var n=r(4),i=function(t){return t&&t.__esModule?t:{default:t}}(n);window.generateSampleOTP=function(){var t={server:"127.0.0.1",name:"dappnode-giveth",user:"vpn_user",pass:"MC4xO2VkdTtwYXNz",psk:"TI3LjAuMC4x"},e=i.default.encode(JSON.stringify(t)),r=window.location.href+"?otp="+e;console.log(r)}}]);
+</script>
+</body>
+
+</html>
