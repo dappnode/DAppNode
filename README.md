@@ -1,7 +1,7 @@
 # DAppNode 
 [![Documentation Wiki](https://img.shields.io/badge/Documentation-Wiki-brightgreen.svg)](https://github.com/dappnode/DAppNode/wiki)
 [![GIVETH Campaign](https://img.shields.io/badge/GIVETH-Campaing-1e083c.svg)](https://alpha.giveth.io/campaigns/OcKJryNwjeidMXi9)
-[![RIOT DAppNode](https://img.shields.io/badge/RIOT-DAppNode-blue.svg)](https://matrix.to/#/#DAppNode:matrix.org)
+[![RIOT DAppNode](https://img.shields.io/badge/RIOT-DAppNode-blue.svg)](https://riot.im/app/#/room/#DAppNode:matrix.org)
 [![Twitter Follow](https://img.shields.io/twitter/follow/espadrine.svg?style=social&label=Follow)](https://twitter.com/DAppNODE?lang=es)
 
 What happens when you want to use a Decentralized P2P network, but securing your own nodes takes a lot of time and effort? 
