@@ -56,6 +56,8 @@ Team members
 
 Where the DAppers play
 ======
+[DAppNode](https://dappnode.io/)
+
 [Riot](https://riot.im/app/#/room/#dappnode:matrix.org)
 
 [Github](https://github.com/dappnode/DAppNode/wiki/DAppNode-Installation-Guide) 
