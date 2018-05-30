@@ -51,4 +51,4 @@ In order to get the repositories setup before contributions refer to the [README
     Find another issue, get more involved, make noise in our slack, or find issues we may have missed. You've completed your first step to becoming a contributor. **You've helped to create the future of giving**!
 
 
-If you still have any further questions about contribution feel free to reach out to `@vojtech`, `@perissology`, `@satya`, `@quazia`, or just make noise in the `#DApp Development` channel on [Riot](https://join.giveth.io).
+If you still have any further questions about contribution feel free to reach out to `@eduadiez:matrix.org`,  `@yalormewn:matrix.org`, `@liondapp:matrix.org`, or just make noise in the `#DAppNode` channel on [Riot](https://riot.im/app/#/room/#DAppNode:matrix.org).
