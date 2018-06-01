@@ -1,22 +1,22 @@
 # Contributing
-When bringing people on as contributors we prefer that they start with an issue tagged [good first issue](https://github.com/Giveth/giveth-dapp/labels/good%20first%20issue). After a contributor has shown they're a good fit and have completed 1 or 2 issues labeled [good first issue](https://github.com/Giveth/giveth-dapp/labels/good%20first%20issue) with pull requests that have been accepted feel free of moving on to other issues. We're always thrilled to see new contributors. Once an open source contributor has completed an issue labeled [good first issue](https://github.com/Giveth/giveth-dapp/labels/good%20first%20issue) or [help wanted](https://github.com/Giveth/giveth-dapp/labels/help%20wanted) they are eligible to apply for and receive reward DAO funds.
+When bringing people on as contributors we prefer that they start with an issue tagged [good first issue](https://github.com/dappnode/DNP_BIND/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22). After a contributor has shown they're a good fit and have completed 1 or 2 issues labeled [good first issue](https://github.com/dappnode/DNP_BIND/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) with pull requests that have been accepted feel free of moving on to other issues. We're thrilled to see new contributors. 
 
-If you want to better understand how does the development process works, please refer to our [wiki pages](https://wiki.giveth.io/documentation/DApp), especially to the [Product Definition](https://wiki.giveth.io/documentation/DApp/product-definition/), [Product Roadmap](https://wiki.giveth.io/documentation/DApp/product-roadmap/) and [Development Process & Quality Assurance](https://wiki.giveth.io/documentation/DApp/product-development-testing/).
+If you want to better understand how does the development process works, please refer to our [wiki pages](https://github.com/dappnode/DAppNode/wiki)
 
 ## Setup
-In order to get the repositories setup before contributions refer to the [README.md](./README.md) file.
+In order to get the repositories setup before contributions refer to the [README.md](https://github.com/dappnode/DAppNode/blob/master/README.md) file.
 
 ## Contribution Steps
 
 1. *Find a suitable issue*
 
-    If this is your first time look for an issue labeled [good first issue](https://github.com/Giveth/giveth-dapp/labels/good%20first%20issue) otherwise look for issues labeled [help wanted](https://github.com/Giveth/giveth-dapp/labels/help%20wanted). If another issue jumps out at you please engage on the issue before starting it.
+    If this is your first time look for an issue labeled [good first issue](https://github.com/dappnode/DNP_BIND/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) otherwise look for issues labeled [help wanted](https://github.com/dappnode/DNP_BIND/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22) . If another issue jumps out at you please engage on the issue before starting it.
 
 2. *Assign yourself the issue*
 
     Let us know you're working on it! We hate wasted labour so it's always helpful to know what our community contributors are working on.
 
-3. *Fork and clone giveth-dapp*
+3. *Fork and clone [DAppNode](://github.com/dappnode/DAppNode)*
 
     In general it's a good practice to fork into your own repository. We prefer if issues
     are addressed in a branch with the issue number in it's name.
@@ -28,7 +28,7 @@ In order to get the repositories setup before contributions refer to the [README
 
 5. *Add testing*
 
-    In general we aim for full test coverage. For this reason most issues completed should include full testing. If you think there should be an exception for your issue please reach out. Don't forget to test the relevant part of the DApp manually.
+    In general we aim for full test coverage. For this reason most issues completed should include full testing. If you think there should be an exception for your issue please reach out. 
 
 6. *Run previous tests*
 
@@ -44,11 +44,11 @@ In order to get the repositories setup before contributions refer to the [README
 
 9. *Make noise!*
 
-    Get in our slack and point to your new PR. Let us know you've tackled your first, third or 90th issue with us. We'll review it and everybody will get a warm feeling of accomplishment.
+    Get in our [Riot](https://riot.im/app/#/room/#dappnode:matrix.org) and point to your new PR. Let us know you've tackled your first, third or 90th issue with us. We'll review it and everybody will get a warm feeling of accomplishment.
 
 10. *rinse, repeat*
 
-    Find another issue, get more involved, make noise in our slack, or find issues we may have missed. You've completed your first step to becoming a contributor. **You've helped to create the future of giving**!
+    Find another issue, get more involved, make noise in our Riot, or find issues we may have missed. You've completed your first step to becoming a contributor. **You're helping to Decentralize the FUTURE**!
 
 
 If you still have any further questions about contribution feel free to reach out to `@eduadiez:matrix.org`,  `@yalormewn:matrix.org`, `@liondapp:matrix.org`, or just make noise in the `#DAppNode` channel on [Riot](https://riot.im/app/#/room/#DAppNode:matrix.org).
