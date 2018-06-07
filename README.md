@@ -7,9 +7,16 @@
 
 [![](https://github.com/dappnode/DAppNode/raw/master/doc/DAppNodeLogoWide.png)](https://github.com/dappnode/DAppNode/wiki/DAppNode-Installation-Guide)
 
-<p>
- <a href="https://github.com/dappnode/DAppNode/wiki/DAppNode-Installation-Guide">INSTALL DAPPNODE</a>
+<br/>
+
+<p align="center">
+  <a href="https://github.com/dappnode/DAppNode/wiki/DAppNode-Installation-Guide">
+    <img width="300" height="87" src="https://github.com/dappnode/DAppNode/raw/master/doc/DappnodeInstall.png">
+  </a>
 </p>
+
+<br/>
+<br/>
 
 What happens when you want to use a Decentralized P2P network, but securing your own nodes takes a lot of time and effort? 
 
