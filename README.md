@@ -5,6 +5,12 @@
 [![RIOT DAppNode](https://img.shields.io/badge/RIOT-DAppNode-blue.svg)](https://riot.im/app/#/room/#DAppNode:matrix.org)
 [![Twitter Follow](https://img.shields.io/twitter/follow/espadrine.svg?style=social&label=Follow)](https://twitter.com/DAppNODE?lang=es)
 
+[![](https://github.com/dappnode/DAppNode/raw/master/doc/DAppNodeLogoWide.png)](https://github.com/dappnode/DAppNode/wiki/DAppNode-Installation-Guide)
+
+<p>
+ <a href="https://github.com/dappnode/DAppNode/wiki/DAppNode-Installation-Guide">INSTALL DAPPNODE</a>
+</p>
+
 What happens when you want to use a Decentralized P2P network, but securing your own nodes takes a lot of time and effort? 
 
 You have a decentralization bottleneck at the entry point, which is where we are now in the blockchain space :-( 
@@ -85,17 +91,13 @@ Where the DAppers play
 * DAppNode is the most important piece of infrastructure for our decencentralized future
 * Considering all of the incentive structures to to run nodes, most DAppNode Admins will be make a profit maintaining their own DAppNode
 
-# Scheme
-
-![Scheme](https://raw.githubusercontent.com/dappnode/Dappnode/master/scheme/Dappnode_scheme.png)
-
-# Repos
+# Core repos
 
 * [DNP_VPN](https://github.com/dappnode/DNP_VPN)
-* [DNP_PROVISIONING](https://github.com/dappnode/DNP_PROVISIONING)
+* [DNP_ADMIN](https://github.com/dappnode/DNP_ADMIN)
 * [DNP_IPFS](https://github.com/dappnode/DNP_IPFS)
 * [DNP_ETHCHAIN](https://github.com/dappnode/DNP_ETHCHAIN)
-* [DNP_INSTALLER](https://github.com/dappnode/DNP_INSTALLER)
+* [DNP_DAPPMANAGER](https://github.com/dappnode/DNP_DAPPMANAGER)
 * [DNP_ETHFORWARD](https://github.com/dappnode/DNP_ETHFORWARD)
 * [DNP_BIND](https://github.com/dappnode/DNP_BIND)
 
