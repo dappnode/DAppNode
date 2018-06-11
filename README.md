@@ -62,7 +62,7 @@ Team members
 * **Adviser & Instigator:** Jordi Baylina
 * **Project Lead:** Eduadiez
 * **Front-End Lead:** DAppLion
-* **Hardware Lead:** Emex 
+* **Communication Lead:** Yalor
 * **Adviser:** Griff Green 
 
 Where the DAppers play
