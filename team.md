@@ -28,7 +28,7 @@ A multidisciplinary developer with experience in scientific modeling research, s
 
 # Communication - Yalor Mewn 
 
-A project management and communication specialist with a strong focus on holistic team coordination, productivity and time managment within small organizations. Yalor has been an avid enthusaist of the blockchain ecosystem and started as an open source contributor in 2016, when he discovered there was an extreme need for communication and coordination. He is now focused fully on the Ethereum ecosystem and supporting the education of incoming open source contributors. 
+A project management and communication specialist with a strong focus on holistic team coordination, productivity and time managment within small teams. Yalor started as an open source contributor in 2016, He is now focused fully on the Ethereum ecosystem and supporting the education of incoming open source contributors. 
 
 - Email | <Yalor@Giveth.io>
 - GitHub | [@YalorMewn](https://github.com/YalorMewn)
