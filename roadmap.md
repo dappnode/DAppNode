@@ -1,9 +1,4 @@
 # DAppNode Roadmap 
-### Team name: DAppNode
-
-***Legal structure:*** Non-Legal Entity (Governance)
-
-***Proof of MVP:*** https://github.com/dappnode/dappnode and https://dappnode.io/
 
 The following roadmap covers the core development of DAppNode, accounting for the next 26 weeks of development work needed to continue the project. Take into account the core functionality has already been built and the MVP is live and currently onboarding users at dappnode.io.  
 
