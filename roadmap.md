@@ -11,16 +11,14 @@ _June 15th - July 15th_
 * Create entry portal
 * Bug fixing/ user support 
 
-_July - December_ $90,000 USD in ETH over 6 months + $30,000 in ANT success bonus.  
-
-#### #1 SDK for DApps ~ $30,000
+#### #1 SDK for DApps
 - Define specification for DPNs (DAppNode Packages)
 - Outline methodology for creating DPNs 
 - Develop SDK tools to automate and assist the methodology 
 
 
 
-#### #2 Improvement of DAppNode core ~ $30,000
+#### #2 Improvement of DAppNode core
 - Reducing package size. 
 - Improvement to installer, documentation, easiser to complete process. 
 - Creating robust installation guide for potential errors. 
@@ -29,7 +27,7 @@ _July - December_ $90,000 USD in ETH over 6 months + $30,000 in ANT success bonu
 
 
 
-#### #3 Documentation ~ $30,000
+#### #3 Documentation
 - Technical (Developer specific)
 - Non technical (blog posts, promotional, general applications)
 
