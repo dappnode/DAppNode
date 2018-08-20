@@ -30,7 +30,7 @@ Contents
    introduction-to-dappnode.rst
    installing-dappnode.rst
    dappnode-by-example.rst
-   dappnode-packages.rst
+   dappnode-core.rst
    security-considerations.rst
    contributing.rst
    frequently-asked-questions.rst
