@@ -100,20 +100,11 @@ and instead, ``git rebase`` your branch.
 Additionally, if you are writing a new feature, please ensure you write appropriate
 Boost test cases and place them under ``test/``.
 
-However, if you are making a larger change, please consult with the `Solidity Development Gitter channel
-<https://gitter.im/ethereum/solidity-dev>`_ (different from the one mentioned above, this on is
-focused on compiler and language development instead of language use) first.
-
 New features and bugfixes should be added to the ``Changelog.md`` file: please
 follow the style of previous entries, when applicable.
 
-Finally, please make sure you respect the `coding style
-<https://raw.githubusercontent.com/ethereum/solidity/develop/CODING_STYLE.md>`_
-for this project. Also, even though we do CI testing, please test your code and
-ensure that it builds locally before submitting a pull request.
-
 Please note that this project is released with a `Contributor Code of Conduct
-<https://raw.githubusercontent.com/ethereum/solidity/develop/CODE_OF_CONDUCT.md>`_.
+<https://raw.githubusercontent.com/dappnode/DAppNode/master/CODE_OF_CONDUCT.md>`_.
 By participating in this project you agree to abide by its terms.
 
 Thank you for your help!
