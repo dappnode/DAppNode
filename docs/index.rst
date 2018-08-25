@@ -11,6 +11,25 @@ Welcome to DAppNode's documentation!
    :caption: Contents:
 
 
+.. image:: https://github.com/dappnode/DAppNode/raw/master/doc/DAppNodeLogoWide.png
+   :target: https://github.com/dappnode/DAppNode/wiki/DAppNode-Installation-Guide
+
+
+
+Contents
+========
+
+.. toctree::
+   :maxdepth: 2
+
+   introduction-to-dappnode.rst
+   install-dappnode.rst
+   dappnode-by-example.rst
+   dappnode-core.rst
+   security-considerations.rst
+   contributing.rst
+   frequently-asked-questions.rst
+
 
 Indices and tables
 ==================
@@ -18,19 +37,3 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-
-Contents
-========
-
-:ref:`Keyword Index <genindex>`, :ref:`Search Page <search>`
-
-.. toctree::
-   :maxdepth: 2
-
-   introduction-to-dappnode.rst
-   installing-dappnode.rst
-   dappnode-by-example.rst
-   dappnode-core.rst
-   security-considerations.rst
-   contributing.rst
-   frequently-asked-questions.rst
