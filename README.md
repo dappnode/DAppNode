@@ -1,6 +1,6 @@
 # DAppNode
 
-![GitHub All Releases](https://img.shields.io/github/downloads/atom/atom/total.svg)
+![GitHub All Releases](https://img.shields.io/github/downloads/dappnode/DAppNode/total.svg)
 [![Website dappnode.io](https://img.shields.io/badge/Website-dappnode.io-brightgreen.svg)](https://dappnode.io/)
 [![Documentation Wiki](https://img.shields.io/badge/Documentation-Wiki-brightgreen.svg)](https://github.com/dappnode/DAppNode/wiki)
 [![GIVETH Campaign](https://img.shields.io/badge/GIVETH-Campaign-1e083c.svg)](https://alpha.giveth.io/campaigns/OcKJryNwjeidMXi9)
