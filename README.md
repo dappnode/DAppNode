@@ -108,3 +108,6 @@ Where the DAppers play
 * [DNP_ETHFORWARD](https://github.com/dappnode/DNP_ETHFORWARD)
 * [DNP_BIND](https://github.com/dappnode/DNP_BIND)
 
+## License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details
