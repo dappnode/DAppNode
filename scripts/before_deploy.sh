@@ -31,7 +31,8 @@ git push --delete origin $TRAVIS_TAG || echo "Error deleting previous tag $TRAVI
 git tag --delete $TRAVIS_TAG || echo "Error deleting previous tag $TRAVIS_TAG locally"
 
 # 4. Install the dappnodesdk
-travis_retry npm install -g @dappnode/dappnodesdk
+#    `travis_retry` does not work in an external script. Also travis mentioned that it doesn't work on the deploy stage
+npm install -g @dappnode/dappnodesdk
 
 # 5. Compute the next version from the mainnet APM smart contract
 export RELEASE_VERSION=$(IPFS_PROVIDER=ipfs.infura.io IPFS_PROTO=https PROVIDER=wss://mainnet.infura.io/ws dappnodesdk next patch)
