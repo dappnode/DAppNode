@@ -25,7 +25,7 @@ git commit -m "Update manifest and docker-compose versions to current release: $
 # 2. Create a new branch with the next version number
 # Check if the dappnodesdk is available
 dappnodesdk --help
-export FUTURE_VERSION=$(dappnodesdk increase patch)
+export FUTURE_VERSION=$(IPFS_PROVIDER=ipfs.infura.io IPFS_PROTO=https PROVIDER=wss://mainnet.infura.io/ws dappnodesdk increase patch)
 echo "dappnodesdk increase patch output: $FUTURE_VERSION"
 export FUTURE_VERSION=$(echo "$FUTURE_VERSION" | awk '/Next version:/{print $3}')
 export BRANCH_NAME="v${FUTURE_VERSION}"
