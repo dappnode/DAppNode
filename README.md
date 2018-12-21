@@ -19,9 +19,6 @@
 - DO NOT INSTALL DAPPNODE ON YOUR LAPTOP
 ```
 
-<br/>
-<br/>
-
 What happens when you want to use a Decentralized P2P network, but securing your own nodes takes a lot of time and effort? 
 
 You have a decentralization bottleneck at the entry point, which is where we are now in the blockchain space :-( 
