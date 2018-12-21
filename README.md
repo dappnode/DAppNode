@@ -9,6 +9,10 @@
 
 [![](https://github.com/dappnode/DAppNode/raw/master/doc/DAppNodeLogoWide.png)](https://github.com/dappnode/DAppNode/wiki/DAppNode-Installation-Guide)
 
+<aside class="warning">
+DO NOT INSTALL DAPPNODE ON YOUR LAPTOP
+</aside>
+
 <p align="center">
   <a href="https://github.com/dappnode/DAppNode/wiki/DAppNode-Installation-Guide">
     <img width="300" height="87" src="https://github.com/dappnode/DAppNode/raw/master/doc/DappnodeInstall.png">
