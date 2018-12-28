@@ -35,12 +35,12 @@ git tag --delete $TRAVIS_TAG || echo "Error deleting previous tag $TRAVIS_TAG lo
 npm install -g @dappnode/dappnodesdk
 
 # 5. Compute the next version from the mainnet APM smart contract
-export RELEASE_VERSION=$(IPFS_PROVIDER=ipfs.infura.io IPFS_PROTO=https PROVIDER=wss://mainnet.infura.io/ws dappnodesdk next patch)
+export RELEASE_VERSION=$(dappnodesdk next patch -p infura)
 export TRAVIS_TAG="v${RELEASE_VERSION}"
 echo "NEXT TRAVIS_TAG $TRAVIS_TAG"
 
 # 6. Generate the release files running the dappnodesdk
-IPFS_PROVIDER=ipfs.infura.io IPFS_PROTO=https PROVIDER=wss://mainnet.infura.io/ws SILENT=true dappnodesdk publish patch
+dappnodesdk publish patch -p infura
 
 # 7. Tag release with the correct version
 # (7.) Check if the tag exists, if so delete it. Fail safe, catch errors with ||
