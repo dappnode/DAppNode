@@ -27,7 +27,6 @@ git commit -m "Update manifest and docker-compose versions to current release: $
 dappnodesdk --help
 export FUTURE_VERSION=$(dappnodesdk increase patch -p infura -s)
 echo "dappnodesdk increase patch output: $FUTURE_VERSION"
-export FUTURE_VERSION=$(echo "$FUTURE_VERSION" | awk '/Next version:/{print $3}')
 export BRANCH_NAME="v${FUTURE_VERSION}"
 echo "Run dappnodesdk and increased version to FUTURE_VERSION: $FUTURE_VERSION"
 git checkout -b $BRANCH_NAME
