@@ -1,0 +1,50 @@
+language: node_js
+dist: trusty
+sudo: required
+
+stages:
+  - name: build-test
+    if: tag !~ ^release*$"
+  - name: release
+    if: tag =~ ^release*$"
+
+jobs:
+  include:
+    # Test that it builds correctly
+    ###############################
+    - stage: build-test
+      if: env(TRAVIS_TAG) != master
+      services:
+        - docker
+      script:
+        - docker-compose build
+
+    # Deploy stage
+    # - code below is common between DAppNode packages
+    ##################################################
+    - stage: release
+      services:
+        - docker
+      script: skip
+      node_js: lts/*
+      before_deploy:
+        - wget https://raw.githubusercontent.com/dappnode/DAppNode/master/scripts/before_deploy.sh
+        - source before_deploy.sh
+      deploy:
+        provider: releases
+        prerelease: true
+        api_key: "$GITHUB_TOKEN"
+        file_glob: true
+        # $RELEASE_VERSION is exported on before_deploy.sh
+        file: build_${RELEASE_VERSION}/*
+        skip_cleanup: true
+        # $TRAVIS_TAG is exported on before_deploy.sh
+        name: "$TRAVIS_TAG"
+        body: "# Changelog"
+        on:
+          branch: master
+          tags: true
+          condition: "$TRAVIS_TAG =~ ^release*$"
+      after_deploy:
+        - wget https://raw.githubusercontent.com/dappnode/DAppNode/master/scripts/after_deploy.sh
+        - source after_deploy.sh
