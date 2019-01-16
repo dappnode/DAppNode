@@ -39,18 +39,14 @@ export RELEASE_VERSION=$(dappnodesdk next patch -p infura)
 export TRAVIS_TAG="v${RELEASE_VERSION}"
 echo "NEXT TRAVIS_TAG $TRAVIS_TAG"
 
-# 6. Generate the release files running the dappnodesdk
-#    The DNP_ETHCHAIN takes > 60 min to build. This command triggers a timeout and should be run directly from the travis yml to prevent it.
-# dappnodesdk publish patch -p infura
-
-# 7. Tag release with the correct version
-# (7.) Check if the tag exists, if so delete it. Fail safe, catch errors with ||
+# 6. Tag release with the correct version
+# (6.) Check if the tag exists, if so delete it. Fail safe, catch errors with ||
 if [ $(git tag -l "$TRAVIS_TAG") ]; then export DELETE_TAG=true ; fi
 if [ $DELETE_TAG ]; then git push --delete origin $TRAVIS_TAG || echo "Error deleting tag $TRAVIS_TAG from origin" ; fi
 if [ $DELETE_TAG ]; then git tag --delete $TRAVIS_TAG || echo "Error deleting tag $TRAVIS_TAG locally" ; fi
-# (7.) Tag this commit
+# (6.) Tag this commit
 git tag $TRAVIS_TAG
-# (7.) Return to master.
+# (6.) Return to master.
 #      When travis is triggered by a tag this error happens: 
 #      > error: pathspec 'master' did not match any file(s) known to git. 
 #      A `git fetch` will be run to ensure that the master branch is present
