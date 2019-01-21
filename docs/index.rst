@@ -24,8 +24,9 @@ Contents
 
    introduction-to-dappnode.rst
    install-dappnode.rst
+   user-guide.rst
    dappnode-by-example.rst
-   dappnode-core.rst
+   architecture.rst
    security-considerations.rst
    contributing.rst
    frequently-asked-questions.rst

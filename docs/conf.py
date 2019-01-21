@@ -149,6 +149,6 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'DAppNode', u'DAppNode Documentation',
-     author, 'DAppNode', 'One line description of project.',
+     author, 'DAppNode', 'The infrastructure for the decentralized world',
      'Miscellaneous'),
 ]
