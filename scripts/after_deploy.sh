@@ -18,7 +18,7 @@ echo "Running DAppNode travis CI after_deploy.sh script"
 # 1. Create a new branch with the next version number
 # Check if the dappnodesdk is available
 dappnodesdk --help
-export FUTURE_VERSION=$(dappnodesdk increase patch)
+export FUTURE_VERSION=$(dappnodesdk increase patch || echo "0.0.1")
 echo "dappnodesdk increase patch output: $FUTURE_VERSION"
 export BRANCH_NAME="v${FUTURE_VERSION}"
 echo "Run dappnodesdk and increased version to FUTURE_VERSION: $FUTURE_VERSION"
