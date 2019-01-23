@@ -7,7 +7,7 @@ Welcome to DAppNode's documentation!
 ====================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 4
    :caption: Contents:
 
 
@@ -20,15 +20,10 @@ Contents
 ========
 
 .. toctree::
-   :maxdepth: 2
-
-   introduction-to-dappnode.rst
-   install-dappnode.rst
-   dappnode-by-example.rst
-   dappnode-core.rst
-   security-considerations.rst
+   :maxdepth: 4
+   
    contributing.rst
-   frequently-asked-questions.rst
+   
 
 
 Indices and tables
