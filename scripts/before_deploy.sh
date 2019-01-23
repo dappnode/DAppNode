@@ -35,7 +35,7 @@ git tag --delete $TRAVIS_TAG || echo "Error deleting previous tag $TRAVIS_TAG lo
 npm install -g @dappnode/dappnodesdk
 
 # 5. Compute the next version from the mainnet APM smart contract
-export RELEASE_VERSION=$(dappnodesdk next patch -p infura)
+export RELEASE_VERSION=$(dappnodesdk next patch -p infura || "0.0.1")
 export TRAVIS_TAG="v${RELEASE_VERSION}"
 echo "NEXT TRAVIS_TAG $TRAVIS_TAG"
 
