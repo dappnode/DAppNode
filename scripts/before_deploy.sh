@@ -18,8 +18,8 @@
 
 echo "Running DAppNode travis CI before_deploy.sh script"
   
-# 0. Grab release type (e.g. release:minor)
-TYPE=${TRAVIS_TAG##*:}
+# 0. Grab release type (e.g. release/minor)
+TYPE=${TRAVIS_TAG##*/}
 [ ! "$TYPE" = "release" ] || TYPE="patch"
 
 # 1. Configure the git user to dappnode
