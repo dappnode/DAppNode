@@ -15,8 +15,13 @@
 #        before_deploy:
 #          - wget -O - https://raw.githubusercontent.com/dappnode/DAppNode/<path-to-script>/before_deploy.sh | bash
 
+
 echo "Running DAppNode travis CI before_deploy.sh script"
   
+# 0. Grab release type (e.g. release:minor)
+TYPE=${TRAVIS_TAG##*:}
+[ ! "$TYPE" = "release" ] || TYPE="patch"
+
 # 1. Configure the git user to dappnode
 git config --global user.email "dappnode@dappnode.io"
 git config --global user.name "dappnode"
@@ -35,7 +40,7 @@ git tag --delete $TRAVIS_TAG || echo "Error deleting previous tag $TRAVIS_TAG lo
 npm install -g @dappnode/dappnodesdk
 
 # 5. Compute the next version from the mainnet APM smart contract
-export RELEASE_VERSION=$(dappnodesdk next patch -p infura || "0.0.1")
+export RELEASE_VERSION=$(dappnodesdk next ${TYPE} -p infura || "0.0.1")
 export TRAVIS_TAG="v${RELEASE_VERSION}"
 echo "NEXT TRAVIS_TAG $TRAVIS_TAG"
 
