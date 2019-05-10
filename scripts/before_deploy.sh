@@ -35,23 +35,19 @@ echo "Deleting previous tag $TRAVIS_TAG"
 git push --delete origin $TRAVIS_TAG || echo "Error deleting previous tag $TRAVIS_TAG from origin"
 git tag --delete $TRAVIS_TAG || echo "Error deleting previous tag $TRAVIS_TAG locally"
 
-# 4. Install the dappnodesdk
-#    `travis_retry` does not work in an external script. Also travis mentioned that it doesn't work on the deploy stage
-npm install -g @dappnode/dappnodesdk
-
-# 5. Compute the next version from the mainnet APM smart contract
-export RELEASE_VERSION=$(dappnodesdk next ${TYPE} -p infura || "0.0.1")
+# 4. Compute the next version from the mainnet APM smart contract
+export RELEASE_VERSION=$(dappnodesdk next ${TYPE} -p infura || echo "0.0.1")
 export TRAVIS_TAG="v${RELEASE_VERSION}"
 echo "NEXT TRAVIS_TAG $TRAVIS_TAG"
 
-# 6. Tag release with the correct version
-# (6.) Check if the tag exists, if so delete it. Fail safe, catch errors with ||
+# 5. Tag release with the correct version
+# (5.) Check if the tag exists, if so delete it. Fail safe, catch errors with ||
 if [ $(git tag -l "$TRAVIS_TAG") ]; then export DELETE_TAG=true ; fi
 if [ $DELETE_TAG ]; then git push --delete origin $TRAVIS_TAG || echo "Error deleting tag $TRAVIS_TAG from origin" ; fi
 if [ $DELETE_TAG ]; then git tag --delete $TRAVIS_TAG || echo "Error deleting tag $TRAVIS_TAG locally" ; fi
-# (6.) Tag this commit
+# (5.) Tag this commit
 git tag $TRAVIS_TAG
-# (6.) Return to master.
+# (5.) Return to master.
 #      When travis is triggered by a tag this error happens: 
 #      > error: pathspec 'master' did not match any file(s) known to git. 
 #      A `git fetch` will be run to ensure that the master branch is present
