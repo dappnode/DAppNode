@@ -1,0 +1,303 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/root.json",
+  "type": "object",
+  "title": "DAppNode manifest schema",
+  "required": [
+    "name",
+    "version",
+    "description",
+    "avatar",
+    "type",
+    "image",
+    "license"
+  ],
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "DNP ENS name",
+      "examples": ["ipfs.dnp.dappnode.eth"]
+    },
+    "version": {
+      "type": "string",
+      "description": "DNP semantic version (semver)",
+      "examples": ["0.2.0"],
+      "pattern": "^((([0-9]+).([0-9]+).([0-9]+)))$"
+    },
+    "description": {
+      "type": "string",
+      "description": "DNP description. Should start with a 4-5 words sentence and then be as long as necessary. Markdown and links are allowed",
+      "examples": [
+        "Your local IPFS node. Dappnode package responsible for providing the VPN (OpenVPN) connection"
+      ]
+    },
+    "avatar": {
+      "type": "string",
+      "description": "IPFS / BZZ hash of the Avatar of the DNP. Must be 300x300px, transparent PNG",
+      "examples": ["/ipfs/QmWwMb3XhuCH6JnCF6m6EQzA4mW9pHHtg7rqAfhDr2ofi8"],
+      "pattern": "^/(ipfs|bzz)/w+$"
+    },
+    "type": {
+      "type": "string",
+      "description": "Type of the DNP. Must be one these types",
+      "examples": ["dncore"],
+      "pattern": "^(dncore|service|library)$"
+    },
+    "image": {
+      "type": "object",
+      "title": "The DNP Image Schema",
+      "description": "DNP image upload information, and its docker related properties",
+      "required": ["hash", "size"],
+      "properties": {
+        "path": {
+          "type": "string",
+          "description": "Filename of the DNP image",
+          "examples": ["ipfs.dnp.dappnode.eth_0.2.0.tar.xz"]
+        },
+        "hash": {
+          "type": "string",
+          "description": "IPFS / BZZ hash of the DNP image",
+          "examples": ["/ipfs/QmWwMb3XhuCH6JnCF6m6EQzA4mW9pHHtg7rqAfhDr2ofi8"],
+          "pattern": "^/(ipfs|bzz)/w+$"
+        },
+        "size": {
+          "type": "number",
+          "description": "Size of the DNP image in bytes",
+          "examples": ["25738523"],
+          "pattern": "^d+$"
+        },
+        "volumes": {
+          "type": "array",
+          "description": "DNP volume mappings",
+          "items": {
+            "type": "string",
+            "description": "Docker volumes short syntax HOST:CONTAINER:ro mapping. See https://docs.docker.com/compose/compose-file/#volumes",
+            "examples": [
+              "/var/run/docker.sock:/var/run/docker.sock",
+              "/usr/src/dappnode/config:/usr/src/app/config:ro",
+              "ipfsdnpdappnodeeth_data:/data/ipfs"
+            ],
+            "pattern": "^[^s\\]+:/[^s\\]+$"
+          }
+        },
+        "ports": {
+          "type": "array",
+          "description": "DNP port mappings",
+          "items": {
+            "type": "string",
+            "description": "Docker ports short syntax HOST:CONTAINER/protocol. See https://docs.docker.com/compose/compose-file/#ports",
+            "examples": ["1194:1194/udp", "4001/udp", "4001/tcp", "4001"]
+          }
+        },
+        "environment": {
+          "type": "array",
+          "description": "DNP environment variables. You must declare all ENVs even if they are empty.",
+          "items": {
+            "type": "string",
+            "description": "Docker environment variables in array form. See https://docs.docker.com/compose/compose-file/#environment",
+            "examples": [
+              "RACK_ENV=development",
+              "SHOW=true",
+              "EXTRA_OPTS=",
+              "EMPTY_ENV"
+            ]
+          }
+        },
+        "privileged": {
+          "type": "boolean",
+          "description": "Grant the DNP (almost) all the capabilities of their host machine, regarding kernel features and device access. See https://blog.docker.com/2013/09/docker-can-now-run-within-docker/"
+        },
+        "restart": {
+          "type": "string",
+          "title": "The Restart Schema",
+          "description": "Docker restart policy, 'always' is highly recommended. See https://docs.docker.com/compose/compose-file/#restart",
+          "examples": ["always"],
+          "pattern": "^(no|always|on-failure|unless-stopped)$"
+        },
+        "subnet": {
+          "type": "string",
+          "description": "##### EDU: help requested",
+          "examples": ["172.33.0.0/16"],
+          "pattern": "##### EDU"
+        },
+        "ipv4_address": {
+          "type": "string",
+          "description": "Specify a static IP address for containers for this service when joining the network. See https://docs.docker.com/compose/compose-file/#ipv4_address-ipv6_address",
+          "examples": ["172.33.1.4"],
+          "pattern": "^(?:[0-9]{1,3}.){3}[0-9]{1,3}$"
+        }
+      }
+    },
+    "dependencies": {
+      "type": "string",
+      "description": "DNP dependencies. Must be an object where the keys are the DNP's ENS. The values must be a semantic range ('0.2.0', '^0.2.1', '*', 'latest', '/ipfs/QmWwMb3XhuCH6JnCF6m6EQzA4mW9pHHtg7rqAfhDr2ofi8')",
+      "patternProperties": {
+        "^(.*)$": {
+          "type": "string",
+          "description": "Semantic version range or IPFS / BZZ hash"
+        }
+      }
+    },
+    "changelog": {
+      "type": "string",
+      "description": "Description of relevant changes of this specific version. Supports markdown and links",
+      "examples": [
+        "Major update to OpenVPN: This update breaks compatibility with the last VPN version. Please read the migration guide at: https://migration020.dappnode.io"
+      ]
+    },
+    "warnings": {
+      "type": "object",
+      "title": "The DNP Image Schema",
+      "description": "Very relevant information that MUST be shown to the user BEFORE executing a specific action in the DNP's lifecycle.",
+      "properties": {
+        "onInstall": {
+          "type": "string",
+          "description": "Will be shown before installing the DNP",
+          "examples": [
+            "You must set the PASSWORD ENV before installing the DNP in order for the setup to work correctly."
+          ]
+        },
+        "onUpdate": {
+          "type": "string",
+          "description": "Will be shown before updating the DNP, not in the first installation",
+          "examples": [
+            "Your VPN connection will be lost when the VPN finalizes updating. Leave 1-2 minutes after executing the update and then reconnect and refresh this site."
+          ]
+        },
+        "onReset": {
+          "type": "string",
+          "description": "Will be shown before reseting the DNP",
+          "examples": [
+            "You MUST properly close your open channels before stopping this DNP or you may lose your funds."
+          ]
+        },
+        "onRemove": {
+          "type": "string",
+          "description": "Filename of the DNP image",
+          "examples": [
+            "You MUST properly close your open channels before stopping this DNP or you may lose your funds."
+          ]
+        }
+      }
+    },
+    "updateAlerts": {
+      "type": "array",
+      "description": "Alerts targeted to a specific update jump.",
+      "items": {
+        "type": "object",
+        "description": "Specific update jump alert",
+        "required": ["from", "message"],
+        "properties": {
+          "from": {
+            "type": "string",
+            "description": "Semver range, show this message when a user updates this DNP FROM a version that satisfies this range.",
+            "examples": ["0.1.x", "^0.2.0"]
+          },
+          "to": {
+            "type": "string",
+            "description": "Semver range, show this message when a user updates this DNP TO a version that satisfies this range.",
+            "default": "*",
+            "examples": ["0.1.x", "^0.2.0", "*"]
+          },
+          "message": {
+            "type": "string",
+            "description": "Alert message to be shown when the from and to ranges are satisfied.",
+            "examples": [
+              "Major update to OpenVPN: This update breaks compatibility with the last VPN version. Please read the migration guide at: https://migration020.dappnode.io"
+            ]
+          }
+        }
+      }
+    },
+    "author": {
+      "type": "string",
+      "description": "Main author of this DNP. Must follow the structure `${name} <${email}> (${githubUserLink})`",
+      "examples": [
+        "DAppNode Association <admin@dappnode.io> (https://github.com/dappnode)"
+      ],
+      "pattern": "^(.*)$"
+    },
+    "contributors": {
+      "type": "array",
+      "description": "Contributing authors of this DNP",
+      "items": {
+        "type": "string",
+        "description": "Contributor author. Must follow the structure `${name} <${email}> (${githubUserLink})`",
+        "examples": [
+          "Firstname Secondname <developerHanlde@project.io> (https://github.com/developerHanlde)"
+        ],
+        "pattern": "^(.*)$"
+      }
+    },
+    "keywords": {
+      "type": "array",
+      "description": "Keywords, relevant and descriptive of this DNP. They will be shown in the ADMIN's UI package store.",
+      "items": {
+        "type": "string",
+        "description": "Single keyword",
+        "examples": ["DAppNodeCore", "IPFS", "File sharing"]
+      }
+    },
+    "links": {
+      "type": "object",
+      "description": "Single keyword with no spaces",
+      "properties": {
+        "homepage": {
+          "type": "string",
+          "description": "Url to an informative homepage for this DNP. Should be a README or landing website.",
+          "examples": ["https://github.com/dappnode/DNP_IPFS#readme"]
+        },
+        "ui": {
+          "type": "string",
+          "description": "Url to this DNP's DAppNode local UI.",
+          "examples": ["http://ipfs.dappnode:5001/webui"]
+        },
+        "api": {
+          "type": "string",
+          "description": "Url to this DNP's DAppNode local HTTP API endpoint.",
+          "examples": ["http://ipfs.dappnode:5001/api/v0"]
+        },
+        "gateway": {
+          "type": "string",
+          "description": "Url to this DNP's DAppNode local gateway.",
+          "examples": ["http://ipfs.dappnode:8080/ipfs"]
+        }
+      }
+    },
+    "repository": {
+      "type": "object",
+      "description": "DNP's repository. Must be a publicly available url that can be handed directly to a VCS program",
+      "required": ["type", "url"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "examples": ["git"]
+        },
+        "url": {
+          "type": "string",
+          "examples": ["https://github.com/dappnode/DNP_IPFS.git"]
+        },
+        "directory": {
+          "type": "string",
+          "examples": ["packages/react-dom"]
+        }
+      }
+    },
+    "bugs": {
+      "type": "object",
+      "description": "Url to your project’s issue tracker.",
+      "required": ["url"],
+      "properties": {
+        "url": {
+          "type": "string",
+          "examples": ["https://github.com/dappnode/DNP_IPFS/issues"]
+        }
+      }
+    },
+    "license": {
+      "type": "string",
+      "title": "DNP's License",
+      "examples": ["GPL-3.0"]
+    }
+  }
+}
