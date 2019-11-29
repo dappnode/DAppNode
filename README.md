@@ -38,24 +38,21 @@ The Desired Final User Story:
 
 1. Vojtech has several cryptocurrencies he follows and is ready to stop using his laptop to run clients, but doesn’t want to have to pay a monthly subscription in fiat to some company he doesn’t trust with his private keys.
 
-2. He hears about DAppNode and decides to buy the top of the line DAppNode Server preloaded from one of the many certified independent vendors (though he could buy his own server and install the software himself).
+2. He hears about DAppNode and decides to buy the top of the line DAppNode Server preloaded from shop.dappnode.io (though he could buy his own server and install the software himself).
 
-3. The DAppNode Server is delivered to his front door, and when Vojtech opens the box he finds a 2 step instruction card: First, plug in the Server. Second, go to dappnode.org/initialize
+3. The DAppNode Server is delivered to his front door, and when Vojtech opens the box he finds a 2 step instruction card: First, plug in the Server. Second, go to welcome.dappnode.io.
 
 4. On this website there will be an extremely simple and short walk-thru for Vojtech to set up his credentials and choose which clients to deploy.
 
-5. By just checking a few boxes Vojtech deployed his own VPN; his own local instance of MyCrypto.com; Ethereum, Bitcoin, Monero and Dogecoin Full nodes; a ZenCash Secure Node and DASH Master Node; he joined the IPFS Consortium and deployed a TrueBit Verifier and Livepeer node; and hosted Giveth, Swarm City, Aragon, Colony, and Decentraland Helper DApps to support these projects and to ensure that his interaction with these DApps cannot be censored and are fully trustless. 
+5. By just checking a few boxes Vojtech deployed his own VPN; his own local instance of MyCrypto.com; Ethereum, Bitcoin, Monero and Dogecoin Full nodes; a ZCash Secure Node and DASH Master Node; he joined the IPFS Consortium and deployed a TrueBit Verifier and Livepeer node; and hosted Giveth, Swarm City, Aragon, Colony, and Decentraland Helper DApps to support these projects and to ensure that his interaction with these DApps cannot be censored and are fully trustless. 
 
 6. Vojtech then tells his friends and family that he is the admin for his own DAppNode and he is able to give them a link that sets them up with their own credentials and access to his DAppNode, and Vojtech can deploy any other DApps that him or his friends and family want to have hosted with a couple clicks. He has become the trusted gateway to the decentralized world for his entire community. 
 
-7. Vojtech ends up being able to pay off the cost of his DAppNode in 2 months with the profits made from his ZenCash, Swarm City, DASH and TrueBit Nodes. He also canceled his VPN and all of his Digital Ocean accounts because now he has his own server that he can host all of his services on. Without even trying, Vojtech has a couple extra hundred dollars a month because he is running DAppNode on his own personal server.
+7. Vojtech ends up being able to pay off the cost of his DAppNode in 2 months with the profits made from his ZenCash, Trustlines Validator, ETH2.0 validator, DASH and TrueBit Nodes. He also canceled his VPN and all of his Digital Ocean accounts because now he has his own server that he can host all of his services on. Without even trying, Vojtech has a couple extra hundred dollars a month because he is running DAppNode on his own personal server.
 
+Though the above story is not ready yet, we are developing in an invitingly open source manner and anyone can use their own hardware and run DAppNode on it. 
 
-We have been working on this project mostly part time since October of last year and have a fully functional Proof of Concept, and are very close to having an MVP version that we would be proud to show off. We expect to partner with hardware manufacturers once we have a few more iterations of the software completed. 
-
-We are developing in an invitingly open source manner and once the software is completed anyone can use their own hardware and run DAppNode on it. 
-
-We are open to receive funding to help pay the developers working hard on the software. All funds raised are transparently accounted for using Giveth's DApp.
+We are open to receive funding to help pay the developers working hard on the software!
 
 
 Team members
@@ -64,7 +61,8 @@ Team members
 * **Adviser & Instigator:** Jordi Baylina
 * **Project Lead:** Eduadiez
 * **Front-End Lead:** DAppLion
-* **Communication Lead:** Yalor
+* **Back-End Lead:** Vdo
+* **Ecosystem Development** Pol Lanski
 * **Adviser:** Griff Green 
 
 Where the DAppers play
@@ -72,6 +70,8 @@ Where the DAppers play
 [DAppNode](https://dappnode.io/)
 
 [Riot](https://riot.im/app/#/room/#dappnode:matrix.org)
+
+[Telegram](https://t.me/dappnode)
 
 [Github](https://github.com/dappnode/DAppNode/wiki/DAppNode-Installation-Guide) 
 
@@ -82,11 +82,11 @@ Where the DAppers play
 * Trustless system 
 * Invitingly Open Source
 * Free up space on your Devices
-* Great for proof of stake mining
+* Great for Proof of Stake mining
 * You can browse `.eth` domains like the normal web
 * You take control of your Nodes 
 * Encourages people to have their own server
-* Perfect for projects that reward you for hosting, (Filecoin, Mysterium, etc)
+* Perfect for projects that reward you for hosting, (Filecoin, Storj, etc)
 * Can facilitate a P2P economy
 * Host any P2P networking protocols
 * DApp teams can develop packages their users can run 24x7 
