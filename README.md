@@ -69,7 +69,7 @@ Where the DAppers play
 ======
 [DAppNode](https://dappnode.io/)
 
-[Riot](https://riot.im/app/#/room/#dappnode:matrix.org)
+[Element](https://app.element.io/#/room/#DAppNode:matrix.org)
 
 [Telegram](https://t.me/dappnode)
 
