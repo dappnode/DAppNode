@@ -46,10 +46,10 @@ In order to get the repositories setup before contributions refer to the [README
 
 9. _Make noise!_
 
-   Get in our [Riot](https://riot.im/app/#/room/#dappnode:matrix.org) and point to your new PR. Let us know you've tackled your first, third or 90th issue with us. We'll review it and everybody will get a warm feeling of accomplishment.
+   Get in our [Element](https://app.element.io/#/room/#DAppNode:matrix.org) and point to your new PR. Let us know you've tackled your first, third or 90th issue with us. We'll review it and everybody will get a warm feeling of accomplishment.
 
 10. _rinse, repeat_
 
     Find another issue, get more involved, make noise in our Riot, or find issues we may have missed. You've completed your first step to becoming a contributor. **You're helping to Decentralize the FUTURE**!
 
-If you still have any further questions about contribution feel free to reach out to `@eduadiez:matrix.org`, `@yalormewn:matrix.org`, `@liondapp:matrix.org`, or just make noise in the `#DAppNode` channel on [Riot](https://riot.im/app/#/room/#DAppNode:matrix.org).
+If you still have any further questions about contribution feel free to reach out to `@eduadiez:matrix.org`, `@yalormewn:matrix.org`, `@liondapp:matrix.org`, or just make noise in the `#DAppNode` channel on [Element](https://app.element.io/#/room/#DAppNode:matrix.org).
