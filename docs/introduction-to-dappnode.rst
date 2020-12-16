@@ -69,7 +69,7 @@ Benefits of DAppNode
 * 1 DAppNode can support an entire Community
 * DAppNode will build communities and decrease centralization 
 * DAppNode is the most important piece of infrastructure for our decencentralized future
-* Considering all of the incentive structures to to run nodes, most DAppNode Admins will be make a profit maintaining their own DAppNode
+* Considering all of the incentive structures to run nodes, most DAppNode Admins will be make a profit maintaining their own DAppNode
 
 
 ************

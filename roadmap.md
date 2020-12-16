@@ -4,26 +4,26 @@ The following roadmap covers the core development of DAppNode, accounting for th
 
 
 _June 15th - July 15th_
-* ~~Launch MVP version~~ 
+* ~~Launch MVP version~~
 * ~~Apply for a Grant~~
 * Support 10 DAppNode user installs
 * On board 4 Decentralized websites
 * Create entry portal
-* Bug fixing/ user support 
+* Bug fixing/ user support
 
 #### #1 SDK for DApps
 - Define specification for DPNs (DAppNode Packages)
-- Outline methodology for creating DPNs 
-- Develop SDK tools to automate and assist the methodology 
+- Outline methodology for creating DPNs
+- Develop SDK tools to automate and assist the methodology
 
 
 
 #### #2 Improvement of DAppNode core
-- Reducing package size. 
-- Improvement to installer, documentation, easiser to complete process. 
-- Creating robust installation guide for potential errors. 
-- Reducing friction for install, faster chain syncing. 
-- Hosting DAppNode core in IPFS. 
+- Reducing package size.
+- Improvement to installer, documentation, easier to complete process.
+- Creating robust installation guide for potential errors.
+- Reducing friction for install, faster chain syncing.
+- Hosting DAppNode core in IPFS.
 
 
 
@@ -33,9 +33,9 @@ _June 15th - July 15th_
 
 
 
-#### + Stretch Goal 
+#### + Stretch Goal
  - New Admin.UI
- - Creating pre-loaded DAppNode USB's for free distribution. 
+ - Creating pre-loaded DAppNode USB's for free distribution.
 
 
 

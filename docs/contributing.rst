@@ -33,7 +33,7 @@ In order to get the repositories setup before contributions refer to the [README
 3. *Fork and clone [DAppNode](://github.com/dappnode/DAppNode)*
 
     In general it's a good practice to fork into your own repository. We prefer if issues
-    are addressed in a branch with the issue number in it's name.
+    are addressed in a branch with the issue number in its name.
     i.e. `29_this_is_an_issue`
 
 4. *Make contributions*

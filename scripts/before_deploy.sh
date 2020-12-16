@@ -1,5 +1,5 @@
 # > This script is designed to be run within a travis CI job, on the before_deploy step
-# > The will do the following:
+# > It will do the following:
 #   1. Configure the git user to dappnode
 #   2. Correct origin modify tags and push branches
 #   3. Remove current tag before creating the v0.X.Y tag.
