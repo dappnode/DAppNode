@@ -12,7 +12,7 @@ BIND
 
 Local DAppNode DNS. Links each package docker IP to a name in the format of my.[package-name].dnp.dappnode.eth. I also redirects .eth domains to the ethforward. All rules can be consulted at `eth.hosts <https://github.com/dappnode/DNP_BIND/blob/master/build/bind/eth.hosts>`_.
 
-It runs the native linux bind package with with a configuration specified at `named.conf <https://github.com/dappnode/DNP_BIND/blob/master/build/bind/named.conf>`_. It attempts resolution and otherwise forwards to the Google Public DNS 8.8.8.8 / 8.8.4.4. 
+It runs the native linux bind package with a configuration specified at `named.conf <https://github.com/dappnode/DNP_BIND/blob/master/build/bind/named.conf>`_. It attempts resolution and otherwise forwards to the Google Public DNS 8.8.8.8 / 8.8.4.4. 
 
 ***
 VPN
@@ -77,7 +77,7 @@ It is a nodejs http proxy server, which also returns custom 404 pages if the con
 IPFS
 ****
 
-Local IFPS node. Its gateaway is available at:
+Local IFPS node. Its gateway is available at:
 
 .. code-block:: javascript
 
@@ -124,7 +124,7 @@ WAMP response specifications
 DAPPMANAGER
 ***********
 
-Installs and manages DAppNode packages (DNPs). It's a Nodejs app whos procedures are only consumed by the ADMIN, and depends on IPFS and ETHCHAIN to function.
+Installs and manages DAppNode packages (DNPs). It's a Nodejs app whose procedures are only consumed by the ADMIN, and depends on IPFS and ETHCHAIN to function.
 
 
 DAPPMANAGER procedures

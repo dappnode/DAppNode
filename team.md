@@ -1,4 +1,4 @@
-# Instigator/Technical Adviser - Jordi Baylina 
+# Instigator/Technical Adviser - Jordi Baylina
 
 Over 30 years of experience as a developer, and 3 years researching Ethereum blockchain. Telecommunication Engineering BS by UPC and MBA by IESE. One of the strongest Solidity developers in the world and a high impact contributor in the Ethereum community. Co-founder of the White Hat Group which played a major role in rescuing funds from TheDAO and Parity Multisig Hacks, and author of the MiniMe token contract, the elliptic curves solidity library as well as numerous other established contracts in the space. Currently working towards formalizing the ERC-777 token standard.  the latest standardization work he launched. Well respected auditor, most notably leading teams to audit the MakerDAO Stable Coin system and aragonOS.
 - Email | <jordi@baylina.cat>
@@ -26,9 +26,9 @@ A multidisciplinary developer with experience in scientific modeling research, s
 - GitHub | [@dapplion](https://github.com/dapplion)
 
 
-# Communication - Yalor Mewn 
+# Communication - Yalor Mewn
 
-A project management and communication specialist with a strong focus on holistic team coordination, productivity and time managment within small teams. Yalor started as an open source contributor in 2016, He is now focused fully on the Ethereum ecosystem and supporting the education of incoming open source contributors. 
+A project management and communication specialist with a strong focus on holistic team coordination, productivity and time management within small teams. Yalor started as an open source contributor in 2016, He is now focused fully on the Ethereum ecosystem and supporting the education of incoming open source contributors.
 
 - Email | <Yalor@Giveth.io>
 - GitHub | [@YalorMewn](https://github.com/YalorMewn)
