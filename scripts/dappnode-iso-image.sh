@@ -81,4 +81,4 @@ docker-compose up
 
 cp images/DAppNode-debian-bullseye-amd64.iso ../
 cd ..
-rm -rf "$INSTALLER_URL"
+rm -rf "$INSTALLER_DIR"
