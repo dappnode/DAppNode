@@ -244,7 +244,7 @@ function new_iso() {
 
     cp images/*amd64.iso ../
     cd ..
-    rm -rf "$INSTALLER_DIR"
+    #rm -rf "$INSTALLER_DIR"
 
     ## 5. Create VM with the ISO image
 
