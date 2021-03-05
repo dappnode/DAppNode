@@ -1,7 +1,7 @@
 # DAppNode
 
 [![Website dappnode.io](https://img.shields.io/badge/Website-dappnode.io-brightgreen.svg)](https://dappnode.io/)
-[![Documentation Wiki](https://img.shields.io/badge/Documentation-Wiki-brightgreen.svg)](https://github.com/dappnode/DAppNode/wiki)
+[![Documentation Wiki](https://img.shields.io/badge/Documentation-Wiki-brightgreen.svg)](https://docs.dappnode.io)
 [![GIVETH Campaign](https://img.shields.io/badge/GIVETH-Campaign-1e083c.svg)](https://beta.giveth.io/campaigns/5b44b198647f33526e67c262)
 ![GitHub All Releases](https://img.shields.io/github/downloads/dappnode/DAppNode/total.svg)
 [![Twitter Follow](https://img.shields.io/twitter/follow/espadrine.svg?style=social&label=Follow)](https://twitter.com/DAppNODE?lang=es)
@@ -15,7 +15,7 @@
 <br/>
 <p align="center">
   <a href="https://install.dappnode.io">
-    <img width="200" src="https://github.com/dappnode/DAppNode/raw/master/doc/DappnodeInstall.png">
+    <img width="200" src="doc/DappnodeInstall.png">
   </a>
 </p>
 <br/>
@@ -49,10 +49,10 @@ _Note: packages are published to Ethereum mainnet and incur costs. Given the cur
 
 # Packages eco-system
 
-The community and core team members have created many useful packages for users. Checkout the [**package explorer**](https://dappnode.github.io/explorer/) to browse an up-to-date list of all packages and their versions.
+The community and core team members have created many useful packages for users. Checkout the [**package explorer**](https://explorer.dappnode.io) to browse an up-to-date list of all packages and their versions.
 
 <p align="center">
-  <a href="https://dappnode.github.io/explorer/">
+  <a href="https://explorer.dappnode.io">
     <img width="600" src="doc/DAppNodeExplorer.png">
   </a>
 </p>
