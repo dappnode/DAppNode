@@ -55,9 +55,10 @@ We are open to receive funding to help pay the developers working hard on the so
 
 - **Adviser & Instigator:** Jordi Baylina
 - **Project Lead:** Eduadiez
-- **Front-End Lead:** DAppLion
-- **Back-End Lead:** Vdo
+- **Developer Lead:** dapplion
 - **Ecosystem Development** Pol Lanski
+- **Developer:** Pablo
+- **Developer:** Carlos
 - **Adviser:** Griff Green
 
 # Where the DAppers play
