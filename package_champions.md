@@ -1,6 +1,16 @@
-# Package champions
+# DAppnode packages eco-system
 
-All packages without a champion are actively looking for one!
+The community and core team members have created many useful packages for users. Checkout the [**package explorer**](https://dappnode.github.io/explorer/) to browse an up-to-date list of all packages and their versions.
+
+<p align="center">
+  <a href="https://dappnode.github.io/explorer/">
+    <img width="600" src="doc/DAppNodeExplorer.png">
+  </a>
+</p>
+
+## Champions
+
+Champions are community members that are in charge of maintaining packages updated. All packages in this list without a champions are actively looking for a champion. Join our [DAppNode Discord **#champion-process**](https://discord.gg/MhSPBsHryu) to suggest a package to be championed and/or offer to be a champion for a project you care about!
 
 | Package                                                                                                  | Champion         |
 | -------------------------------------------------------------------------------------------------------- | ---------------- |
