@@ -74,8 +74,8 @@ Champions are community members that are in charge of maintaining packages updat
 | [Ethereum Classic](https://github.com/dappnode/DAppNodePackage-ethereum-classic)         | -                |
 | [Ethereum Optimism](https://github.com/dappnode/DAppNodePackage-ethereum-optimism)       | -                |
 | [Exporter](https://github.com/dappnode/DAppNodePackage-exporter)                         | -                |
-| [Geth](https://github.com/dappnode/DAppNodePackage-geth)                                 | -                |
-| [Goerli Geth](https://github.com/dappnode/DAppNodePackage-goerli-geth)                   | -                |
+| [Geth](https://github.com/dappnode/DAppNodePackage-geth)                                 | @pablomendezroyo |
+| [Goerli Geth](https://github.com/dappnode/DAppNodePackage-goerli-geth)                   | @pablomendezroyo |
 | [Grin](https://github.com/dappnode/DAppNodePackage-grin)                                 | -                |
 | [HTTPs Portal](https://github.com/dappnode/DAppNodePackage-https-portal)                 | -                |
 | [Ipfs Cluster](https://github.com/dappnode/DAppNodePackage-ipfs-cluster)                 | -                |
@@ -93,8 +93,8 @@ Champions are community members that are in charge of maintaining packages updat
 | [Prysm Pyrmont](https://github.com/dappnode/DAppNodePackage-prysm-pyrmont)               | @pablomendezroyo |
 | [Raiden](https://github.com/dappnode/DAppNodePackage-raiden)                             | -                |
 | [Raiden Testnet](https://github.com/dappnode/DAppnodePackage-raiden-testnet)             | -                |
-| [Rinkeby](https://github.com/dappnode/DAppNodePackage-rinkeby)                           | -                |
-| [Ropsten](https://github.com/dappnode/DAppNodePackage-ropsten)                           | -                |
+| [Rinkeby](https://github.com/dappnode/DAppNodePackage-rinkeby)                           | @pablomendezroyo |
+| [Ropsten](https://github.com/dappnode/DAppNodePackage-ropsten)                           | @pablomendezroyo |
 | [Storj](https://github.com/dappnode/DAppNodePackage-storj)                               | @pablomendezroyo |
 | [Tornado Cash Relayer](https://github.com/dappnode/DAppNodePackage-Tornado-Cash-Relayer) | -                |
 | [Trustlines](https://github.com/dappnode/DAppNodePackage-trustlines)                     | -                |
