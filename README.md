@@ -63,48 +63,43 @@ Champions are community members that are in charge of maintaining packages updat
 
 | Package                                                                                  | Champion         |
 | ---------------------------------------------------------------------------------------- | ---------------- |
-| [Avalanche](https://github.com/Colm3na/DAppNodePackage-avalanche)                        | -                |
+| [Avalanche](https://github.com/Colm3na/DAppNodePackage-avalanche)                        | Wimel            |
 | [ARTIS-sigma1](https://github.com/lab10-coop/DAppNodePackage-ARTIS-sigma1)               | -                |
 | [Bee](https://github.com/dappnode/DAppNodePackage-bee)                                   | @tropicar        |
 | [Bitcoin](https://github.com/dappnode/DAppNodePackage-bitcoin)                           | @Pol-Lanski      |
 | [Block-explorer](https://github.com/dappnode/DappnodePackage-block-explorer)             | -                |
-| [Cosmos](https://github.com/Colm3na/DAppNodePackage-cosmos)                              | -                |
-| [DMS](https://github.com/dappnode/DAppNodePackage-DMS)                                   | -                |
+| [Cosmos](https://github.com/Colm3na/DAppNodePackage-cosmos)                              | Wimel            |
+| [DMS](https://github.com/dappnode/DAppNodePackage-DMS)                                   | @eduadiez        |
 | [Eth2stats-client](https://github.com/dappnode/DAppNodePackage-eth2stats-client)         | -                |
 | [Ethereum Classic](https://github.com/dappnode/DAppNodePackage-ethereum-classic)         | -                |
 | [Ethereum Optimism](https://github.com/dappnode/DAppNodePackage-ethereum-optimism)       | -                |
-| [Exporter](https://github.com/dappnode/DAppNodePackage-exporter)                         | -                |
+| [Exporter](https://github.com/dappnode/DAppNodePackage-exporter)                         | @eduadiez        |
 | [Geth](https://github.com/dappnode/DAppNodePackage-geth)                                 | @pablomendezroyo |
 | [Goerli Geth](https://github.com/dappnode/DAppNodePackage-goerli-geth)                   | @pablomendezroyo |
-| [Grin](https://github.com/dappnode/DAppNodePackage-grin)                                 | -                |
-| [HTTPs Portal](https://github.com/dappnode/DAppNodePackage-https-portal)                 | -                |
-| [Ipfs Cluster](https://github.com/dappnode/DAppNodePackage-ipfs-cluster)                 | -                |
-| [Ipfs Pinner](https://github.com/dappnode/DAppNodePackage-ipfs-pinner)                   | -                |
-| [Kovan](https://github.com/dappnode/DAppNodePackage-kovan)                               | -                |
+| [HTTPs Portal](https://github.com/dappnode/DAppNodePackage-https-portal)                 | @3alpha          |
+| [Ipfs Cluster](https://github.com/dappnode/DAppNodePackage-ipfs-cluster)                 | @dapplion        |
+| [Ipfs Pinner](https://github.com/dappnode/DAppNodePackage-ipfs-pinner)                   | @dapplion        |
+| [Kovan](https://github.com/dappnode/DAppNodePackage-kovan)                               | @pablomendezroyo |
 | [LightningNetwork](https://github.com/dappnode/DAppNodePackage-LightningNetwork)         | @pablomendezroyo |
 | [Matrix](https://github.com/dappnode/DAppNodePackage-matrix)                             | -                |
-| [Metrics Tools](https://github.com/dappnode/DAppNodePackage-metrics-tools)               | -                |
+| [Metrics Tools](https://github.com/dappnode/DAppNodePackage-metrics-tools)               | @eduadiez        |
 | [Monero](https://github.com/dappnode/DAppNodePackage-monero)                             | @pablomendezroyo |
-| [Nethermind](https://github.com/dappnode/DAppNodePackage-nethermind)                     | -                |
-| [Openethereum](https://github.com/dappnode/DAppNodePackage-openethereum)                 | -                |
-| [Owncloud](https://github.com/dappnode/DAppNodePackage-owncloud)                         | -                |
-| Polkadot Kusama                                                                          | @tropicar        |
+| [Nethermind](https://github.com/dappnode/DAppNodePackage-nethermind)                     | @pablomendezroyo |
+| [Openethereum](https://github.com/dappnode/DAppNodePackage-openethereum)                 | @pablomendezroyo |
+| [Owncloud](https://github.com/dappnode/DAppNodePackage-owncloud)                         | @tropicar        |
+| Polkadot Kusama                                                                          | -                |
 | [Prysm](https://github.com/dappnode/DAppNodePackage-prysm)                               | @pablomendezroyo |
 | [Prysm Pyrmont](https://github.com/dappnode/DAppNodePackage-prysm-pyrmont)               | @pablomendezroyo |
-| [Raiden](https://github.com/dappnode/DAppNodePackage-raiden)                             | -                |
-| [Raiden Testnet](https://github.com/dappnode/DAppnodePackage-raiden-testnet)             | -                |
+| [Raiden](https://github.com/dappnode/DAppNodePackage-raiden)                             | @eduadiez        |
+| [Raiden Testnet](https://github.com/dappnode/DAppnodePackage-raiden-testnet)             | @eduadiez        |
 | [Rinkeby](https://github.com/dappnode/DAppNodePackage-rinkeby)                           | @pablomendezroyo |
 | [Ropsten](https://github.com/dappnode/DAppNodePackage-ropsten)                           | @pablomendezroyo |
 | [Storj](https://github.com/dappnode/DAppNodePackage-storj)                               | @pablomendezroyo |
 | [Tornado Cash Relayer](https://github.com/dappnode/DAppNodePackage-Tornado-Cash-Relayer) | -                |
 | [Trustlines](https://github.com/dappnode/DAppNodePackage-trustlines)                     | -                |
-| [Trustlines bridge](https://github.com/dappnode/DAppNodePackage-trustlines-bridge)       | -                |
-| [Trustlines monitor](https://github.com/dappnode/DAppNodePackage-trustlines-monitor)     | -                |
-| [Trustlines netstats](https://github.com/dappnode/DAppNodePackage-trustlines-netstats)   | -                |
-| [Trustlines validator](https://github.com/dappnode/DAppNodePackage-trustlines-validator) | -                |
-| [Turbo-geth](https://github.com/dappnode/DAppNodePackage-turbo-geth)                     | -                |
+| [Turbo-geth](https://github.com/dappnode/DAppNodePackage-turbo-geth)                     | @gnidan          |
 | [Vipnode](https://github.com/dappnode/DAppNodePackage-vipnode)                           | -                |
-| [Wireguard](https://github.com/dappnode/DAppNodePackage-wireguard)                       | -                |
+| [Wireguard](https://github.com/dappnode/DAppNodePackage-wireguard)                       | @3alpha          |
 | [ZCash](https://github.com/dappnode/DAppNodePackage-zcash)                               | -                |
 
 # Core packages
