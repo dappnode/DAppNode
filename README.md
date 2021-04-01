@@ -97,7 +97,7 @@ Champions are community members that are in charge of maintaining packages updat
 | [Storj](https://github.com/dappnode/DAppNodePackage-storj)                               | @pablomendezroyo |
 | [Tornado Cash Relayer](https://github.com/dappnode/DAppNodePackage-Tornado-Cash-Relayer) | -                |
 | [Trustlines](https://github.com/dappnode/DAppNodePackage-trustlines)                     | -                |
-| [Turbo-geth](https://github.com/dappnode/DAppNodePackage-turbo-geth)                     | @pablomendezroyo |
+| [Turbo-geth](https://github.com/dappnode/DAppNodePackage-turbo-geth)                     | @gnidan          |
 | [Vipnode](https://github.com/dappnode/DAppNodePackage-vipnode)                           | -                |
 | [Wireguard](https://github.com/dappnode/DAppNodePackage-wireguard)                       | @3alpha          |
 | [ZCash](https://github.com/dappnode/DAppNodePackage-zcash)                               | -                |
