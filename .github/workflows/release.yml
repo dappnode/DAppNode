@@ -32,6 +32,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Get versions
       - name: Check out installer
         uses: actions/checkout@master
         with:
@@ -45,13 +46,13 @@ jobs:
           ls -lrt images/DAppNode-debian-bullseye-amd64.iso
       - name: Set new versions
         run: |
-          sed -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.bindVersion }}"/"" test-profile.sh
-          sed -e "/IPFS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.ipfsVersion }}"/"" test-profile.sh
-          sed -e "/VPN_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.vpnVersion }}"/"" test-profile.sh
-          sed -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.dappmanagerVersion }}"/"" test-profile.sh
-          sed -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.wifiVersion }}"/"" test-profile.sh
-          sed -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.wireguardVersion }}"/"" test-profile.sh
-          sed -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.httpsVersion }}"/"" test-profile.sh
+          sed -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_BINDVERSION}"/" test-profile.sh
+          sed -e "/IPFS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${IPFSVERSION}"/" test-profile.sh
+          sed -e "/VPN_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_VPNVERSION}"/" test-profile.sh
+          sed -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_DAPPMANAGERVERSION}"/" test-profile.sh
+          sed -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_WIFIVERSION}"/" test-profile.sh
+          sed -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_WIREGUARDVERSION}"/" test-profile.sh
+          sed -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_HTTPSVERSION}"/" test-profile.sh
 
       - name: Create dappnode_profile.sh
         run: |
@@ -59,7 +60,7 @@ jobs:
       - name: Pre release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ inputs.coreVersion }}
+          tag_name: ${INPUT_COREVERSION}
           prerelease: true
           files: |
             ./images/DAppNode-debian-bullseye-amd64.iso
