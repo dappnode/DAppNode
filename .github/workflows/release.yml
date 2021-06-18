@@ -1,22 +1,22 @@
 on:
   workflow_dispatch:
     inputs:
-      coreVersion:
+      core:
         description: "Version of the core. Must go with v"
         required: true
-      dappmanagerVersion:
+      dappmanager:
         description: "Version of the dappmanager. Only numbers"
-      wifiVersion:
+      wifi:
         description: "Version of the wifi. Only numbers"
-      bindVersion:
+      bind:
         description: "Version of the bind. Only numbers"
-      ipfsVersion:
+      ipfs:
         description: "Version of the ipfs. Only numbers"
-      httpsVersion:
+      https:
         description: "Version of the https. Only numbers"
-      wireguardVersion:
+      wireguard:
         description: "Version of the wireguard. Only numbers"
-      vpnVersion:
+      vpn:
         description: "Version of the vpn. Only numbers"
 
 jobs:
@@ -34,17 +34,17 @@ jobs:
           repository: dappnode/DAppNode_Installer
       - name: Debug, print envs
         run: |
-          echo "BIND: $INPUT_BINDVERSION"
-          echo "CORE: $INPUT_COREVERSION"
+          echo "BIND: ${{ github.event.inputs.bind }}"
+          echo "CORE: ${{ github.event.inputs.core }}"
       - name: Set new versions
         run: |
-          [ ! -z "$INPUT_BINDVERSION" ] && sed -i -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_BINDVERSION}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_IPFSVERSION" ] && sed -i -e "/IPFS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_IPFSVERSION}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_VPNVERSION" ] && sed -i -e "/VPN_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_VPNVERSION}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_DAPPMANAGERVERSION" ] && sed -i -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_DAPPMANAGERVERSION}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_WIFIVERSION" ] && sed -i -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_WIFIVERSION}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_WIREGUARDVERSION" ] && sed -i -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_WIREGUARDVERSION}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_HTTPSVERSION" ] && sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_HTTPSVERSION}"/" .dappnode_profile.sh
+          [ ! -z "$INPUT_BIND" ] && sed -i -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_BIND}"/" .dappnode_profile.sh
+          [ ! -z "$INPUT_IPFS" ] && sed -i -e "/IPFS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_IPFS}"/" .dappnode_profile.sh
+          [ ! -z "$INPUT_VPN" ] && sed -i -e "/VPN_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_VPN}"/" .dappnode_profile.sh
+          [ ! -z "$INPUT_DAPPMANAGER" ] && sed -i -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_DAPPMANAGER}"/" .dappnode_profile.sh
+          [ ! -z "$INPUT_WIFI" ] && sed -i -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_WIFI}"/" .dappnode_profile.sh
+          [ ! -z "$INPUT_WIREGUARD" ] && sed -i -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_WIREGUARD}"/" .dappnode_profile.sh
+          [ ! -z "$HTTPS" ] && sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_HTTPS}"/" .dappnode_profile.sh
       - name: Build
         run: |
           docker-compose build
