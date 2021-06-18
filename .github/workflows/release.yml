@@ -32,19 +32,15 @@ jobs:
         uses: actions/checkout@master
         with:
           repository: dappnode/DAppNode_Installer
-      - name: Debug, print envs
-        run: |
-          echo "BIND: ${{ github.event.inputs.bind }}"
-          echo "CORE: ${{ github.event.inputs.core }}"
       - name: Set new versions
         run: |
-          [ ! -z "$INPUT_BIND" ] && sed -i -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_BIND}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_IPFS" ] && sed -i -e "/IPFS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_IPFS}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_VPN" ] && sed -i -e "/VPN_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_VPN}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_DAPPMANAGER" ] && sed -i -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_DAPPMANAGER}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_WIFI" ] && sed -i -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_WIFI}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_WIREGUARD" ] && sed -i -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_WIREGUARD}"/" .dappnode_profile.sh
-          [ ! -z "$HTTPS" ] && sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_HTTPS}"/" .dappnode_profile.sh
+          [ ! -z "${{ github.event.inputs.bind }}" ] && sed -i -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.bind }}"/" .dappnode_profile.sh
+          [ ! -z "${{ github.event.inputs.ipfs }}" ] && sed -i -e "/IPFS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.ipfs }}"/" .dappnode_profile.sh
+          [ ! -z "${{ github.event.inputs.vpn }}" ] && sed -i -e "/VPN_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.vpn }}"/" .dappnode_profile.sh
+          [ ! -z "${{ github.event.inputs.dappmanager }}" ] && sed -i -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.dappmanager }}"/" .dappnode_profile.sh
+          [ ! -z "${{ github.event.inputs.wifi }}" ] && sed -i -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.wifi }}"/" .dappnode_profile.sh
+          [ ! -z "${{ github.event.inputs.wireguard }}" ] && sed -i -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.wireguard }}"/" .dappnode_profile.sh
+          [ ! -z "${{ github.event.inputs.https }}" ] && sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.https }}"/" .dappnode_profile.sh
       - name: Build
         run: |
           docker-compose build
