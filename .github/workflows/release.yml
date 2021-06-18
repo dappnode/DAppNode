@@ -23,6 +23,9 @@ jobs:
   pre-release:
     name: create pre release
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - name: Check out installer
