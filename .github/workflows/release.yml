@@ -32,7 +32,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get versions
       - name: Check out installer
         uses: actions/checkout@master
         with:
