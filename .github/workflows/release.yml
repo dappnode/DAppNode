@@ -31,13 +31,13 @@ jobs:
           repository: dappnode/DAppNode_Installer
       - name: Set new versions
         run: |
-          [ ! -z "$INPUT_BINDVERSION" ] && sed -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_BINDVERSION}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_IPFSVERSION" ] && sed -e "/IPFS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_IPFSVERSION}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_VPNVERSION" ] && sed -e "/VPN_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_VPNVERSION}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_DAPPMANAGERVERSION" ] && sed -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_DAPPMANAGERVERSION}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_WIFIVERSION" ] && sed -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_WIFIVERSION}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_WIREGUARDVERSION" ] && sed -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_WIREGUARDVERSION}"/" .dappnode_profile.sh
-          [ ! -z "$INPUT_HTTPSVERSION" ] && sed -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_HTTPSVERSION}"/" .dappnode_profile.sh
+          [ ! -z "$INPUT_BINDVERSION" ] && sed -i -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_BINDVERSION}"/" .dappnode_profile.sh
+          [ ! -z "$INPUT_IPFSVERSION" ] && sed -i -e "/IPFS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_IPFSVERSION}"/" .dappnode_profile.sh
+          [ ! -z "$INPUT_VPNVERSION" ] && sed -i -e "/VPN_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_VPNVERSION}"/" .dappnode_profile.sh
+          [ ! -z "$INPUT_DAPPMANAGERVERSION" ] && sed -i -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_DAPPMANAGERVERSION}"/" .dappnode_profile.sh
+          [ ! -z "$INPUT_WIFIVERSION" ] && sed -i -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_WIFIVERSION}"/" .dappnode_profile.sh
+          [ ! -z "$INPUT_WIREGUARDVERSION" ] && sed -i -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_WIREGUARDVERSION}"/" .dappnode_profile.sh
+          [ ! -z "$INPUT_HTTPSVERSION" ] && sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_HTTPSVERSION}"/" .dappnode_profile.sh
       - name: Build
         run: |
           docker-compose build
