@@ -1,0 +1,72 @@
+on:
+  workflow_dispatch:
+    inputs:
+      coreVersion:
+        description: "Version of the core. Must go with v"
+        required: true
+      dappmanagerVersion:
+        description: "Version of the dappmanager. Only numbers"
+        required: true
+      wifiVersion:
+        description: "Version of the wifi. Only numbers"
+        required: true
+      bindVersion:
+        description: "Version of the bind. Only numbers"
+        required: true
+      ipfsVersion:
+        description: "Version of the ipfs. Only numbers"
+        required: true
+      httpsVersion:
+        description: "Version of the https. Only numbers"
+        required: true
+      wireguardVersion:
+        description: "Version of the wireguard. Only numbers"
+        required: true
+      vpnVersion:
+        description: "Version of the vpn. Only numbers"
+        required: true
+
+jobs:
+  pre-release:
+    name: create pre release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out installer
+        uses: actions/checkout@master
+        with:
+          repository: dappnode/DAppNode_Installer
+      - name: Build
+        run: |
+          docker-compose build
+          docker-compose up
+      - name: Check iso
+        run: |
+          ls -lrt images/DAppNode-debian-bullseye-amd64.iso
+      - name: Set new versions
+        run: |
+          sed -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.bindVersion }}"/"" test-profile.sh
+          sed -e "/IPFS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.ipfsVersion }}"/"" test-profile.sh
+          sed -e "/VPN_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.vpnVersion }}"/"" test-profile.sh
+          sed -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.dappmanagerVersion }}"/"" test-profile.sh
+          sed -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.wifiVersion }}"/"" test-profile.sh
+          sed -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.wireguardVersion }}"/"" test-profile.sh
+          sed -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"{{ inputs.httpsVersion }}"/"" test-profile.sh
+
+      - name: Create dappnode_profile.sh
+        run: |
+          cp .dappnode_profile dappnode_profile.sh
+      - name: Pre release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ inputs.coreVersion }}
+          prerelease: true
+          files: |
+            ./images/DAppNode-debian-bullseye-amd64.iso
+            ./scripts/dappnode_install.sh
+            ./scripts/dappnode_install_pre.sh
+            ./scripts/dappnode_uninstall.sh
+            ./scripts/dappnode_access_credentials.sh
+            dappnode_profile.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
