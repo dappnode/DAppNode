@@ -32,6 +32,10 @@ jobs:
         uses: actions/checkout@master
         with:
           repository: dappnode/DAppNode_Installer
+      - name: Debug, print envs
+        run: |
+          echo "BIND: $INPUT_BINDVERSION"
+          echo "CORE: $INPUT_COREVERSION"
       - name: Set new versions
         run: |
           [ ! -z "$INPUT_BINDVERSION" ] && sed -i -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${INPUT_BINDVERSION}"/" .dappnode_profile.sh
