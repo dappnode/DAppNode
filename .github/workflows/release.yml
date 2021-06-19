@@ -6,18 +6,25 @@ on:
         required: true
       dappmanager:
         description: "Version of the dappmanager. Only numbers"
+        required: true
       wifi:
         description: "Version of the wifi. Only numbers"
+        required: true
       bind:
         description: "Version of the bind. Only numbers"
+        required: true
       ipfs:
         description: "Version of the ipfs. Only numbers"
+        required: true
       https:
         description: "Version of the https. Only numbers"
+        required: true
       wireguard:
         description: "Version of the wireguard. Only numbers"
+        required: true
       vpn:
         description: "Version of the vpn. Only numbers"
+        required: true
 
 jobs:
   pre-release:
@@ -35,13 +42,13 @@ jobs:
       - name: Define envs
         run: echo "Defining envs vars"
         env:
-          BIND_VERSION: ${{ inputs.bind }} || ""
-          IPFS_VERSION: ${{ inputs.ipfs }} || ""
-          DAPPMANAGER_VERSION: ${{ inputs.dappmanager }} || ""
-          WIFI_VERSION: ${{ inputs.wifi }} || ""
-          WIREGUARD_VERSION: ${{ inputs.wireguard }} || ""
-          HTTPS_VERSION: ${{ inputs.https }} || ""
-          VPN_VERSION: ${{ inputs.vpn }} || ""
+          BIND_VERSION: ${{ inputs.bind }}
+          IPFS_VERSION: ${{ inputs.ipfs }}
+          DAPPMANAGER_VERSION: ${{ inputs.dappmanager }}
+          WIFI_VERSION: ${{ inputs.wifi }}
+          WIREGUARD_VERSION: ${{ inputs.wireguard }}
+          HTTPS_VERSION: ${{ inputs.https }}
+          VPN_VERSION: ${{ inputs.vpn }}
           CORE_VERSION: ${{ inputs.core }}
       - name: Set new versions
         run: |
