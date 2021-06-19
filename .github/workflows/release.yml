@@ -50,13 +50,13 @@ jobs:
           sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${HTTPS_VERSION}"/" .dappnode_profile
           cat .dappnode_profile
         env:
-          BIND_VERSION: ${{ github.events.input.bind }}
-          IPFS_VERSION: ${{ github.events.input.ipfs }}
-          DAPPMANAGER_VERSION: ${{ github.events.input.dappmanager }}
-          WIFI_VERSION: ${{ github.events.input.wifi }}
-          WIREGUARD_VERSION: ${{ github.events.input.wireguard }}
-          HTTPS_VERSION: ${{ github.events.input.https }}
-          VPN_VERSION: ${{ github.events.input.vpn }}
+          BIND_VERSION: ${{ github.event.inputs.bind }}
+          IPFS_VERSION: ${{ github.event.inputs.ipfs }}
+          DAPPMANAGER_VERSION: ${{ github.event.inputs.dappmanager }}
+          WIFI_VERSION: ${{ github.event.inputs.wifi }}
+          WIREGUARD_VERSION: ${{ github.event.inputs.wireguard }}
+          HTTPS_VERSION: ${{ github.event.inputs.https }}
+          VPN_VERSION: ${{ github.event.inputs.vpn }}
       - name: Build
         run: |
           docker-compose build
@@ -82,4 +82,4 @@ jobs:
             dappnode_profile.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CORE_VERSION: ${{ github.events.input.core }}
+          CORE_VERSION: ${{ github.event.inputs.core }}
