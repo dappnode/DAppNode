@@ -2,7 +2,7 @@ on:
   workflow_dispatch:
     inputs:
       core:
-        description: "Version of the core. Must go with v"
+        description: "Version of the core. Must go with v (e.g v0.2.47)"
         required: true
       dappmanager:
         description: "Version of the dappmanager. Only numbers"
@@ -32,15 +32,25 @@ jobs:
         uses: actions/checkout@master
         with:
           repository: dappnode/DAppNode_Installer
+      - name: Define envs
+        env:
+          BIND_VERSION: ${{ inputs.bind }}
+          IPFS_VERSION: ${{ inputs.ipfs }}
+          DAPPMANAGER_VERSION: ${{ inputs.dappmanager }}
+          WIFI_VERSION: ${{ inputs.wifi }}
+          WIREGUARD_VERSION: ${{ inputs.wireguard }}
+          HTTPS_VERSION: ${{ inputs.https }}
+          VPN_VERSION: ${{ inputs.vpn }}
+          CORE_VERSION: ${{ inputs.core }}
       - name: Set new versions
         run: |
-          [ ! -z "${{ github.event.inputs.bind }}" ] && sed -i -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.bind }}"/" .dappnode_profile
-          [ ! -z "${{ github.event.inputs.ipfs }}" ] && sed -i -e "/IPFS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.ipfs }}"/" .dappnode_profile
-          [ ! -z "${{ github.event.inputs.vpn }}" ] && sed -i -e "/VPN_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.vpn }}"/" .dappnode_profile
-          [ ! -z "${{ github.event.inputs.dappmanager }}" ] && sed -i -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.dappmanager }}"/" .dappnode_profile
-          [ ! -z "${{ github.event.inputs.wifi }}" ] && sed -i -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.wifi }}"/" .dappnode_profile
-          [ ! -z "${{ github.event.inputs.wireguard }}" ] && sed -i -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.wireguard }}"/" .dappnode_profile
-          [ ! -z "${{ github.event.inputs.https }}" ] && sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.https }}"/" .dappnode_profile
+          [ ! -z "${BIND_VERSION}" ] && sed -i -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${BIND_VERSION}"/" .dappnode_profile
+          [ ! -z "${IPFS_VERSION}" ] && sed -i -e "/IPFS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${IPFS_VERSION}"/" .dappnode_profile
+          [ ! -z "${VPN_VERSION}" ] && sed -i -e "/VPN_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${VPN_VERSION}"/" .dappnode_profile
+          [ ! -z "${DAPPMANAGER_VERSION}" ] && sed -i -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${DAPPMANAGER_VERSION}"/" .dappnode_profile
+          [ ! -z "${WIFI_VERSION}" ] && sed -i -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${WIFI_VERSION}"/" .dappnode_profile
+          [ ! -z "${WIREGUARD_VERSION}" ] && sed -i -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${WIREGUARD_VERSION}"/" .dappnode_profile
+          [ ! -z "${HTTPS_VERSION}" ] && sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${HTTPS_VERSION}"/" .dappnode_profile
       - name: Build
         run: |
           docker-compose build
@@ -55,7 +65,7 @@ jobs:
       - name: Pre release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${INPUT_COREVERSION}
+          tag_name: ${CORE_VERSION}
           prerelease: true
           files: |
             ./images/DAppNode-debian-bullseye-amd64.iso
