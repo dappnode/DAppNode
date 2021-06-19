@@ -59,6 +59,7 @@ jobs:
           sed -i -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${WIFI_VERSION}"/" .dappnode_profile
           sed -i -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${WIREGUARD_VERSION}"/" .dappnode_profile
           sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${HTTPS_VERSION}"/" .dappnode_profile
+          cat .dappnode_profile
       - name: Build
         run: |
           docker-compose build
