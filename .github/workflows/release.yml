@@ -33,6 +33,7 @@ jobs:
         with:
           repository: dappnode/DAppNode_Installer
       - name: Define envs
+        run: echo "Defining envs vars"
         env:
           BIND_VERSION: ${{ inputs.bind }}
           IPFS_VERSION: ${{ inputs.ipfs }}
