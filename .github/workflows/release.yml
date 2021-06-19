@@ -39,17 +39,6 @@ jobs:
         uses: actions/checkout@master
         with:
           repository: dappnode/DAppNode_Installer
-      - name: Define envs
-        run: echo "Defining envs vars"
-        env:
-          BIND_VERSION: ${{ github.events.inputs.bind }}
-          IPFS_VERSION: ${{ github.events.inputs.ipfs }}
-          DAPPMANAGER_VERSION: ${{ github.events.inputs.dappmanager }}
-          WIFI_VERSION: ${{ github.events.inputs.wifi }}
-          WIREGUARD_VERSION: ${{ github.events.inputs.wireguard }}
-          HTTPS_VERSION: ${{ github.events.inputs.https }}
-          VPN_VERSION: ${{ github.events.inputs.vpn }}
-          CORE_VERSION: ${{ github.events.inputs.core }}
       - name: Set new versions
         run: |
           sed -i -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${BIND_VERSION}"/" .dappnode_profile
@@ -60,6 +49,14 @@ jobs:
           sed -i -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${WIREGUARD_VERSION}"/" .dappnode_profile
           sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${HTTPS_VERSION}"/" .dappnode_profile
           cat .dappnode_profile
+        env:
+          BIND_VERSION: ${{ github.events.inputs.bind }}
+          IPFS_VERSION: ${{ github.events.inputs.ipfs }}
+          DAPPMANAGER_VERSION: ${{ github.events.inputs.dappmanager }}
+          WIFI_VERSION: ${{ github.events.inputs.wifi }}
+          WIREGUARD_VERSION: ${{ github.events.inputs.wireguard }}
+          HTTPS_VERSION: ${{ github.events.inputs.https }}
+          VPN_VERSION: ${{ github.events.inputs.vpn }}
       - name: Build
         run: |
           docker-compose build
@@ -85,3 +82,4 @@ jobs:
             dappnode_profile.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CORE_VERSION: ${{ github.events.inputs.core }}
