@@ -35,13 +35,13 @@ jobs:
       - name: Define envs
         run: echo "Defining envs vars"
         env:
-          BIND_VERSION: ${{ inputs.bind }}
-          IPFS_VERSION: ${{ inputs.ipfs }}
-          DAPPMANAGER_VERSION: ${{ inputs.dappmanager }}
-          WIFI_VERSION: ${{ inputs.wifi }}
-          WIREGUARD_VERSION: ${{ inputs.wireguard }}
-          HTTPS_VERSION: ${{ inputs.https }}
-          VPN_VERSION: ${{ inputs.vpn }}
+          BIND_VERSION: ${{ inputs.bind }} || ""
+          IPFS_VERSION: ${{ inputs.ipfs }} || ""
+          DAPPMANAGER_VERSION: ${{ inputs.dappmanager }} || ""
+          WIFI_VERSION: ${{ inputs.wifi }} || ""
+          WIREGUARD_VERSION: ${{ inputs.wireguard }} || ""
+          HTTPS_VERSION: ${{ inputs.https }} || ""
+          VPN_VERSION: ${{ inputs.vpn }} || ""
           CORE_VERSION: ${{ inputs.core }}
       - name: Set new versions
         run: |
