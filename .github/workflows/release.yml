@@ -71,7 +71,7 @@ jobs:
       - name: Pre release
         uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${CORE_VERSION}
+          tag_name: ${{ github.event.inputs.core }}
           prerelease: true
           files: |
             ./images/DAppNode-debian-bullseye-amd64.iso
@@ -82,4 +82,3 @@ jobs:
             dappnode_profile.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CORE_VERSION: ${{ github.event.inputs.core }}
