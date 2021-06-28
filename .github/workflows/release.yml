@@ -69,6 +69,11 @@ jobs:
       - name: Create dappnode_profile.sh
         run: |
           cp .dappnode_profile dappnode_profile.sh
+      - name: Set DAppNode ISO name
+        run: |
+          mv ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso
+        env:
+          CORE_VERSION: ${{ github.event.inputs.core }}
       - name: Pre release
         uses: softprops/action-gh-release@v1
         with:
