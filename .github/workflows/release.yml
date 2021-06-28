@@ -80,7 +80,7 @@ jobs:
           tag_name: ${{ github.event.inputs.core }}
           prerelease: true
           files: |
-            ./images/DAppNode-debian-bullseye-amd64.iso
+            ./DAppNode-*-amd64.iso
             ./scripts/dappnode_install.sh
             ./scripts/dappnode_install_pre.sh
             ./scripts/dappnode_uninstall.sh
