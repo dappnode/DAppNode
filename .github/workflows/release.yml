@@ -78,18 +78,18 @@ jobs:
         run: |
           cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso
 
-      # echo ::set-env name=SHASUM_ARM::$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso)
       - name: Get SHA-256
         id: shasum
         run: |
-          echo ::set-output name=SHASUM_AMD::$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso)
+          SHASUM_AMD=$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso)
+          echo "::set-output name=SHASUM::$SHASUM_AMD"
 
       - name: Write release content
         run: |
           echo -en "# Versions\n|  Package  | Version  |\n|---|---|\nbind.dnp.dappnode.eth|${BIND_VERSION}|\n|ipfs.dnp.dappnode.eth|${IPFS_VERSION}|\n|vpn.dnp.dappnode.eth |${VPN_VERSION}|\n|dappmanager.dnp.dappnode.eth|${DAPPMANAGER_VERSION}|\n|wifi.dnp.dappnode.eth|${WIFI_VERSION}|\n|https.dnp.dappnode.eth|${HTTPS_VERSION}|\n|wireguard.dnp.dappnode.eth|${WIREGUARD_VERSION}|\n# Changes\n# ISO SHA-256 Checksum\n```${SHASUM}```\n# DAppNode for Raspberry Pi 4 64bit\n[Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)\n* default login data:\n* __user__: dappnode\n* __password__: dappnodepi" > CHANGELOG.md
           cat CHANGELOG.md
         env:
-          SHASUM: ${{ steps.shasum.outputs.SHASUM_AMD }}
+          SHASUM: ${{ steps.shasum.outputs.SHASUM }}
 
       - name: Pre release
         uses: softprops/action-gh-release@v1
