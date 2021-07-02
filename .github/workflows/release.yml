@@ -34,7 +34,7 @@ jobs:
     defaults:
       run:
         shell: bash
-
+    
     steps:
       - name: Check out installer
         uses: actions/checkout@master
@@ -58,10 +58,12 @@ jobs:
           WIREGUARD_VERSION: ${{ github.event.inputs.wireguard }}
           HTTPS_VERSION: ${{ github.event.inputs.https }}
           VPN_VERSION: ${{ github.event.inputs.vpn }}
+       
       - name: Build
         run: |
           docker-compose build
           docker-compose up
+
       - name: Check iso
         run: |
           ls -lrt images/DAppNode-debian-bullseye-amd64.iso
@@ -69,11 +71,21 @@ jobs:
       - name: Create dappnode_profile.sh
         run: |
           cp .dappnode_profile dappnode_profile.sh
+
       - name: Set DAppNode ISO name
         run: |
           mv ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso
         env:
           CORE_VERSION: ${{ github.event.inputs.core }}
+
+      # echo ::set-env name=SHASUM_ARM::$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso)
+      - name: Get SHA-256
+        id: shasum
+        run: |
+          echo ::set-output name=SHASUM_AMD::$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso)
+        env:
+          CORE_VERSION: ${{ github.event.inputs.core }}
+          
       - name: Pre release
         uses: softprops/action-gh-release@v1
         with:
@@ -86,5 +98,28 @@ jobs:
             ./scripts/dappnode_uninstall.sh
             ./scripts/dappnode_access_credentials.sh
             dappnode_profile.sh
+          body: |
+          # Versions
+          |  Package  | Version  | 
+          |---|---|
+          |bind.dnp.dappnode.eth|${BIND_VERSION}|
+          |ipfs.dnp.dappnode.eth|${IPFS_VERSION}|
+          |vpn.dnp.dappnode.eth |${VPN_VERSION}|
+          |dappmanager.dnp.dappnode.eth|${DAPPMANAGER_VERSION}|
+          |wifi.dnp.dappnode.eth|${WIFI_VERSION}|
+          |https.dnp.dappnode.eth|${HTTPS_VERSION}|
+          |wireguard.dnp.dappnode.eth|${WIREGUARD_VERSION}|
+
+          # Changes
+          # ISO SHA-256 Checksum
+          ```
+          ${SHASUM}
+          ```
+          # DAppNode for Raspberry Pi 4 64bit
+          [Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)
+          * default login data:
+              * __user__: dappnode
+              * __password__: dappnodepi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHASUM: ${{ steps.shasum.outputs.SHASUM_AMD }}
