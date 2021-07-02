@@ -94,6 +94,10 @@ jobs:
         env:
           CORE_VERSION: ${{ env.CORE_VERSION }}
 
+      - name: Write release content
+        run: |
+          echo -en "# Versions\n|  Package  | Version  |\n|---|---|\nbind.dnp.dappnode.eth|${BIND_VERSION}|\n|ipfs.dnp.dappnode.eth|${IPFS_VERSION}|\n|vpn.dnp.dappnode.eth |${VPN_VERSION}|\n|dappmanager.dnp.dappnode.eth|${DAPPMANAGER_VERSION}|\n|wifi.dnp.dappnode.eth|${WIFI_VERSION}|\n|https.dnp.dappnode.eth|${HTTPS_VERSION}|\n|wireguard.dnp.dappnode.eth|${WIREGUARD_VERSION}|\n# Changes\n# ISO SHA-256 Checksum\n```${SHASUM}```\n# DAppNode for Raspberry Pi 4 64bit\n[Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)\n* default login data:\n* __user__: dappnode\n* __password__: dappnodepi" > CHANGELOG.md
+
       - name: Pre release
         uses: softprops/action-gh-release@v1
         with:
@@ -106,28 +110,8 @@ jobs:
             ./scripts/dappnode_uninstall.sh
             ./scripts/dappnode_access_credentials.sh
             dappnode_profile.sh
-          body: |
-            # Versions
-            |  Package  | Version  | 
-            |---|---|
-            |bind.dnp.dappnode.eth|${BIND_VERSION}|
-            |ipfs.dnp.dappnode.eth|${IPFS_VERSION}|
-            |vpn.dnp.dappnode.eth |${VPN_VERSION}|
-            |dappmanager.dnp.dappnode.eth|${DAPPMANAGER_VERSION}|
-            |wifi.dnp.dappnode.eth|${WIFI_VERSION}|
-            |https.dnp.dappnode.eth|${HTTPS_VERSION}|
-            |wireguard.dnp.dappnode.eth|${WIREGUARD_VERSION}|
+          body_path: CHANGELOG.md
 
-            # Changes
-            # ISO SHA-256 Checksum
-            ```
-            ${SHASUM}
-            ```
-            # DAppNode for Raspberry Pi 4 64bit
-            [Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)
-            * default login data:
-                * __user__: dappnode
-                * __password__: dappnodepi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SHASUM: ${{ steps.shasum.outputs.SHASUM_AMD }}
