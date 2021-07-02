@@ -84,7 +84,7 @@ jobs:
 
       - name: Set DAppNode ISO name
         run: |
-          mv ./images/DAppNode-debian-bullseye-amd64.iso ./DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso
+          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso
 
       # echo ::set-env name=SHASUM_ARM::$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso)
       - name: Get SHA-256
