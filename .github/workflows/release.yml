@@ -61,36 +61,64 @@ jobs:
           sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${HTTPS_VERSION}"/" .dappnode_profile
           cat .dappnode_profile
 
-      - name: Build
+      # ISO ATTENDED
+      - name: Build attended
         run: |
+          sed -i -e "/UNATTENDED/s/true/false/" docker-compose.yml 
           docker-compose build
           docker-compose up
 
-      - name: Check iso
+      - name: Check iso attended
         run: |
           ls -lrt images/DAppNode-debian-bullseye-amd64.iso
 
+      - name: Set DAppNode attended ISO name
+        run: |
+          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso
+
+      # ISO UNATTENDED
+      - name: Build unattended
+        run: |
+          sed -i -e "/UNATTENDED/s/false/true/" docker-compose.yml
+          docker-compose build
+          docker-compose up
+
+      - name: Check iso unattended
+        run: |
+          ls -lrt images/DAppNode-debian-bullseye-amd64.iso
+
+      - name: Set DAppNode unttended ISO name
+        run: |
+          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64-unattended.iso
+
+      # Profile
       - name: Create dappnode_profile.sh
         run: |
           cp .dappnode_profile dappnode_profile.sh
 
-      - name: Set DAppNode ISO name
-        run: |
-          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso
-
-      - name: Get SHA-256
+      # SHASUMs
+      - name: Get SHA-256 attended
         id: shasum
         run: |
-          SHASUM_AMD=$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso)
-          echo "::set-output name=SHASUM::$SHASUM_AMD"
+          SHASUM_ATTENDED=$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso)
+          echo "::set-output name=SHASUM_ATTENDED::$SHASUM_ATTENDED"
 
+      - name: Get SHA-256 unattended
+        id: shasum
+        run: |
+          SHASUM_UNATTENDED=$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64-unattended.iso)
+          echo "::set-output name=SHASUM_UNATTENDED::$SHASUM_UNATTENDED"
+
+      # Release body
       - name: Write release content
         run: |
-          echo -en "# Versions\n|  Package  | Version  |\n|---|---|\nbind.dnp.dappnode.eth|${BIND_VERSION}|\n|ipfs.dnp.dappnode.eth|${IPFS_VERSION}|\n|vpn.dnp.dappnode.eth |${VPN_VERSION}|\n|dappmanager.dnp.dappnode.eth|${DAPPMANAGER_VERSION}|\n|wifi.dnp.dappnode.eth|${WIFI_VERSION}|\n|https.dnp.dappnode.eth|${HTTPS_VERSION}|\n|wireguard.dnp.dappnode.eth|${WIREGUARD_VERSION}|\n# Changes\n# ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso\n${SHASUM}\n\`\`\`\n# DAppNode for Raspberry Pi 4 64bit\n[Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)\ndefault login data:\n  **__user__**: dappnode\n  **__password__**: dappnodepi" > CHANGELOG.md
+          echo -en "# Versions\n|  Package  | Version  |\n|---|---|\nbind.dnp.dappnode.eth|${BIND_VERSION}|\n|ipfs.dnp.dappnode.eth|${IPFS_VERSION}|\n|vpn.dnp.dappnode.eth |${VPN_VERSION}|\n|dappmanager.dnp.dappnode.eth|${DAPPMANAGER_VERSION}|\n|wifi.dnp.dappnode.eth|${WIFI_VERSION}|\n|https.dnp.dappnode.eth|${HTTPS_VERSION}|\n|wireguard.dnp.dappnode.eth|${WIREGUARD_VERSION}|\n# Changes\n# ISO SHA-256 Checksum\n## Attended version\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso\n${SHASUM_ATTENDED}\n\`\`\`\n## Unattended version\ndefault login data:\n  **__user__**: dappnode\n  **__password__**: dappnode.s0\n**_Warning_**: This ISO will install dappnode automatically, deleting all existin partitions in the disk\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso\n${SHASUM_UNATTENDED}\n\`\`\`\n# DAppNode for Raspberry Pi 4 64bit\n[Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)\ndefault login data:\n  **__user__**: dappnode\n  **__password__**: dappnodepi" > CHANGELOG.md
           cat CHANGELOG.md
         env:
-          SHASUM: ${{ steps.shasum.outputs.SHASUM }}
+          SHASUM_ATTENDED: ${{ steps.shasum.outputs.SHASUM_ATTENDED }}
+          SHASUM_UNATTENDED: ${{ steps.shasum.outputs.SHASUM_UNATTENDED }}
 
+      # PRE-RELEASE ASSETS
       - name: Pre release
         uses: softprops/action-gh-release@v1
         with:
@@ -98,6 +126,7 @@ jobs:
           prerelease: true
           files: |
             ./DAppNode-*-amd64.iso
+            ./DAppNode-*-amd64-unattended.iso
             ./scripts/dappnode_install.sh
             ./scripts/dappnode_install_pre.sh
             ./scripts/dappnode_uninstall.sh
