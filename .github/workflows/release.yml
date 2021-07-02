@@ -27,6 +27,16 @@ on:
         description: "Version of the vpn. Only numbers"
         required: true
 
+env:
+  BIND_VERSION: ${{ github.event.inputs.bind }}
+  IPFS_VERSION: ${{ github.event.inputs.ipfs }}
+  DAPPMANAGER_VERSION: ${{ github.event.inputs.dappmanager }}
+  WIFI_VERSION: ${{ github.event.inputs.wifi }}
+  WIREGUARD_VERSION: ${{ github.event.inputs.wireguard }}
+  HTTPS_VERSION: ${{ github.event.inputs.https }}
+  VPN_VERSION: ${{ github.event.inputs.vpn }}
+  CORE_VERSION: ${{ github.event.inputs.core }}
+
 jobs:
   pre-release:
     name: create pre release
@@ -51,13 +61,13 @@ jobs:
           sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${HTTPS_VERSION}"/" .dappnode_profile
           cat .dappnode_profile
         env:
-          BIND_VERSION: ${{ github.event.inputs.bind }}
-          IPFS_VERSION: ${{ github.event.inputs.ipfs }}
-          DAPPMANAGER_VERSION: ${{ github.event.inputs.dappmanager }}
-          WIFI_VERSION: ${{ github.event.inputs.wifi }}
-          WIREGUARD_VERSION: ${{ github.event.inputs.wireguard }}
-          HTTPS_VERSION: ${{ github.event.inputs.https }}
-          VPN_VERSION: ${{ github.event.inputs.vpn }}
+          BIND_VERSION: ${{ env.BIND_VERSION }}
+          IPFS_VERSION: ${{ env.IPFS_VERSION }}
+          DAPPMANAGER_VERSION: ${{ env.DAPPMANAGER_VERSION }}
+          WIFI_VERSION: ${{ env.WIFI_VERSION }}
+          WIREGUARD_VERSION: ${{ env.WIREGUARD_VERSION }}
+          HTTPS_VERSION: ${{ env.HTTPS_VERSION }}
+          VPN_VERSION: ${{ env.VPN_VERSION }}
 
       - name: Build
         run: |
@@ -74,9 +84,7 @@ jobs:
 
       - name: Set DAppNode ISO name
         run: |
-          mv ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso
-        env:
-          CORE_VERSION: ${{ github.event.inputs.core }}
+          mv ./images/DAppNode-debian-bullseye-amd64.iso ./DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso
 
       # echo ::set-env name=SHASUM_ARM::$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso)
       - name: Get SHA-256
@@ -84,7 +92,7 @@ jobs:
         run: |
           echo ::set-output name=SHASUM_AMD::$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso)
         env:
-          CORE_VERSION: ${{ github.event.inputs.core }}
+          CORE_VERSION: ${{ env.CORE_VERSION }}
 
       - name: Pre release
         uses: softprops/action-gh-release@v1
@@ -123,3 +131,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SHASUM: ${{ steps.shasum.outputs.SHASUM_AMD }}
+          # Versions
+          BIND_VERSION: ${{ env.BIND_VERSION }}
+          IPFS_VERSION: ${{ env.IPFS_VERSION }}
+          DAPPMANAGER_VERSION: ${{ env.DAPPMANAGER_VERSION }}
+          WIFI_VERSION: ${{ env.WIFI_VERSION }}
+          WIREGUARD_VERSION: ${{ env.WIREGUARD_VERSION }}
+          HTTPS_VERSION: ${{ env.HTTPS_VERSION }}
+          VPN_VERSION: ${{ env.VPN_VERSION }}
