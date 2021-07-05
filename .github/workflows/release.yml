@@ -78,7 +78,7 @@ jobs:
           docker-compose up
 
       # Verify ISO attended created
-        name: Check iso attended
+      - name: Check iso attended
         run: |
           ls -lrt images/DAppNode-debian-bullseye-amd64.iso
 
