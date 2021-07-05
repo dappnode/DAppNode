@@ -76,7 +76,9 @@ jobs:
           sed -i -e "/UNATTENDED/s/true/false/" docker-compose.yml 
           docker-compose build
           docker-compose up
-PROFILE_URL
+
+      # Verify ISO attended created
+        name: Check iso attended
         run: |
           ls -lrt images/DAppNode-debian-bullseye-amd64.iso
 
