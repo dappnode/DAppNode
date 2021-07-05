@@ -46,10 +46,19 @@ jobs:
         shell: bash
 
     steps:
+      # Regex for versions introduced
+      - name: Check versions regex
+        run: |
+          [[ $BIND_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $IPFS_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $DAPPMANAGER_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
+            [[ $WIFI_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $WIREGUARD_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $HTTPS_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
+            [[ $VPN_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $CORE_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "versions introduced in wrong format"; exit 1; }
+
       - name: Check out installer
         uses: actions/checkout@master
         with:
           repository: dappnode/DAppNode_Installer
+
+      # Edit the profile with the new versions introduced
       - name: Set new versions
         run: |
           sed -i -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${BIND_VERSION}"/" .dappnode_profile
@@ -68,10 +77,12 @@ jobs:
           docker-compose build
           docker-compose up
 
+      # Verify ISO attended was created
       - name: Check iso attended
         run: |
           ls -lrt images/DAppNode-debian-bullseye-amd64.iso
 
+      # Set new name for the release asset
       - name: Set DAppNode attended ISO name
         run: |
           cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso
@@ -83,15 +94,17 @@ jobs:
           docker-compose build
           docker-compose up
 
+      # Verify ISO unattended was created
       - name: Check iso unattended
         run: |
           ls -lrt images/DAppNode-debian-bullseye-amd64.iso
 
+      # Set new name for the release asset
       - name: Set DAppNode unttended ISO name
         run: |
           cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64-unattended.iso
 
-      # Profile
+      # Create profile.sh script (not able to set dot (.) before the name in the gh release asset)
       - name: Create dappnode_profile.sh
         run: |
           cp .dappnode_profile dappnode_profile.sh
