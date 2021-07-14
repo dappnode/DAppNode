@@ -22,16 +22,16 @@
 
 Checkout the [installer README](https://github.com/dappnode/DAppNode/blob/master/README.installer.md)
 
-### Infrastructure for the decentralized world
+## Infrastructure for the decentralized world
 
 DAppNode is empowering people by creating a simple, transparent system for hosting P2P clients for DApps, Cryptocurrencies, VPNs, IPFS and more
 
-- Read about our purpose and mission https://dappnode.io/
-- Join our community https://discord.gg/c28an8dA5k
-- Check out what we are delivering https://medium.com/dappnode
-- Share your ideas and support from us https://discourse.dappnode.io/
+- Read about our purpose and mission [https://dappnode.io/](https://dappnode.io/)
+- Join our community [https://discord.gg/c28an8dA5k](https://discord.gg/c28an8dA5k)
+- Check out what we are delivering [https://medium.com/dappnode](https://medium.com/dappnode)
+- Share your ideas and support from us [https://discourse.dappnode.io/](https://discourse.dappnode.io/)
 
-# Discover DAppNode
+## Discover DAppNode
 
 DAppNode lowers the barrier of entry for non tech-savy participants. It allows you to deploy, update, and manage P2P clients and nodes without leaving your browser. No terminal or command line interface.
 
@@ -41,7 +41,7 @@ DAppNode lowers the barrier of entry for non tech-savy participants. It allows y
   </a>
 </p>
 
-# Develop with DAppNode
+## Develop with DAppNode
 
 DAppNode modular architecture allows any team to or project to publish a dockerized application to the DAppNode packages eco-system. Benefit from an enthusiatic crypto savy user based and offer a user interface-only experience to lower onboarding friction.
 
@@ -49,7 +49,7 @@ Check out the [DAppNodeSDK](https://github.com/dappnode/DAppNodeSDK) to learn ho
 
 _Note: packages are published to Ethereum mainnet and incur costs. Given the current high gas prices the DAppNode team is willing to subsidize gas costs for packages of great interest to users._
 
-# Packages eco-system
+## Packages eco-system
 
 The community and core team members have created many useful packages for users. Checkout the [**package explorer**](https://explorer.dappnode.io) to browse an up-to-date list of all packages and their versions.
 
@@ -59,7 +59,7 @@ The community and core team members have created many useful packages for users.
   </a>
 </p>
 
-## Champions
+### Champions
 
 Champions are community members that are in charge of maintaining packages updated. All packages in this list without a champions are actively looking for a champion. Join our [DAppNode Discord **#champion-process**](https://discord.gg/MhSPBsHryu) to suggest a package to be championed and/or offer to be a champion for a project you care about!
 
@@ -113,7 +113,7 @@ Champions are community members that are in charge of maintaining packages updat
 - [DNP_WIREGUARD](https://github.com/dappnode/DNP_WIREGUARD)
 - [DNP_HTTPS](https://github.com/dappnode/DNP_HTTPS)
 
-# Team members
+## Team members
 
 Members of the [White Hat Group (WHG)](https://motherboard.vice.com/en_us/article/qvp5b3/how-ethereum-coders-hacked-back-to-rescue-dollar208-million-in-ethereum) have spent countless hours boostraping and developing DAppNode in 2017. Currently, the project is mantained by a growing multi-disciplary team:
 

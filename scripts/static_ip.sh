@@ -1,9 +1,10 @@
-#!/bin/sh
+#!/bin/bash
 # This is a debconf-compatible script
 # shellcheck disable=SC1091
 . /usr/share/debconf/confmodule
 
 valid_ip () {
+    # shellcheck disable=SC3043
     local ip=$1
 
     if [[ -z $ip ]]; then

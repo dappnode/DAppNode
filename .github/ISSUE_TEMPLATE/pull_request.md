@@ -1,16 +1,45 @@
 Thank you for your Pull Request!
 
-Before you submitting, please check that:
+# Pull Request Template
 
-- [ ] You added a brief description of the PR, e.g.:
-  - What does it do?
-  - What important points reviewers should know?
-  - Is there something left for follow-up PRs?
-- [ ] You labeled the PR with appropriate labels if you have permissions to do so.
-- [ ] You mentioned a related issue if this PR related to it, e.g. `Fixes #228` or `Related #1337`.
-- [ ] You asked any particular reviewers to review. If you aren't sure, start with GH suggestions.
+## Description
 
-After you've read this notice feel free to remove it.
-Thank you!
+Please include a summary of the change and which issue is fixed. Please also include relevant motivation and context. List any dependencies that are required for this change.
 
-✄ -----------------------------------------------------------------------------
+Fixes # (issue)
+
+## Type of change
+
+Please delete options that are not relevant.
+
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] This change requires a documentation update
+
+## How Has This Been Tested?
+
+Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
+
+- [ ] ISO install
+- [ ] Script install
+- [ ] Other (please detail)
+
+**Test Configuration**:
+
+- DAppNode version:
+- Hardware:
+- Toolchain:
+- SDK:
+
+## Checklist:
+
+- [ ] My code follows the style guidelines of this project
+- [ ] I have performed a self-review of my own code
+- [ ] I have commented my code, particularly in hard-to-understand areas
+- [ ] I have made corresponding changes to the documentation
+- [ ] My changes generate no new warnings
+- [ ] I have added tests that prove my fix is effective or that my feature works
+- [ ] New and existing unit tests pass locally with my changes
+- [ ] Any dependent changes have been merged and published in downstream modules
+- [ ] I have checked my code and corrected any misspellings

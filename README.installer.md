@@ -8,19 +8,19 @@
 
 This repository generates the .iso file for installing DappNode to a server. Below are the instructions that you will need to make your own DappNode ISO.
 
-# Get DAppNode
+## Get DAppNode
 
 Get your DAppNode and start contributing to decentralization by running your own nodes.
 
-## Buy DAppNode
+### Buy DAppNode
 
 Buy your DAppNode with all the stuff configured and prepared to be used in [DAppNode shop](https://shop.dappnode.io/)
 
-## Install DAppNode
+### Install DAppNode
 
 [Install DAppNode on your host machine](https://docs.dappnode.io/install/)
 
-### Install DAppNode from ISO
+#### Install DAppNode from ISO
 
 DAppNode ISO available in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases)
 
@@ -33,27 +33,27 @@ Install DAppNode on your host machine by burning DAppNode ISO to a DVD or creati
 **Developers**: DAppNode ISO could be generated following these steps:
 
 ```
-$ git clone https://github.com/dappnode/DAppNode_Installer.git
-$ cd DAppNode_Installer
-$ docker-compose build
-$ docker-compose up
+git clone https://github.com/dappnode/DAppNode_Installer.git
+cd DAppNode_Installer
+docker-compose build
+docker-compose up
 ```
 
 DAppNode iso will be generated inside images folder, to verify it:
 
 ```
-$ ls -lrt images/DappNode-ubuntu-*
+ls -lrt images/DappNode-ubuntu-*
 ```
 
 _Note_: ISO could be generated as unhattended/attended by editing the env var available in the docker-compose.yml file
 
-### Install DAppNode from scripts
+#### Install DAppNode from scripts
 
 Scripts available in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases)
 
 DAppNode could be also installed on a host machine with an OS already running on it. DAppNode has been developed and configured to be run on debian host machines so is preferably to install DAppNode on Debian or debian based (like Ubuntu) host machines.
 
-#### Prerrequisites
+##### Prerrequisites
 
 Before install DAppNode with the script option, make sure you fullfill the requirements by running the following script:
 
@@ -61,7 +61,7 @@ Before install DAppNode with the script option, make sure you fullfill the requi
 sudo wget -O - https://prerequisites.dappnode.io | sudo bash
 ```
 
-#### Script installation
+##### Script installation
 
 Once you make sure you have the requirements, install DAPpNode with the installation script:
 
@@ -69,12 +69,20 @@ Once you make sure you have the requirements, install DAPpNode with the installa
 sudo wget -O - https://installer.dappnode.io | sudo bash
 ```
 
-### Uninstall DAppNode
+#### Uninstall DAppNode
 
 Uinstall DAppNode on your host machine by running the following command:
 
 ```
 wget -qO - https://uninstaller.dappnode.io | sudo bash
+```
+
+#### Update DAppNode from scripts
+
+To update DAppNode to the latest version using script:
+
+```
+sudo wget -O - https://installer.dappnode.io | sudo UPDATE=true bash
 ```
 
 ## Contributing
