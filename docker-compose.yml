@@ -1,0 +1,12 @@
+version: "3.4"
+
+services:
+  dappnode_installer:
+    build: .
+    privileged: true
+    environment:
+      - BUILD=false # In case you want to re-generate a all the images, not recommended
+      - CLEAN=true # it remove the images directory
+      - UNATTENDED=false # UNATTENDED version
+    volumes:
+      - ./images:/images

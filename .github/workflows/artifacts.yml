@@ -1,4 +1,4 @@
-name: Pre-release
+name: Artifacts
 on:
   workflow_dispatch:
     inputs:
@@ -102,40 +102,16 @@ jobs:
         run: |
           cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64-unattended.iso
 
-      # Create profile.sh script (not able to set dot (.) before the name in the gh release asset)
       - name: Create dappnode_profile.sh
         run: |
           cp .dappnode_profile dappnode_profile.sh
 
-      # SHASUMs
-      - name: Get SHA-256 attended
-        id: shasum-attended
-        run: |
-          SHASUM_ATTENDED=$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso)
-          echo "::set-output name=SHASUM_ATTENDED::$SHASUM_ATTENDED"
-
-      - name: Get SHA-256 unattended
-        id: shasum-unattended
-        run: |
-          SHASUM_UNATTENDED=$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64-unattended.iso)
-          echo "::set-output name=SHASUM_UNATTENDED::$SHASUM_UNATTENDED"
-
-      # Release body
-      - name: Write release content
-        run: |
-          echo -en "# Versions\n|  Package  | Version  |\n|---|---|\nbind.dnp.dappnode.eth|${BIND_VERSION}|\n|ipfs.dnp.dappnode.eth|${IPFS_VERSION}|\n|vpn.dnp.dappnode.eth |${VPN_VERSION}|\n|dappmanager.dnp.dappnode.eth|${DAPPMANAGER_VERSION}|\n|wifi.dnp.dappnode.eth|${WIFI_VERSION}|\n|https.dnp.dappnode.eth|${HTTPS_VERSION}|\n|wireguard.dnp.dappnode.eth|${WIREGUARD_VERSION}|\n# Changes\nChanges implemented in release ${CORE_VERSION}\n# Attended version\nInstall and customize DAppNode using the attended ISO: **DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso**\n\n## ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso\n${SHASUM_ATTENDED}\n\`\`\`\n# Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${CORE_VERSION}-debian-bullseye-amd64-unattended.iso**\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install dappnode automatically, deleting all existing partitions in the disk\n\ndefault login data:\n - **__user__**: dappnode\n - **__password__**: dappnode.s0\n## ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64-unattended.iso\n${SHASUM_UNATTENDED}\n\`\`\`\n# DAppNode for Raspberry Pi 4 64bit\n[Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)\n\ndefault login data:\n - **__user__**: dappnode\n - **__password__**: dappnodepi" > CHANGELOG.md
-          cat CHANGELOG.md
-        env:
-          SHASUM_ATTENDED: ${{ steps.shasum-attended.outputs.SHASUM_ATTENDED }}
-          SHASUM_UNATTENDED: ${{ steps.shasum-unattended.outputs.SHASUM_UNATTENDED }}
-
-      # PRE-RELEASE ASSETS
-      - name: Pre release
-        uses: softprops/action-gh-release@v1
+      # ARTIFACTS ASSETS
+      - name: Artifact
+        uses: actions/upload-artifact@v2
         with:
-          tag_name: ${{ github.event.inputs.core }}
-          prerelease: true
-          files: |
+          name: test-artifact
+          path: |
             ./DAppNode-*-amd64.iso
             ./DAppNode-*-amd64-unattended.iso
             ./scripts/dappnode_install.sh
@@ -143,7 +119,6 @@ jobs:
             ./scripts/dappnode_uninstall.sh
             ./scripts/dappnode_access_credentials.sh
             dappnode_profile.sh
-          body_path: CHANGELOG.md
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -20,6 +20,8 @@
 </p>
 <br/>
 
+Checkout the [installer README](https://github.com/dappnode/DAppNode/blob/master/README.installer.md)
+
 ### Infrastructure for the decentralized world
 
 DAppNode is empowering people by creating a simple, transparent system for hosting P2P clients for DApps, Cryptocurrencies, VPNs, IPFS and more
@@ -108,6 +110,8 @@ Champions are community members that are in charge of maintaining packages updat
 - [DNP_VPN](https://github.com/dappnode/DNP_VPN)
 - [DNP_IPFS](https://github.com/dappnode/DNP_IPFS)
 - [DNP_BIND](https://github.com/dappnode/DNP_BIND)
+- [DNP_WIREGUARD](https://github.com/dappnode/DNP_WIREGUARD)
+- [DNP_HTTPS](https://github.com/dappnode/DNP_HTTPS)
 
 # Team members
 
