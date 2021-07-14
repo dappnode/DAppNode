@@ -104,7 +104,7 @@ Champions are community members that are in charge of maintaining packages updat
 | [Wireguard](https://github.com/dappnode/DAppNodePackage-wireguard)                       | @3alpha          |
 | [ZCash](https://github.com/dappnode/DAppNodePackage-zcash)                               | -                |
 
-# Core packages
+## Core packages
 
 - [DNP_DAPPMANAGER](https://github.com/dappnode/DNP_DAPPMANAGER)
 - [DNP_VPN](https://github.com/dappnode/DNP_VPN)

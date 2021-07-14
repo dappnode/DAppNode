@@ -1,6 +1,8 @@
 # Contributing
 
-When bringing people on as contributors we prefer that they start with an issue tagged [good first issue](https://github.com/dappnode/DNP_BIND/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22). After a contributor has shown they're a good fit and have completed 1 or 2 issues labeled [good first issue](https://github.com/dappnode/DNP_BIND/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) with pull requests that have been accepted feel free of moving on to other issues. We're thrilled to see new contributors.
+When bringing people on as contributors we prefer that they start with an issue tagged [good first issue](https://github.com/dappnode/DNP_BIND/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+
+After a contributor has shown they're a good fit and have completed 1 or 2 issues labeled [good first issue](https://github.com/dappnode/DNP_BIND/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22) with pull requests that have been accepted feel free of moving on to other issues. We're thrilled to see new contributors.
 
 If you want to better understand how does the development process works, please refer to our [wiki pages](https://github.com/dappnode/DAppNode/wiki)
 
