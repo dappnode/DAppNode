@@ -32,7 +32,7 @@ Install DAppNode on your host machine by burning DAppNode ISO to a DVD or creati
 
 **Developers**: DAppNode ISO could be generated following these steps:
 
-```
+```bash
 git clone https://github.com/dappnode/DAppNode_Installer.git
 cd DAppNode_Installer
 docker-compose build
@@ -41,7 +41,7 @@ docker-compose up
 
 DAppNode iso will be generated inside images folder, to verify it:
 
-```
+```bash
 ls -lrt images/DappNode-ubuntu-*
 ```
 
@@ -57,7 +57,7 @@ DAppNode could be also installed on a host machine with an OS already running on
 
 Before install DAppNode with the script option, make sure you fullfill the requirements by running the following script:
 
-```
+```bash
 sudo wget -O - https://prerequisites.dappnode.io | sudo bash
 ```
 
@@ -65,7 +65,7 @@ sudo wget -O - https://prerequisites.dappnode.io | sudo bash
 
 Once you make sure you have the requirements, install DAPpNode with the installation script:
 
-```
+```bash
 sudo wget -O - https://installer.dappnode.io | sudo bash
 ```
 
@@ -73,7 +73,7 @@ sudo wget -O - https://installer.dappnode.io | sudo bash
 
 Uinstall DAppNode on your host machine by running the following command:
 
-```
+```bash
 wget -qO - https://uninstaller.dappnode.io | sudo bash
 ```
 
@@ -81,7 +81,7 @@ wget -qO - https://uninstaller.dappnode.io | sudo bash
 
 To update DAppNode to the latest version using script:
 
-```
+```bash
 sudo wget -O - https://installer.dappnode.io | sudo UPDATE=true bash
 ```
 

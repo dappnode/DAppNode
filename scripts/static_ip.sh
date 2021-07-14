@@ -56,8 +56,7 @@ db_dialog () {
     db_go
     db_get ip-question/ask
 
-    valid_ip "$RET"
-    if [[ $? -eq 0 ]]; then
+    if valid_ip "$RET"; then
         mkdir -p /target/usr/src/dappnode/config
         echo "$RET" > /target/usr/src/dappnode/config/static_ip
     else
