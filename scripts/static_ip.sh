@@ -1,5 +1,6 @@
 #!/bin/sh
 # This is a debconf-compatible script
+# shellcheck disable=SC1091
 . /usr/share/debconf/confmodule
 
 valid_ip () {
@@ -11,7 +12,7 @@ valid_ip () {
 
     if expr "$ip" : '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$' >/dev/null; then
         for i in 1 2 3 4; do
-            if [ $(echo "$ip" | cut -d. -f$i) -gt 255 ]; then
+            if [ "$(echo "$ip" | cut -d. -f$i)" -gt 255 ]; then
                 return 1
             fi
         done
@@ -54,7 +55,7 @@ db_dialog () {
     db_go
     db_get ip-question/ask
 
-    valid_ip $RET
+    valid_ip "$RET"
     if [[ $? -eq 0 ]]; then
         mkdir -p /target/usr/src/dappnode/config
         echo "$RET" > /target/usr/src/dappnode/config/static_ip

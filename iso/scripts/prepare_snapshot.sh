@@ -11,7 +11,7 @@ wget -qO - https://prerequisites.dappnode.io  | sudo bash
 
 mkdir -p /usr/src/dappnode/scripts/
 
-wget $DAPPNODE_INSTALL_SCRIPT_URL -O /usr/src/dappnode/scripts/dappnode_install.sh
+wget "$DAPPNODE_INSTALL_SCRIPT_URL" -O /usr/src/dappnode/scripts/dappnode_install.sh
 
 chmod +x /usr/src/dappnode/scripts/dappnode_install.sh
 

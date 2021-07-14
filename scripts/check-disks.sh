@@ -11,5 +11,5 @@ fi
 for DISK in ${DEVICE}; do
     DISKS="${DISKS} ${DISK}";
 done;
-DISKS=$(echo ${DISKS} | sed "s/^ //g");
+DISKS=$(echo "${DISKS}" | sed "s/^ //g");
 debconf-set partman-auto/disk "$DISKS"; 

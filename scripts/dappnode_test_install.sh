@@ -58,7 +58,8 @@ echo -e "\e[32m doing docker image integrity test...\e[0m"
 imgs=$(docker images | grep dappnode | awk '{print $3}')
 
 for img in $imgs; do
-    docker save $img >/dev/null && echo -ne "\e[32mImage $img OK\n\e[0m" || echo "\e[31mImage $img Corrupted!\n\e[0m"
+    # shellcheck disable=SC2028
+    docker save "$img" >/dev/null && echo -ne "\e[32mImage $img OK\n\e[0m" || echo "\e[31mImage $img Corrupted!\n\e[0m"
 done
 
 rm -f /usr/src/dappnode/.firstboot
