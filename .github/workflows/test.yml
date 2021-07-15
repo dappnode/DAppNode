@@ -1,0 +1,48 @@
+name: Scripts
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  scripts:
+    name: test scripts
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.1
+      - name: setup test environment
+        run: |
+          sudo /bin/bash ./test/environment_setup.sh
+      - name: install prerrequisites
+        run: |
+          sudo /bin/bash ./scripts/dappnode_install_pre.sh UPDATE
+      - name: Install DAppNode
+        run: |
+          sudo /bin/bash ./scripts/dappnode_install.sh
+      - name: Show installation logs
+        run: |
+          cat /usr/src/dappnode/logs/install.log 
+          cat /usr/src/dappnode/logs/dappnode_install.log
+      - name: Uninstall DAppNode
+        run: |
+          sudo /bin/bash ./scripts/dappnode_uninstall.sh y
+
+  iso:
+    name: test ISO
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.1
+      - name: create iso
+        run: |
+          docker-compose build
+          docker-compose up
+          ls images/
+      - name: verify image
+        run: |
+          ls -lrt images/DAppNode-debian-bullseye-amd64.iso

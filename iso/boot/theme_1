@@ -1,0 +1,41 @@
+title-color: "white"
+title-text: "DAppNode Installer"
+title-font: "Sans Regular 16"
+desktop-color: "black"
+desktop-image: "/isolinux/splash.png"
+message-color: "white"
+message-bg-color: "black"
+terminal-font: "Sans Regular 12"
+
++ boot_menu {
+  left = 18%
+  width = 50%
+  top = 200
+  height = 200
+  item_font = "Sans Regular 12"
+  item_color = #d3d3d3
+  selected_item_color = "white"
+  item_height = 20
+  item_padding = 15
+  item_spacing = 5
+}
+
++ vbox {
+  top = 100%-60
+  left = 10%
+  + hbox {
+    top = 0
+    left = 20%
+    + label {text = "Enter: " font = "Sans 10" color = "white" align = "left"}
+    + label {text = "Select             " font = "Sans 10" color = "#d3d3d3" align = "left"}
+  }
+  + hbox {
+    top = 0
+    left = 20%
+    + label {text = "E:     " font = "Sans 10" color = "white" align = "left"}
+    + label {text = "Edit Selection     " font = "Sans 10" color = "#d3d3d3" align = "left"}
+    + label {text = "           " font = "Sans 10" color = "white" align = "left"}
+    + label {text = "C:     " font = "Sans 10" color = "white" align = "left"}
+    + label {text = "GRUB Command line" font = "Sans 10" color = "#d3d3d3" align = "left"}
+  }  
+}
