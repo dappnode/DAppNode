@@ -39,7 +39,7 @@ env:
 
 jobs:
   pre-release:
-    name: create pre release
+    name: create artifacts
     runs-on: ubuntu-latest
     defaults:
       run:
