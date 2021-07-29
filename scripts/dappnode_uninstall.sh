@@ -10,33 +10,39 @@ input=$1 # Allow to call script with argument (must be Y/N)
 )
 
 uninstall() {
+    echo -e "\e[32mUninstalling DAppNode\e[0m"
     # shellcheck disable=SC1090
     source "${PROFILE_FILE}" &>/dev/null
 
     DAPPNODE_CONTAINERS="$(docker ps -a --format '{{.Names}}' | grep DAppNode)"
+    echo -e "\e[32mRemoving DAppNode containers: \e[0m\n${DAPPNODE_CONTAINERS}"
     for container in $DAPPNODE_CONTAINERS; do
         # Stop DAppNode container
-        docker stop "$container" &>/dev/null || echo "container ${container} already stopped"
+        docker stop "$container" &>/dev/null
         # Remove DAppNode container
-        docker rm "$container" &>/dev/null || echo "container ${container} already removed"
+        docker rm "$container" &>/dev/null
     done
 
     DAPPNODE_IMAGES="$(docker image ls -a | grep "dappnode")"
+    echo -e "\e[32mRemoving DAppNode images: \e[0m\n${DAPPNODE_IMAGES}"
     for image in $DAPPNODE_IMAGES; do
         # Remove DAppNode images
-        docker image rm "$image" &>/dev/null || echo "image ${image} already removed"
+        docker image rm "$image" &>/dev/null
     done
 
     DAPPNODE_VOLUMES="$(docker volume ls | grep "dappnode\|dncore")"
+    echo -e "\e[32mRemoving DAppNode volumes: \e[0m\n${DAPPNODE_VOLUMES}"
     for volume in $DAPPNODE_VOLUMES; do
         # Remove DAppNode volumes
-        docker volume rm "$volume" &>/dev/null || echo "volume ${volume} already removed"
+        docker volume rm "$volume" &>/dev/null
     done
 
     # Remove dncore_network
+    echo -e "\e[32mRemoving docker dncore_network\e[0m"
     docker network remove dncore_network || echo "dncore_network already removed"
 
     # Remove dir
+    echo -e "\e[32mRemoving DAppNode directory\e[0m"
     rm -rf /usr/src/dappnode
 
     # Remove profile file
@@ -45,7 +51,7 @@ uninstall() {
     sed -i '/########          DAPPNODE PROFILE          ########/g' $PROFILE
     sed -i '/.*dappnode_profile/g' $PROFILE
 
-    echo "DAppNode uninstalled!"
+    echo -e "\e[32mDAppNode uninstalled!\e[0m"
 }
 
 if [ $# -eq 0 ]; then
