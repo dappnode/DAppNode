@@ -13,17 +13,25 @@ uninstall() {
     # shellcheck disable=SC1090
     source "${PROFILE_FILE}" &>/dev/null
 
-    # Stop DAppNode containers
-    docker container stop "$(docker ps --format '{{.Names}}' | grep DAppNode)" || echo "containers already stopped"
-    # Remove DAppNode containers
-    docker container rm "$(docker ps -a --format '{{.Names}}' | grep DAppNode)" || echo "containers already removed"
-    # Remove DAppNode images
-    docker image rm "$(docker image ls -a | grep "dappnode")" || echo "images already removed"
-    # Remove DAppNode volumes
-    docker volume rm "$(docker volume ls | grep "dappnode\|dncore")" || echo "packages already removed"
+    DAPPNODE_CONTAINERS="$(docker ps -a --format '{{.Names}}' | grep DAppNode)"
+    for container in $DAPPNODE_CONTAINERS; do
+        # Stop DAppNode container
+        docker stop "$container" &>/dev/null || echo "container ${container} already stopped"
+        # Remove DAppNode container
+        docker rm "$container" &>/dev/null || echo "container ${container} already removed"
+    done
 
-    # Remove containers, volumes and images
-    docker-compose "$DNCORE_YMLS" down --rmi 'all' -v || echo "packages already removed"
+    DAPPNODE_IMAGES="$(docker image ls -a | grep "dappnode")"
+    for image in $DAPPNODE_IMAGES; do
+        # Remove DAppNode images
+        docker image rm "$image" &>/dev/null || echo "image ${image} already removed"
+    done
+
+    DAPPNODE_VOLUMES="$(docker volume ls | grep "dappnode\|dncore")"
+    for volume in $DAPPNODE_VOLUMES; do
+        # Remove DAppNode volumes
+        docker volume rm "$volume" &>/dev/null || echo "volume ${volume} already removed"
+    done
 
     # Remove dncore_network
     docker network remove dncore_network || echo "dncore_network already removed"
