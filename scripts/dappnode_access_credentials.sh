@@ -27,7 +27,7 @@ DAPPNODE_WELCOME_URL="http://welcome.dappnode"
 #############
 
 function dappnode_startup_check () {
-  echo -n "\nChecking DAppNode connectivity methods (press ctrl+c to stop)...\n"
+  echo -ne "\nChecking DAppNode connectivity methods (press ctrl+c to stop)...\n"
   n=0
   until [ "$n" -ge 8 ]
   do
@@ -67,7 +67,7 @@ function avahi_connection () {
   # avahi-daemon running => systemctl is-active avahi-daemon RETURNS "active" or "inactive"
   [ "$(systemctl is-active avahi-daemon)" = "active" ] && \
   echo -e "\n\e[32mConnect to DAppNode through Local Proxying.\e[0m\n\nVisit \e[4m$DAPPNODE_ADMINUI_LOCAL_URL\e\n\n[0mCheck out all the access methods available to connect to your DAppNode at \e[4m$DAPPNODE_WELCOME_URL\e[0m\n" || \
-  echo "\nAvahi-daemon not detected\n"
+  echo -e "\nAvahi-daemon not detected\n"
 }
 
 function wireguard_connection () {
@@ -77,7 +77,7 @@ function wireguard_connection () {
   # wireguard container running
   [ "$(docker inspect -f '{{.State.Running}}' ${WIREGUARD_CONTAINER})" = "true" ] && \
   create_connection_message "Wireguard" "$($WIREGUARD_GET_CREDS)" || \
-  echo "\nWireguard not detected\n"
+  echo -e "\nWireguard not detected\n"
 }
 
 function openvpn_connection () {
@@ -87,7 +87,7 @@ function openvpn_connection () {
   # openvpn container running
   [ "$(docker inspect -f '{{.State.Running}}' ${OPENVPN_CONTAINER})" = "true" ] && \
   create_connection_message "Open-VPN" "$($OPENVPN_GET_CREDS)" || \
-  echo "\nOpen-VPN not detected\n"
+  echo -e "\nOpen-VPN not detected\n"
 }
 
 ########
