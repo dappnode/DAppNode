@@ -3,7 +3,7 @@ set -e
 
 # Source = https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/
 ISO_NAME=firmware-edu-11.0.0-amd64-netinst.iso
-ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/firmware-edu-11.0.0-amd64-netinst.iso
+ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd
 SHASUM="7621912ef67ff89d65dc078c94aaea9d652150ef62e1ed02781367bb9657d908  ${ISO_NAME}"
 
 echo "Downloading debian ISO image: ${ISO_NAME}..."
