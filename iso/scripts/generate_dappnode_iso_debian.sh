@@ -14,7 +14,7 @@ fi
 echo "Done!"
 
 echo "Verifying download..."
-[[ "$(shasum -a 256 ${ISO_NAME})" != "$SHASUM" ]] && { echo "ERROR: wrong shasum"; exit 1; }
+[[ "$(shasum -a 256 /images/${ISO_NAME})" != "$SHASUM" ]] && { echo "ERROR: wrong shasum"; exit 1; }
 
 echo "Clean old files..."
 rm -rf dappnode-isoº
