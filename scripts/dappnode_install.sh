@@ -233,19 +233,13 @@ dappnode_start() {
 
     sed -i '/return/d' $DAPPNODE_PROFILE | tee -a $LOGFILE
 
-    if ! grep -q "$DAPPNODE_ACCESS_CREDENTIALS" "$DAPPNODE_PROFILE"; then
-        [ -f $DAPPNODE_ACCESS_CREDENTIALS ] || ${WGET} -O ${DAPPNODE_ACCESS_CREDENTIALS} ${DAPPNODE_ACCESS_CREDENTIALS_URL}
-        # shellcheck disable=SC2216
-        sed -i "/return/i /bin/bash $DAPPNODE_ACCESS_CREDENTIALS" $DAPPNODE_PROFILE | echo "/bin/bash $DAPPNODE_ACCESS_CREDENTIALS" >>$DAPPNODE_PROFILE
-    fi
-
     # Delete dappnode_install.sh execution from rc.local if exists, and is not the unattended firstboot
     if [ -f "/etc/rc.local" ] && [ ! -f "/usr/src/dappnode/.firstboot" ]; then
         sed -i '/\/usr\/src\/dappnode\/scripts\/dappnode_install.sh/d' /etc/rc.local 2>&1 | tee -a $LOGFILE
     fi
 
-    # Display credentials to the user
-    [ -f $DAPPNODE_ACCESS_CREDENTIALS ] && /bin/bash $DAPPNODE_ACCESS_CREDENTIALS
+    # Display help message to the user
+    echo -e "Execute \e[32mdappnode_help\e[0m to see a full list with commands vailable"
 }
 
 installExtraDpkg() {
