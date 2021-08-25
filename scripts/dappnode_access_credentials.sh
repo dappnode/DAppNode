@@ -1,8 +1,7 @@
 #!/bin/bash
 
 # This script will iterate over the access methods in dappnode
-# and display its credentials based on priority.
-# PRIORITY: Wi-Wi > Avahi > VPN (Wireguard > OpenVpn)
+# and return the credentials for each service available
 
 #############
 #0.VARIABLES#
@@ -28,21 +27,20 @@ DAPPNODE_WELCOME_URL="http://welcome.dappnode"
 #############
 
 function dappnode_startup_check () {
-  echo -n "Wait until DAppNode initializes (press ctrl+c to stop) "
-  sleep 5
+  echo -n "\nChecking DAppNode connectivity methods (press ctrl+c to stop)...\n"
   n=0
   until [ "$n" -ge 8 ]
   do
     [ "$(docker inspect -f '{{.State.Running}}' ${DAPPMANAGER_CONTAINER} 2> /dev/null)" = "true" ] && break
     n=$((n+1))
     echo -n "."
-    sleep 8
+    sleep 4
   done
 }
 
 # $1 Connection method $2 Credentials
 function create_connection_message () {
-  echo -e "\n\e[32mConnect to DAppNode through $1 using the following credentials:\e[0m\n$2\n\nAccess your DAppNode at \e[4m$DAPPNODE_ADMINUI_URL\e\n\n[0mDiscover more ways to connect to your DAppNode at \e[4m$DAPPNODE_WELCOME_URL\e[0m\n"
+  echo -e "\n\n\e[32mConnect to DAppNode through $1 using the following credentials:\e[0m\n$2\n\nAccess your DAppNode at \e[4m$DAPPNODE_ADMINUI_URL\e\n\n[0mDiscover more ways to connect to your DAppNode at \e[4m$DAPPNODE_WELCOME_URL\e[0m\n\n"
 }
 
 function wifi_connection () {
@@ -52,8 +50,8 @@ function wifi_connection () {
   [ "$(docker inspect -f '{{.State.Running}}' ${WIFI_CONTAINER} 2> /dev/null)" = "true" ] && \
   # Check interface variable is set
   [ -n "$(docker exec -it $WIFI_CONTAINER iw dev | grep 'Interface' | awk 'NR==1{print $2}')" ] && \
-  create_connection_message "Wi-Fi" "$WIFI_GET_CREDS" && \
-  exit 0 || echo -e "\nWifi not detected"
+  create_connection_message "Wi-Fi" "$WIFI_GET_CREDS" || \
+  echo -e "\nWifi not detected\n"
 }
 
 function avahi_connection () {
@@ -68,8 +66,8 @@ function avahi_connection () {
   [ "$(docker exec -i ${HTTPS_CONTAINER} sh -c 'echo "$LOCAL_PROXYING"')" = "true" ] && \
   # avahi-daemon running => systemctl is-active avahi-daemon RETURNS "active" or "inactive"
   [ "$(systemctl is-active avahi-daemon)" = "active" ] && \
-  echo -e "\n\e[32mConnect to DAppNode through Local Proxying.\e[0m\n\nVisit \e[4m$DAPPNODE_ADMINUI_LOCAL_URL\e\n\n[0mCheck out all the access methods available to connect to your DAppNode at \e[4m$DAPPNODE_WELCOME_URL\e[0m\n" && \
-  exit 0 || echo "Avahi-daemon not detected"
+  echo -e "\n\e[32mConnect to DAppNode through Local Proxying.\e[0m\n\nVisit \e[4m$DAPPNODE_ADMINUI_LOCAL_URL\e\n\n[0mCheck out all the access methods available to connect to your DAppNode at \e[4m$DAPPNODE_WELCOME_URL\e[0m\n" || \
+  echo "\nAvahi-daemon not detected\n"
 }
 
 function wireguard_connection () {
@@ -78,8 +76,8 @@ function wireguard_connection () {
   [ "$(docker ps -a | grep ${WIREGUARD_CONTAINER})" ] && \
   # wireguard container running
   [ "$(docker inspect -f '{{.State.Running}}' ${WIREGUARD_CONTAINER})" = "true" ] && \
-  create_connection_message "Wireguard" "$($WIREGUARD_GET_CREDS)" && \
-  exit 0 || echo "Wireguard not detected"
+  create_connection_message "Wireguard" "$($WIREGUARD_GET_CREDS)" || \
+  echo "\nWireguard not detected\n"
 }
 
 function openvpn_connection () {
@@ -88,8 +86,8 @@ function openvpn_connection () {
   [ "$(docker ps -a | grep ${OPENVPN_CONTAINER})" ] && \
   # openvpn container running
   [ "$(docker inspect -f '{{.State.Running}}' ${OPENVPN_CONTAINER})" = "true" ] && \
-  create_connection_message "Open-VPN" "$($OPENVPN_GET_CREDS)" && \
-  exit 0 || echo "Open-VPN not detected"
+  create_connection_message "Open-VPN" "$($OPENVPN_GET_CREDS)" || \
+  echo "\nOpen-VPN not detected\n"
 }
 
 ########
@@ -102,5 +100,5 @@ avahi_connection
 wireguard_connection
 openvpn_connection
 
-echo -e "\e[33mWARNING: no connection services detected\e[0m Check out all the access methods available to connect to your DAppNode at \e[4m$DAPPNODE_WELCOME_URL\e[0m\n"
+echo -e "\n\e[33mWARNING: no connection services detected\e[0m Check out all the access methods available to connect to your DAppNode at \e[4m$DAPPNODE_WELCOME_URL\e[0m\n"
 exit 0
