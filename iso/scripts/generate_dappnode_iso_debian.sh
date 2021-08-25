@@ -14,6 +14,8 @@ fi
 echo "Done!"
 
 echo "Verifying download..."
+echo $SHASUM
+echo "$(shasum -a 256 /images/${ISO_NAME})"
 [[ "$(shasum -a 256 /images/${ISO_NAME})" != "$SHASUM" ]] && { echo "ERROR: wrong shasum"; exit 1; }
 
 echo "Clean old files..."
