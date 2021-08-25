@@ -233,6 +233,8 @@ dappnode_start() {
 
     sed -i '/return/d' $DAPPNODE_PROFILE | tee -a $LOGFILE
 
+    [ -f $DAPPNODE_ACCESS_CREDENTIALS ] || ${WGET} -O ${DAPPNODE_ACCESS_CREDENTIALS} ${DAPPNODE_ACCESS_CREDENTIALS_URL}
+
     # Delete dappnode_install.sh execution from rc.local if exists, and is not the unattended firstboot
     if [ -f "/etc/rc.local" ] && [ ! -f "/usr/src/dappnode/.firstboot" ]; then
         sed -i '/\/usr\/src\/dappnode\/scripts\/dappnode_install.sh/d' /etc/rc.local 2>&1 | tee -a $LOGFILE
