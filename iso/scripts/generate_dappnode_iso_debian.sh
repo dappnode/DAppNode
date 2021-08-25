@@ -3,20 +3,19 @@ set -e
 
 # Source = https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/
 ISO_NAME=firmware-edu-11.0.0-amd64-netinst.iso
+ISO_PATH="/images/${ISO_NAME}"
 ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd
-SHASUM="7621912ef67ff89d65dc078c94aaea9d652150ef62e1ed02781367bb9657d908  ${ISO_NAME}"
+SHASUM="7621912ef67ff89d65dc078c94aaea9d652150ef62e1ed02781367bb9657d908  ${ISO_PATH}"
 
 echo "Downloading debian ISO image: ${ISO_NAME}..."
-if [ ! -f /images/${ISO_NAME} ]; then
+if [ ! -f ${ISO_PATH} ]; then
     wget ${ISO_URL}/${ISO_NAME} \
-        -O /images/${ISO_NAME}
+        -O ${ISO_PATH}
 fi
 echo "Done!"
 
 echo "Verifying download..."
-echo $SHASUM
-echo "$(shasum -a 256 /images/${ISO_NAME})"
-[[ "$(shasum -a 256 /images/${ISO_NAME})" != "$SHASUM" ]] && { echo "ERROR: wrong shasum"; exit 1; }
+[[ "$(shasum -a 256 ${ISO_PATH})" != "$SHASUM" ]] && { echo "ERROR: wrong shasum"; exit 1; }
 
 echo "Clean old files..."
 rm -rf dappnode-isoº
