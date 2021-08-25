@@ -1,28 +1,20 @@
 #!/bin/bash
 set -e
 
-#echo "Downloading debian ISO image: debian-firmware-testing-amd64-netinst-2020-06-22.iso..."
-#if [ ! -f /images/debian-firmware-testing-amd64-netinst-2020-06-22.iso ]; then
-#    wget http://vdo.dappnode.io/debian-firmware-testing-amd64-netinst-2020-06-22.iso \
-#        -O /images/debian-firmware-testing-amd64-netinst-2020-06-22.iso
-#fi
-#echo "Done!"
+# Source = https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/
+ISO_NAME=firmware-edu-11.0.0-amd64-netinst.iso
+ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/firmware-edu-11.0.0-amd64-netinst.iso
+SHASUM="7621912ef67ff89d65dc078c94aaea9d652150ef62e1ed02781367bb9657d908  ${ISO_NAME}"
 
-#ISO_NAME=firmware-testing-amd64-netinst.iso
-#ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/weekly-builds/amd64/iso-cd/
-
-#ISO_NAME=firmware-bullseye-DI-alpha3-amd64-netinst.iso
-#ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/bullseye_di_alpha3+nonfree/amd64/iso-cd/
-
-ISO_NAME=firmware-bullseye-DI-alpha3-amd64-netinst.iso
-ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/bullseye_di_alpha3+nonfree/amd64/iso-cd/
-
-echo "Downloading debian ISO image: firmware-bullseye-DI-alpha2-amd64-netinst.iso..."
+echo "Downloading debian ISO image: ${ISO_NAME}..."
 if [ ! -f /images/${ISO_NAME} ]; then
     wget ${ISO_URL}/${ISO_NAME} \
         -O /images/${ISO_NAME}
 fi
 echo "Done!"
+
+echo "Verifying download..."
+[[ "$()" !== "$SHASUM" ]] && { echo "ERROR: wrong shasum"; exit 1 }
 
 echo "Clean old files..."
 rm -rf dappnode-isoº
