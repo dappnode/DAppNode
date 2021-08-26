@@ -26,12 +26,12 @@ alias dappnode_start='docker-compose $DNCORE_YMLS up -d && docker start $(docker
 # Return open-vpn credentials from a specific user. e.g: dappnode_get dappnode_admin
 alias dappnode_openvpn_get='docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth vpncli get'
 # Return open-vpn admin credentials
-alias dappnode_openvpn='docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth getAdminCredentials'
+alias dappnode_openvpn='docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth getAdminCredentials || echo -e "Open VPN may not be installed. Try with wireguard \e[32mdappnode_wireguard\e[0m"'
 # Return wifi credentials (ssid and password)
 alias dappnode_wifi='cat /usr/src/dappnode/DNCORE/docker-compose-wifi.yml | grep "SSID\|WPA_PASSPHRASE"'
 # Return remote credentials in plain text. OPTIONS:
 # --qr (QR format). --local (local creds for NAT loopback issues)
-alias dappnode_wireguard='docker exec -i DAppNodeCore-api.wireguard.dnp.dappnode.eth getWireguardCredentials'
+alias dappnode_wireguard='docker exec -i DAppNodeCore-api.wireguard.dnp.dappnode.eth getWireguardCredentials || echo -e "Wireguard may not be installed. Try with Open VPN \e[32mdappnode_openvpn\e[0m" '
 # Execute access_credentials.sh script to check for connectivity methods
 alias dappnode_connect='/usr/bin/bash /usr/src/dappnode/scripts/dappnode_access_credentials.sh'
 # Return all available commands
