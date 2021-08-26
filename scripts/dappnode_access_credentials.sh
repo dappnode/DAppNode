@@ -55,10 +55,8 @@ function wifi_connection () {
 }
 
 function avahi_connection () {
-  # Ping to avahi endpoint: -c: number of pings. -w: timeout
   avahi-resolve -n $AVAHI_ENDPOINT > /dev/null 2>&1 && \
   # Https container exists
-  # shellcheck disable=SC2143
   [ "$(docker ps -a | grep ${HTTPS_CONTAINER})" ] && \
   # Https container running
   [ "$(docker inspect -f '{{.State.Running}}' ${HTTPS_CONTAINER})" = "true" ] && \
