@@ -248,7 +248,7 @@ dappnode_start() {
     fi
 
     # Display help message to the user
-    echo -e "Execute \e[32mdappnode_help\e[0m to see a full list with commands vailable"
+    echo -e "Execute \e[32mdappnode_help\e[0m to see a full list with commands available"
 }
 
 installExtraDpkg() {
