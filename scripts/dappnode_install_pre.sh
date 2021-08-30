@@ -144,6 +144,17 @@ install_lsof() {
     fi
 }
 
+# IPTABLES INSTALLATION
+install_iptables () {
+    apt-get update -y
+    apt-get install iptables -y | tee -a $LOG_FILE
+    if  lsof -v >/dev/null 2>&1 ; then
+        echo -e "\e[32m \n\n Verified iptables installation \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+    else
+        echo -e "\e[31m \n\n WARNING: iptables not installed, Docker may not work! \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+    fi
+}
+
 # HOST UPDATE
 host_update () {
     apt-get update 2>&1 | tee -a $LOG_FILE
