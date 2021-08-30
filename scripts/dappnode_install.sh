@@ -23,6 +23,7 @@ SWGET="wget -q -O-"
 # Other
 CONTENT_HASH_PKGS=(geth openethereum nethermind)
 ARCH=$(dpkg --print-architecture)
+WELCOME_MESSAGE="echo -e '\nChoose a way to connect to your DAppNode, then go to \e[1mhttp://my.dappnode\e[0m\n\n\e[1m- Wifi\e[0m\t\tScan and connect to DAppNodeWIFI. Get wifi credentials with \e[32mdappnode_wifi\e[0m\n\n\e[1m- Local Proxy\e[0m\tConnect to the same router as your DAppNode. Then go to \e[1mhttp://dappnode.local\e[0m\n\n\e[1m- Wireguard\e[0m\tDownload Wireguard app on your device. Get your dappnode wireguard credentials with \e[32mdappnode_wireguard\e[0m\n\n\e[1m- Open VPN\e[0m\tDownload OPen VPN app on your device. Get your openVPN creds with \e[32mdappnode_openvpn\e[0m\n\n\nTo see a full list of commands available execute \e[32mdappnode_help\e[0m\n'"
 
 # Clean if update
 if [ "$UPDATE" = true ]; then
@@ -231,21 +232,23 @@ dappnode_start() {
         echo -e "source ${DAPPNODE_PROFILE}\n" >>$PROFILE
     fi
 
+    # Remove return from profile
     sed -i '/return/d' $DAPPNODE_PROFILE | tee -a $LOGFILE
 
-    if ! grep -q "$DAPPNODE_ACCESS_CREDENTIALS" "$DAPPNODE_PROFILE"; then
-        [ -f $DAPPNODE_ACCESS_CREDENTIALS ] || ${WGET} -O ${DAPPNODE_ACCESS_CREDENTIALS} ${DAPPNODE_ACCESS_CREDENTIALS_URL}
-        # shellcheck disable=SC2216
-        sed -i "/return/i /bin/bash $DAPPNODE_ACCESS_CREDENTIALS" $DAPPNODE_PROFILE | echo "/bin/bash $DAPPNODE_ACCESS_CREDENTIALS" >>$DAPPNODE_PROFILE
-    fi
+    # Append welcome message execution at end of profile
+    # shellcheck disable=SC1003
+    sed -i '$a\'"${WELCOME_MESSAGE}"'' $DAPPNODE_PROFILE
+
+    # Download access_credentials script
+    [ -f $DAPPNODE_ACCESS_CREDENTIALS ] || ${WGET} -O ${DAPPNODE_ACCESS_CREDENTIALS} ${DAPPNODE_ACCESS_CREDENTIALS_URL}
 
     # Delete dappnode_install.sh execution from rc.local if exists, and is not the unattended firstboot
     if [ -f "/etc/rc.local" ] && [ ! -f "/usr/src/dappnode/.firstboot" ]; then
         sed -i '/\/usr\/src\/dappnode\/scripts\/dappnode_install.sh/d' /etc/rc.local 2>&1 | tee -a $LOGFILE
     fi
 
-    # Display credentials to the user
-    [ -f $DAPPNODE_ACCESS_CREDENTIALS ] && /bin/bash $DAPPNODE_ACCESS_CREDENTIALS
+    # Display help message to the user
+    echo -e "Execute \e[32mdappnode_help\e[0m to see a full list with commands available"
 }
 
 installExtraDpkg() {
