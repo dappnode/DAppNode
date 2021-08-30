@@ -133,7 +133,7 @@ install_wireguard_dkms() {
     fi
 }
 
-# LSOF INSTALLATION   
+# LSOF INSTALLATION: used to scan host port 80 in use, https package installation will deppend on it  
 install_lsof() {
     apt-get update -y
     apt-get install lsof -y | tee -a $LOG_FILE
@@ -144,7 +144,7 @@ install_lsof() {
     fi
 }
 
-# IPTABLES INSTALLATION
+# IPTABLES INSTALLATION: mandatory for docker, on bullseye is not installed by default
 install_iptables () {
     apt-get update -y
     apt-get install iptables -y | tee -a $LOG_FILE
