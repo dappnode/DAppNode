@@ -23,7 +23,7 @@ SWGET="wget -q -O-"
 # Other
 CONTENT_HASH_PKGS=(geth openethereum nethermind)
 ARCH=$(dpkg --print-architecture)
-WELCOME_MESSAGE="echo -e '\nChoose a way to connect to your DAppNode, then go to \e[1mhttp://my.dappnode\e[0m\n\n\e[1m- Wifi\e[0m\t\tScan and connect to DAppNodeWIFI. Get wifi credentials with \e[32mdappnode_wifi\e[0m\n\n\e[1m- Local Proxy\e[0m\tConnect to the same router as your DAppNode. Then go to \e[1mhttp://dappnode.local\e[0m\n\n\e[1m- Wireguard\e[0m\tDownload Wireguard app on your device. Get your dappnode wireguard credentials with \e[32mdappnode_wireguard\e[0m\n\n\e[1m- Open VPN\e[0m\tDownload OPen VPN app on your device. Get your openVPN creds with \e[32mdappnode_openvpn\e[0m\n\n\nTo see a full list of commands available execute \e[32mdappnode_help\e[0m\n'"
+WELCOME_MESSAGE="echo -e '\nChoose a way to connect to your DAppNode, then go to \\\e[1mhttp://my.dappnode\\\e[0m\n\n\\\e[1m- Wifi\\\e[0m\t\tScan and connect to DAppNodeWIFI. Get wifi credentials with \\\e[32mdappnode_wifi\\\e[0m\n\n\\\e[1m- Local Proxy\\\e[0m\tConnect to the same router as your DAppNode. Then go to \\\e[1mhttp://dappnode.local\\\e[0m\n\n\\\e[1m- Wireguard\\\e[0m\tDownload Wireguard app on your device. Get your dappnode wireguard credentials with \\\e[32mdappnode_wireguard\\\e[0m\n\n\\\e[1m- Open VPN\\\e[0m\tDownload OPen VPN app on your device. Get your openVPN creds with \\\e[32mdappnode_openvpn\\\e[0m\n\n\nTo see a full list of commands available execute \\\e[32mdappnode_help\\\e[0m\n'"
 
 # Clean if update
 if [ "$UPDATE" = true ]; then
