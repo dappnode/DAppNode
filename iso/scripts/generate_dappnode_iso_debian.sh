@@ -1,11 +1,15 @@
 #!/bin/bash
 set -e
 
+ISO_NAME=firmware-11.1.0-amd64-netinst.iso
+ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/11.1.0+nonfree/amd64/iso-cd/
+SHASUM="baab78aa4dac175511915a20b095da69131ef5c84b73e637a6933c03b561cdfd  ${ISO_PATH}"
+
 # Source = https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/
-ISO_NAME=firmware-edu-11.0.0-amd64-netinst.iso
+ISO_NAME=firmware-11.1.0-amd64-netinst.iso
 ISO_PATH="/images/${ISO_NAME}"
-ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd
-SHASUM="7621912ef67ff89d65dc078c94aaea9d652150ef62e1ed02781367bb9657d908  ${ISO_PATH}"
+ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/11.1.0+nonfree/amd64/iso-cd/
+SHASUM="baab78aa4dac175511915a20b095da69131ef5c84b73e637a6933c03b561cdfd  ${ISO_PATH}"
 
 echo "Downloading debian ISO image: ${ISO_NAME}..."
 if [ ! -f ${ISO_PATH} ]; then
