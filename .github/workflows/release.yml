@@ -147,3 +147,9 @@ jobs:
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Commit.dappnode_profile change
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: bump
+          file_pattern: .dappnode_profile
