@@ -10,3 +10,4 @@ services:
       - UNATTENDED=false # UNATTENDED version
     volumes:
       - ./images:/images
+      - "/var/run/docker.sock:/var/run/docker.sock"
