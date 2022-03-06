@@ -13,7 +13,7 @@ curl -LJO https://github.com/dappnode/DNP_WIREGUARD/archive/refs/tags/"v${WIREGU
 mkdir DNP_WIREGUARD
 tar -xzf "DNP_WIREGUARD-${WIREGUARD_VERSION}.tar.gz" -C ./DNP_WIREGUARD --strip-components=1 || { echo "Failed to extract DNP_WIREGUARD"; exit 1; }
 docker-compose -f ./DNP_WIREGUARD/docker-compose.yml build || { echo "Failed to build DNP_WIREGUARD"; exit 1; }
-docker save wireguard.dnp.dappnode.eth:"${WIREGUARD_VERSION}" | xz -e9vT0 >/images/wireguard.dnp.dappnode.eth_"${WIREGUARD_VERSION}"_linux-amd64.txz || { echo "Failed to save wireguard.dnp.dappnode.eth_"${WIREGUARD_VERSION}"_linux-amd64.txz"; exit 1; }
+docker save wireguard.dnp.dappnode.eth:"${WIREGUARD_VERSION}" | xz -e9vT0 >/images/wireguard.dnp.dappnode.eth_"${WIREGUARD_VERSION}"_linux-amd64.txz ||  { echo "Failed to save DNP_WIREGUARD"; exit 1; }
 
 echo "Downloading source code & building DNP_HTTPS..."    
 curl -LJO https://github.com/dappnode/DNP_HTTPS/archive/refs/tags/"v${HTTPS_VERSION}.tar.gz" || { echo "Failed to download DNP_HTTPS"; exit 1; }
