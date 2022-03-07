@@ -30,5 +30,6 @@ jobs:
         uses: github/super-linter@v3.17.0
         env:
           VALIDATE_ALL_CODEBASE: false
+          FILTER_REGEX_EXCLUDE: .github/*
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
