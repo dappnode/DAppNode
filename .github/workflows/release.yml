@@ -147,10 +147,11 @@ jobs:
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      # Commit profile change
-      - name: commit manifest
-        uses: EndBug/add-and-commit@v8
-        with:
-          add: ".dappnode_profile"
-          message: "New release"
+      - name: Create Pull Request
+      uses: peter-evans/create-pull-request@v3
+      with:
+        add-paths: "dappnode_package.json"
+        commit-message: "update profile core packages versions"
+        branch: "update-profile"
+        title: "update profile core packages versions"
+        delete-branch: true
