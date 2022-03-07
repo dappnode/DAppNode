@@ -148,8 +148,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Commit.dappnode_profile change
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      # Commit profile change
+      - name: commit manifest
+        uses: EndBug/add-and-commit@v8
         with:
-          commit_message: bump
-          file_pattern: .dappnode_profile
+          add: ".dappnode_profile"
+          message: "New release"
