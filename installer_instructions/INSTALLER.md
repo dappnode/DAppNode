@@ -38,7 +38,9 @@ There is a CI in the repository to generate a new DAppNode release. This CI requ
 The release action will generate all the assets required as well as the release-changelog.md used to display all the information in a release, excluding the changelog that will be required to introduced manually by editing the release generated
 
 1. Trigger release
+
    ![](trigger-release.png)
 
 2. Set inputs for the release
+
    ![](inputs-release.png)
