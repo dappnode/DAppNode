@@ -147,9 +147,15 @@ jobs:
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check git diff
+        run: |
+          [ -z "$(git diff .dappnode_profile)" ] && { echo "nothing to commit"; exit 0; }
+
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
+          add-paths: ".dappnode_profile"
           commit-message: "update core packages versions"
           branch: "update-profile"
           title: "update core packages versions"
