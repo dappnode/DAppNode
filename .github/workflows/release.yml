@@ -149,10 +149,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Check git diff
+        id: git_diff
         run: |
-          [ -z "$(git diff .dappnode_profile)" ] && { echo "nothing to commit"; exit 0; }
+          [ -z "$(git diff .dappnode_profile)" ] && echo '::set-output name=HAS_CHANGED::true' || echo '::set-output name=HAS_CHANGED::false'
 
       - name: Create Pull Request
+        if: steps.git_diff.HAS_CHANGED = 'true'
         uses: peter-evans/create-pull-request@v3
         with:
           add-paths: ".dappnode_profile"
