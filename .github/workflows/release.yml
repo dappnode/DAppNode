@@ -150,8 +150,7 @@ jobs:
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v3
         with:
-          add-paths: ".dappnode_profile"
-          commit-message: "update profile core packages versions"
+          commit-message: "update core packages versions"
           branch: "update-profile"
-          title: "update profile core packages versions"
+          title: "update core packages versions"
           delete-branch: true
