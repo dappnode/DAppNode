@@ -154,7 +154,7 @@ jobs:
           git diff --no-patch .dappnode_profile && echo '::set-output name=HAS_CHANGED::true' || echo '::set-output name=HAS_CHANGED::false'
 
       - name: Create Pull Request
-        if: steps.git_diff.HAS_CHANGED == 'true'
+        if: steps.git_diff.outputs.HAS_CHANGED == 'true'
         uses: peter-evans/create-pull-request@v3
         with:
           add-paths: ".dappnode_profile"
