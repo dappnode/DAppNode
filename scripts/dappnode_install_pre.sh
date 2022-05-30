@@ -15,7 +15,7 @@ DCMP_PATH="/usr/local/bin/docker-compose"
 DOCKER_URL="${DOCKER_REPO}/${DOCKER_PKG}"
 DOCKER_CLI_URL="${DOCKER_REPO}/${DOCKER_CLI_PKG}"
 CONTAINERD_URL="${DOCKER_REPO}/${CONTAINERD_PKG}"
-DCMP_URL="https://github.com/docker/compose/releases/download/1.25.5/docker-compose-Linux-x86_64"
+DCMP_URL="https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64"
 WGET="wget -q --show-progress --progress=bar:force"
 
 #!ISOBUILD Do not modify, variables above imported for ISO build
