@@ -151,7 +151,7 @@ jobs:
       - name: Check git diff
         id: git_diff
         run: |
-          git diff --no-patch .dappnode_profile && echo '::set-output name=HAS_CHANGED::true' || echo '::set-output name=HAS_CHANGED::false'
+          git diff --no-index --word-diff-regex=[^[:space:]] --no-patch .dappnode_profile && echo '::set-output name=HAS_CHANGED::true' || echo '::set-output name=HAS_CHANGED::false'
 
       - name: Create Pull Request
         if: steps.git_diff.outputs.HAS_CHANGED == 'true'
