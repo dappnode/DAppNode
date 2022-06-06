@@ -15,7 +15,10 @@ fi
 echo "Done!"
 
 echo "Verifying download..."
-[[ "$(shasum -a 256 ${ISO_PATH})" != "$SHASUM" ]] && { echo "ERROR: wrong shasum"; exit 1; }
+[[ "$(shasum -a 256 ${ISO_PATH})" != "$SHASUM" ]] && {
+    echo "ERROR: wrong shasum"
+    exit 1
+}
 
 echo "Clean old files..."
 rm -rf dappnode-isoº
@@ -44,7 +47,7 @@ cd /images/bin/docker
 cd - # /usr/src/app/dappnode-iso
 
 echo "Creating necessary directories and copying files..."
-mkdir -p /usr/src/app/dappnode-iso/dappnode 
+mkdir -p /usr/src/app/dappnode-iso/dappnode
 cp -r /usr/src/app/scripts /usr/src/app/dappnode-iso/dappnode
 cp -r /usr/src/app/dappnode/* /usr/src/app/dappnode-iso/dappnode
 cp -vr /images/bin /usr/src/app/dappnode-iso/dappnode/
@@ -54,7 +57,7 @@ mkdir -p /tmp/makeinitrd
 cd install.amd
 cp initrd.gz /tmp/makeinitrd/
 if [[ ${UNATTENDED} == "true" ]]; then
-   cp /usr/src/app/iso/preseeds/preseed_unattended.cfg /tmp/makeinitrd/preseed.cfg
+    cp /usr/src/app/iso/preseeds/preseed_unattended.cfg /tmp/makeinitrd/preseed.cfg
 else
     cp /usr/src/app/iso/preseeds/preseed.cfg /tmp/makeinitrd/preseed.cfg
 fi
