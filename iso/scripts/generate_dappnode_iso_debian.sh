@@ -56,7 +56,7 @@ echo "Customizing preseed..."
 mkdir -p /tmp/makeinitrd
 cd install.amd
 cp initrd.gz /tmp/makeinitrd/
-if [[ ${UNATTENDED} == "true" ]]; then
+if [[ $UNATTENDED == *"true"* ]]; then
     cp /usr/src/app/iso/preseeds/preseed_unattended.cfg /tmp/makeinitrd/preseed.cfg
 else
     cp /usr/src/app/iso/preseeds/preseed.cfg /tmp/makeinitrd/preseed.cfg
