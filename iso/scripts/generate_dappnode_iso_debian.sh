@@ -43,7 +43,7 @@ cd /images/bin/docker
 [ -f "${DOCKER_PKG}" ] || wget "${DOCKER_URL}"
 [ -f "${DOCKER_CLI_PKG}" ] || wget "${DOCKER_CLI_URL}"
 [ -f "${CONTAINERD_PKG}" ] || wget "${CONTAINERD_URL}"
-[ -f docker-compose-Linux-x86_64 ] || wget "${DCMP_URL}"
+[ -f docker-compose-linux-x86_64 ] || wget "${DCMP_URL}"
 cd - # /usr/src/app/dappnode-iso
 
 echo "Creating necessary directories and copying files..."
