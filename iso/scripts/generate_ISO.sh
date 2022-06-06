@@ -5,7 +5,7 @@ dockerd &
 sleep 5
 
 if [ "$CLEAN" = true ]; then
-    rm -f /images/*.iso
+    rm -f /images/DAppNode*.iso
     rm -f /images/*.tar.xz
     rm -f /images/*.yml
     rm -f /images/*.json
