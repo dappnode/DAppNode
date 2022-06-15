@@ -10,6 +10,8 @@ CONTAINERD_PKG="containerd.io_1.4.4-1_amd64.deb"
 DOCKER_REPO="https://download.docker.com/linux/debian/dists/bullseye/pool/stable/amd64"
 DOCKER_PATH="${DAPPNODE_DIR}/bin/docker/${DOCKER_PKG}"
 DOCKER_CLI_PATH="${DAPPNODE_DIR}/bin/docker/${DOCKER_CLI_PKG}"
+DOCKER_CONFIG_FILE="/etc/docker/daemon.json"
+DOCKER_TIMEOUT="300"
 CONTAINERD_PATH="${DAPPNODE_DIR}/bin/docker/${CONTAINERD_PKG}"
 DCMP_PATH="/usr/local/bin/docker-compose"
 DOCKER_URL="${DOCKER_REPO}/${DOCKER_PKG}"
@@ -186,7 +188,18 @@ if docker -v >/dev/null 2>&1; then
 else
     install_docker 2>&1 | tee -a $LOG_FILE
 fi
-
+# check whether docker configuration is present
+if [ -f "$DOCKER_CONFIG_FILE" ]; then
+    echo -e "\e[32m \n\n docker configuration file is present \n\n \e[0m" 2>&1 | tee -a $LOG_FILE 
+else
+    echo -e "\e[32m \n\n writing docker configuration file and restarting docker daemon \n\n \e[0m" 2>&1 | tee -a $LOG_FILE 
+    cat > "$DOCKER_CONFIG_FILE" <<EOL
+{
+    "shutdown-timeout": "$DOCKER_TIMEOUT"
+}
+EOL
+    systemctl restart docker
+fi
 # Only install docker-compose if needed
 if docker-compose -v >/dev/null 2>&1; then
     echo -e "\e[32m \n\n docker-compose is already installed \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
