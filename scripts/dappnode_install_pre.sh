@@ -11,7 +11,7 @@ DOCKER_REPO="https://download.docker.com/linux/debian/dists/bullseye/pool/stable
 DOCKER_PATH="${DAPPNODE_DIR}/bin/docker/${DOCKER_PKG}"
 DOCKER_CLI_PATH="${DAPPNODE_DIR}/bin/docker/${DOCKER_CLI_PKG}"
 DOCKER_CONFIG_FILE="/etc/docker/daemon.json"
-DOCKER_TIMEOUT="300"
+DOCKER_TIMEOUT={DOCKER_TIMEOUT:-"300"}
 CONTAINERD_PATH="${DAPPNODE_DIR}/bin/docker/${CONTAINERD_PKG}"
 DCMP_PATH="/usr/local/bin/docker-compose"
 DOCKER_URL="${DOCKER_REPO}/${DOCKER_PKG}"
@@ -198,7 +198,7 @@ else
     "shutdown-timeout": "$DOCKER_TIMEOUT"
 }
 EOL
-    systemctl restart docker
+    systemctl restart docker | tee -a $LOG_FILE
 fi
 # Only install docker-compose if needed
 if docker-compose -v >/dev/null 2>&1; then
