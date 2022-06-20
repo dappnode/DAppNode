@@ -8,7 +8,7 @@ source /tmp/vars.sh
 
 DAPPNODE_CORE_DIR="/images"
 DAPPNODE_HASH_FILE="${DAPPNODE_CORE_DIR}/packages-content-hash.csv"
-CONTENT_HASH_PKGS=(geth openethereum nethermind)
+CONTENT_HASH_PKGS=(geth nethermind)
 IPFS_ENDPOINT=${IPFS_ENDPOINT:-"http://ipfs.io"}
 
 SWGET="wget -q -O-"
@@ -24,7 +24,7 @@ for comp in "${components[@]}"; do
     if [[ ${!ver} == /ipfs/* ]]; then
         DOWNLOAD_URL="${IPFS_ENDPOINT}/api/v0/cat?arg=${!ver%:*}"
     fi
-    
+
     eval "${comp}_URL=\"${DOWNLOAD_URL}/${comp,,}.dnp.dappnode.eth_${!ver##*:}_linux-amd64.txz\""
     eval "${comp}_YML=\"${DOWNLOAD_URL}/docker-compose.yml\""
     eval "${comp}_MANIFEST=\"${DOWNLOAD_URL}/dappnode_package.json\""

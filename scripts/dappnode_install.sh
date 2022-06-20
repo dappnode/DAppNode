@@ -21,7 +21,7 @@ DAPPNODE_ACCESS_CREDENTIALS_URL="https://github.com/dappnode/DAppNode/releases/l
 WGET="wget -q --show-progress --progress=bar:force"
 SWGET="wget -q -O-"
 # Other
-CONTENT_HASH_PKGS=(geth openethereum nethermind)
+CONTENT_HASH_PKGS=(geth nethermind)
 ARCH=$(dpkg --print-architecture)
 WELCOME_MESSAGE="\nChoose a way to connect to your DAppNode, then go to \e[1mhttp://my.dappnode\e[0m\n\n\e[1m- Wifi\e[0m\t\tScan and connect to DAppNodeWIFI. Get wifi credentials with \e[32mdappnode_wifi\e[0m\n\n\e[1m- Local Proxy\e[0m\tConnect to the same router as your DAppNode. Then go to \e[1mhttp://dappnode.local\e[0m\n\n\e[1m- Wireguard\e[0m\tDownload Wireguard app on your device. Get your dappnode wireguard credentials with \e[32mdappnode_wireguard\e[0m\n\n\e[1m- Open VPN\e[0m\tDownload OPen VPN app on your device. Get your openVPN creds with \e[32mdappnode_openvpn\e[0m\n\n\nTo see a full list of commands available execute \e[32mdappnode_help\e[0m\n"
 
@@ -57,7 +57,7 @@ is_iso_install() {
 
 # Check is port 80 in used (necessary for HTTPS)
 is_port_used() {
-   lsof -i -P -n | grep ":80 (LISTEN)" &>/dev/null && IS_PORT_USED=true || IS_PORT_USED=false
+    lsof -i -P -n | grep ":80 (LISTEN)" &>/dev/null && IS_PORT_USED=true || IS_PORT_USED=false
 }
 
 # Determine packages to be installed
@@ -89,8 +89,8 @@ function valid_ip() {
         IFS='.'
         ip=("$ip")
         IFS=$OIFS
-        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 && \
-        ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 &&
+            ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
         stat=$?
     fi
     return $stat
@@ -138,7 +138,10 @@ dappnode_core_build() {
                 apt-get install -y git
             fi
             TMPDIR=$(mktemp -d)
-            pushd "$TMPDIR" || { echo "Error on pushd"; exit 1; }
+            pushd "$TMPDIR" || {
+                echo "Error on pushd"
+                exit 1
+            }
             git clone -b "${!ver##*:}" https://github.com/dappnode/DNP_"${comp}"
             # Change version in YAML to the custom one
             DOCKER_VER=$(echo "${!ver##*:}" | sed 's/\//_/g')
@@ -147,7 +150,10 @@ dappnode_core_build() {
             cp ./DNP_"${comp}"/docker-compose.yml "${DAPPNODE_CORE_DIR}"/docker-compose-"${comp,,}".yml
             cp ./DNP_"${comp}"/dappnode_package.json "${DAPPNODE_CORE_DIR}"/dappnode_package-"${comp,,}".json
             rm -r ./DNP_"${comp}"
-            popd || { echo "Error on popd"; exit 1; }
+            popd || {
+                echo "Error on popd"
+                exit 1
+            }
         fi
     done
 }
@@ -161,10 +167,10 @@ dappnode_core_download() {
             eval "[ -f \$${comp}_FILE ] || $WGET -O \$${comp}_FILE \$${comp}_URL || exit 1"
             # Download DAppNode Core docker-compose yml files if it's needed
             echo "Downloading ${comp} yml..."
-            eval "[ -f \$${comp}_YML_FILE ] || $WGET -O \$${comp}_YML_FILE \$${comp}_YML || exit 1";
-	    # Download DAppNode Core manifest files if it's needed
+            eval "[ -f \$${comp}_YML_FILE ] || $WGET -O \$${comp}_YML_FILE \$${comp}_YML || exit 1"
+            # Download DAppNode Core manifest files if it's needed
             echo "Downloading ${comp} manifest..."
-            eval "[ -f \$${comp}_MANIFEST_FILE ] || $WGET -O \$${comp}_MANIFEST_FILE \$${comp}_MANIFEST || exit 1";
+            eval "[ -f \$${comp}_MANIFEST_FILE ] || $WGET -O \$${comp}_MANIFEST_FILE \$${comp}_MANIFEST || exit 1"
         fi
     done
 }
@@ -187,7 +193,7 @@ customMotd() {
 |___/_/ \_\ .__/ .__/_|\_\___/\__,_\___|
           |_|  |_|
 EOF
-    echo -e "$WELCOME_MESSAGE" >> "$MOTD_FILE"
+        echo -e "$WELCOME_MESSAGE" >>"$MOTD_FILE"
     fi
 }
 
@@ -303,7 +309,7 @@ installExtraDpkg
 echo -e "\e[32mGrabbing latest content hashes...\e[0m" 2>&1 | tee -a $LOGFILE
 grabContentHashes
 
-if [ "$ARCH" == "amd64" ]; then 
+if [ "$ARCH" == "amd64" ]; then
     echo -e "\e[32mInstalling SGX modules...\e[0m" 2>&1 | tee -a $LOGFILE
     installSgx
 
