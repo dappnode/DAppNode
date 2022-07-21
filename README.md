@@ -4,7 +4,9 @@
 [![Documentation Wiki](https://img.shields.io/badge/Documentation-Wiki-brightgreen.svg)](https://docs.dappnode.io)
 [![GIVETH Campaign](https://img.shields.io/badge/GIVETH-Campaign-1e083c.svg)](https://beta.giveth.io/campaigns/5b44b198647f33526e67c262)
 ![GitHub All Releases](https://img.shields.io/github/downloads/dappnode/DAppNode/total.svg)
+[![GitPOAP Badge](https://public-api.gitpoap.io/v1/repo/dappnode/DAppNode/badge)](https://www.gitpoap.io/gh/dappnode/DAppNode)
 [![Twitter Follow](https://img.shields.io/twitter/follow/espadrine.svg?style=social&label=Follow)](https://twitter.com/DAppNODE?lang=es)
+
 
 <br/>
 <p align="center">
