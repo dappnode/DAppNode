@@ -66,7 +66,7 @@ determine_packages() {
     is_port_used
     if [ "$IS_ISO_INSTALL" == "false" ]; then
         if [ "$IS_PORT_USED" == "true" ]; then
-            PKGS=(BIND IPFS VPN DAPPMANAGER WIFI)
+            PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI)
         else
             PKGS=(HTTPS BIND IPFS WIREGUARD DAPPMANAGER WIFI)
         fi
