@@ -5,6 +5,8 @@
 [![GIVETH Campaign](https://img.shields.io/badge/GIVETH-Campaign-1e083c.svg)](https://beta.giveth.io/campaigns/5b44b198647f33526e67c262)
 ![GitHub All Releases](https://img.shields.io/github/downloads/dappnode/DAppNode/total.svg)
 [![Twitter Follow](https://img.shields.io/twitter/follow/espadrine.svg?style=social&label=Follow)](https://twitter.com/DAppNODE?lang=es)
+[![Discord](https://img.shields.io/discord/747647430450741309?logo=discord&style=plastic)](https://discord.gg/dappnode)
+
 
 <br/>
 <p align="center">
@@ -24,10 +26,10 @@
 
 DAppNode is empowering people by creating a simple, transparent system for hosting P2P clients for DApps, Cryptocurrencies, VPNs, IPFS and more
 
-- Read about our purpose and mission [https://dappnode.io/](https://dappnode.io/)
-- Join our community [https://discord.gg/c28an8dA5k](https://discord.gg/c28an8dA5k)
-- Check out what we are delivering [https://medium.com/dappnode](https://medium.com/dappnode)
-- Share your ideas and support from us [https://discourse.dappnode.io/](https://discourse.dappnode.io/)
+- Read about our purpose and mission on [Our Website](https://dappnode.io/)
+- Join our community and find support on [Our Discord](https://discord.gg/dappnode)
+- Check out what we are up to on [Our Medium](https://medium.com/dappnode)
+- Share your ideas and find how to guides on [Our Forum](https://discourse.dappnode.io/)
 
 ## Discover DAppNode
 
@@ -59,7 +61,7 @@ The community and core team members have created many useful packages for users.
 
 ### Champions
 
-Champions are community members that are in charge of maintaining packages updated. All packages in this list without a champions are actively looking for a champion. Join our [DAppNode Discord **#champion-process**](https://discord.gg/MhSPBsHryu) to suggest a package to be championed and/or offer to be a champion for a project you care about!
+Champions are community members that are in charge of maintaining packages: keeping them updated and working. All packages in this list without a champion are actively looking for a champion. Join our [DAppNode Discord **#champion-process**](https://discord.gg/dappnode) to suggest a package to be championed and/or offer to be a champion for a project you care about!
 
 | Package                                                                                  | Champion         |
 | ---------------------------------------------------------------------------------------- | ---------------- |
@@ -223,3 +225,7 @@ Members of the [White Hat Group (WHG)](https://motherboard.vice.com/en_us/articl
 ## License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details
+
+## Copyright
+
+Copyright © (2018-2022) [The DAppNode Association](https://dappnode.io]
