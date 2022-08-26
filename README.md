@@ -43,7 +43,7 @@ DAppNode lowers the barrier of entry for non tech-savy participants. It allows y
 
 ## Develop with DAppNode
 
-DAppNode modular architecture allows any team to or project to publish a dockerized application to the DAppNode packages eco-system. Benefit from an enthusiatic crypto savy user based and offer a user interface-only experience to lower onboarding friction.
+DAppNode modular architecture allows any team or project to publish a dockerized application to the DAppNode packages eco-system. Benefit from an enthusiastic crypto savy user base and offer a user interface-only experience to lower onboarding friction.
 
 Check out the [DAppNodeSDK](https://github.com/dappnode/DAppNodeSDK) to learn how to get started.
 
