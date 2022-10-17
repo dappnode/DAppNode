@@ -8,7 +8,7 @@ source /tmp/vars.sh
 
 DAPPNODE_CORE_DIR="/images"
 DAPPNODE_HASH_FILE="${DAPPNODE_CORE_DIR}/packages-content-hash.csv"
-CONTENT_HASH_PKGS=(geth nethermind)
+CONTENT_HASH_PKGS=(geth nethermind erigon prysm teku lighthouse nimbus)
 IPFS_ENDPOINT=${IPFS_ENDPOINT:-"http://ipfs.io"}
 
 SWGET="wget -q -O-"
