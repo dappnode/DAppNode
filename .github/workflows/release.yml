@@ -26,6 +26,9 @@ on:
       vpn:
         description: "Version of the vpn. Only numbers"
         required: true
+      additional:
+        description: "Additonal github url package to be added to the release"
+        required: false
 
 env:
   BIND_VERSION: ${{ github.event.inputs.bind }}

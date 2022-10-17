@@ -16,6 +16,12 @@ WGET="wget"
 
 components=(BIND IPFS WIREGUARD DAPPMANAGER WIFI HTTPS)
 
+# Check if the env EXTRA_PKGS is not empty
+if [ -n "${EXTRA_PKGS}" ]; then
+    # Split the env EXTRA_PKGS by comma
+    IFS=',' read -ra EXTRA_PKGS <<<"${EXTRA_PKGS}"
+fi
+
 # The indirect variable expansion used in ${!ver##*:} allows us to use versions like 'dev:development'
 # If such variable with 'dev:'' suffix is used, then the component is built from specified branch or commit.
 for comp in "${components[@]}"; do
