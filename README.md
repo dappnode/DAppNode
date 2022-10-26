@@ -119,7 +119,7 @@ Champions are community members that are in charge of maintaining packages: keep
 
 Get your DAppNode and start contributing to decentralization by running your own nodes.
 
-[Install DAppNode on your host machine](https://docs.dappnode.io/install/) or buy your DAppNode with all the stuff configured and prepared to be used in [DAppNode shop](https://shop.dappnode.io/)
+[Install DAppNode on your host machine](https://docs.dappnode.io/get-started/installation/custom-hardware/installation/overview) or buy your DAppNode with all the stuff configured and prepared to be used in [DAppNode shop](https://shop.dappnode.io/)
 
 ### Install DAppNode with ISO
 
