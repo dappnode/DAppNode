@@ -230,4 +230,4 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## Copyright
 
-Copyright © (2018-2022) [The DAppNode Association](https://dappnode.io]
+Copyright © (2018-2022) [The DAppNode Association](https://dappnode.io)
