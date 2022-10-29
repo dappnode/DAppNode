@@ -38,19 +38,11 @@ echo "Downloading third-party packages..."
 sed '1,/^\#\!ISOBUILD/!d' /usr/src/app/scripts/dappnode_install_pre.sh >/tmp/vars.sh
 # shellcheck disable=SC1091
 source /tmp/vars.sh
-mkdir -p /images/bin/docker
-cd /images/bin/docker
-[ -f "${DOCKER_PKG}" ] || wget "${DOCKER_URL}"
-[ -f "${DOCKER_CLI_PKG}" ] || wget "${DOCKER_CLI_URL}"
-[ -f "${CONTAINERD_PKG}" ] || wget "${CONTAINERD_URL}"
-[ -f docker-compose-linux-x86_64 ] || wget "${DCMP_URL}"
-cd - # /usr/src/app/dappnode-iso
 
 echo "Creating necessary directories and copying files..."
 mkdir -p /usr/src/app/dappnode-iso/dappnode
 cp -r /usr/src/app/scripts /usr/src/app/dappnode-iso/dappnode
 cp -r /usr/src/app/dappnode/* /usr/src/app/dappnode-iso/dappnode
-cp -vr /images/bin /usr/src/app/dappnode-iso/dappnode/
 
 echo "Customizing preseed..."
 mkdir -p /tmp/makeinitrd
