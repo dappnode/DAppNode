@@ -123,7 +123,7 @@ Get your DAppNode and start contributing to decentralization by running your own
 
 ### Install DAppNode with ISO
 
-DAppNode ISO available in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases)
+DAppNode ISO available is in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases).
 
 Install DAppNode on your host machine by burning DAppNode ISO to a DVD or creating a bootable USB. Follow the tutorial of your operating system below and come back when you are finished:
 
@@ -150,13 +150,13 @@ _Note_: ISO could be generated as unattended/attended by editing the env var ava
 
 ### Install DAppNode with scripts
 
-Scripts available in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases)
+Scripts are available in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases).
 
-DAppNode could be also installed on a host machine with an OS already running on it. DAppNode has been developed and configured to be run on debian host machines so is preferably to install DAppNode on Debian or debian based (like Ubuntu) host machines.
+DAppNode could be also installed on a host machine with an OS already running on it. DAppNode has been developed and configured to be run on Debian host machines. Therefore, it should work on Debian or Debian based (like Ubuntu) host machines. Minimum recommended Debian version is 11.
 
-**1. Prerrequisites**
+**1. Prerequisites**
 
-Before install DAppNode with the script option, make sure you fullfill the requirements by running the following script:
+Before installing DAppNode with the script option, make sure you fullfill the requirements by running the following script:
 
 ```bash
 sudo wget -O - https://prerequisites.dappnode.io | sudo bash
@@ -172,7 +172,7 @@ sudo wget -O - https://installer.dappnode.io | sudo bash
 
 **3. Uninstall DAppNode**
 
-Uinstall DAppNode on your host machine by running the following command:
+Uinstall DAppNode from your host machine by running the following command:
 
 ```bash
 wget -qO - https://uninstaller.dappnode.io | sudo bash
@@ -188,7 +188,7 @@ sudo wget -O - https://installer.dappnode.io | sudo UPDATE=true bash
 
 ## Releases
 
-Create releases manually with github actions, the github action to run is: **Pre-release**. Requirements are:
+Create releases manually with Github actions, the Github action to run is: **Pre-release**. The requirements are:
 
 - Introduce the core packages versions
 - There must exist the corresponding core package release for the specified version
