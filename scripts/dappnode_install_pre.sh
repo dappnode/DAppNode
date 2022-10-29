@@ -130,7 +130,7 @@ if [ "$1" == "UPDATE" ]; then
 fi
 
 
-if  find /etc/apt/ -name "*.list" -print0  | xargs cat | grep -q "https://download.docker.com/linux/$lsb_dist" ; then
+if  find /etc/apt/ -name "*.list" -print0  | xargs --null cat | grep -q "https://download.docker.com/linux/$lsb_dist" ; then
     echo -e "\e[32m \n\n docker repo is already added \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
 else
     add_docker_repo | tee -a $LOG_FILE
