@@ -4,7 +4,6 @@
 
 DAPPNODE_DIR="/usr/src/dappnode"
 LOGS_DIR="$DAPPNODE_DIR/logs"
-WGET="wget -q --show-progress --progress=bar:force"
 lsb_dist="$(. /etc/os-release && echo "$ID")"
 
 
@@ -27,7 +26,7 @@ add_docker_repo() {
     apt-get remove -y docker docker-engine docker.io containerd runc  | tee -a $LOG_FILE
     apt-get install -y ca-certificates curl gnupg lsb-release | tee -a $LOG_FILE
     mkdir -p /etc/apt/keyrings && chmod -R 0755 /etc/apt/keyrings
-    curl -fsSL https://download.docker.com/linux/$lsb_dist/gpg | gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
+    curl -fsSL "https://download.docker.com/linux/${lsb_dist}/gpg" | gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
     chmod a+r /etc/apt/keyrings/docker.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$lsb_dist $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
 }
@@ -131,7 +130,7 @@ if [ "$1" == "UPDATE" ]; then
 fi
 
 
-if [[ -n $(find /etc/apt/ -name "*.list" | xargs cat | grep  "https://download.docker.com/linux/$lsb_dist") ]] ; then
+if  find /etc/apt/ -name "*.list" -print0  | xargs cat | grep -q "https://download.docker.com/linux/$lsb_dist" ; then
     echo -e "\e[32m \n\n docker repo is already added \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
 else
     add_docker_repo | tee -a $LOG_FILE
