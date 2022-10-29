@@ -35,7 +35,7 @@ DAppNode is empowering people by creating a simple, transparent system for hosti
 
 ## Discover DAppNode
 
-DAppNode lowers the barrier of entry for non tech-savy participants. It allows you to deploy, update, and manage P2P clients and nodes without leaving your browser. No terminal or command line interface.
+DAppNode lowers the barrier of entry for non tech-savvy participants. It allows you to deploy, update, and manage P2P clients and nodes without leaving your browser. No terminal or command line interface.
 
 <p align="center">
   <a href="https://install.dappnode.io">
@@ -45,7 +45,7 @@ DAppNode lowers the barrier of entry for non tech-savy participants. It allows y
 
 ## Develop with DAppNode
 
-DAppNode modular architecture allows any team to or project to publish a dockerized application to the DAppNode packages eco-system. Benefit from an enthusiatic crypto savy user based and offer a user interface-only experience to lower onboarding friction.
+DAppNode modular architecture allows any team to or project to publish a dockerized application to the DAppNode packages eco-system. Benefit from an enthusiastic crypto savvy user based and offer a user interface-only experience to lower onboarding friction.
 
 Check out the [DAppNodeSDK](https://github.com/dappnode/DAppNodeSDK) to learn how to get started.
 
@@ -156,7 +156,7 @@ DAppNode could be also installed on a host machine with an OS already running on
 
 **1. Prerequisites**
 
-Before installing DAppNode with the script option, make sure you fullfill the requirements by running the following script:
+Before installing DAppNode with the script option, make sure you fulfill the requirements by running the following script:
 
 ```bash
 sudo wget -O - https://prerequisites.dappnode.io | sudo bash
@@ -172,7 +172,7 @@ sudo wget -O - https://installer.dappnode.io | sudo bash
 
 **3. Uninstall DAppNode**
 
-Uinstall DAppNode from your host machine by running the following command:
+Uninstall DAppNode from your host machine by running the following command:
 
 ```bash
 wget -qO - https://uninstaller.dappnode.io | sudo bash
@@ -206,7 +206,7 @@ The release will contain:
 
 ## Testing with artifacts
 
-Generate ISOs and test them by running the github action: **Artifacts**. This action will generate an artifacts with the same assets as the release, useful for testing purposes.
+Generate ISOs and test them by running the Github action: **Artifacts**. This action will generate an artifacts with the same assets as the release, useful for testing purposes.
 
 ## Versioning
 
@@ -214,7 +214,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Team members
 
-Members of the [White Hat Group (WHG)](https://motherboard.vice.com/en_us/article/qvp5b3/how-ethereum-coders-hacked-back-to-rescue-dollar208-million-in-ethereum) have spent countless hours boostraping and developing DAppNode in 2017. Currently, the project is mantained by a growing multi-disciplary team:
+Members of the [White Hat Group (WHG)](https://motherboard.vice.com/en_us/article/qvp5b3/how-ethereum-coders-hacked-back-to-rescue-dollar208-million-in-ethereum) have spent countless hours bootstrapping and developing DAppNode in 2017. Currently, the project is maintained by a growing multi-disciplinary team:
 
 - **Adviser & Instigator:** Jordi Baylina
 - **Project Lead:** Eduadiez
