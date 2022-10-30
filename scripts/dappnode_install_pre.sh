@@ -23,7 +23,7 @@ detect_installation_type() {
 
 add_docker_repo() {
     apt-get update -y
-    apt-get remove -y docker docker-engine docker.io containerd runc  | tee -a $LOG_FILE
+    apt-get remove -y docker docker-engine docker.io containerd runc | tee -a $LOG_FILE
     apt-get install -y ca-certificates curl gnupg lsb-release | tee -a $LOG_FILE
     mkdir -p /etc/apt/keyrings && chmod -R 0755 /etc/apt/keyrings
     curl -fsSL "https://download.docker.com/linux/${lsb_dist}/gpg" | gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
