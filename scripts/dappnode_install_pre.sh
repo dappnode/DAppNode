@@ -145,13 +145,13 @@ install_wifi_firmware() {
     rm -rf $TMP_FIRMWARE_DIR
 }
 
-# UPGRADE VIA BACKPORTS FOR WIFI FIRMWARE (For intel NUC 12)
-upgrade_via_backports() {
-    echo -e "deb http://deb.debian.org/debian bullseye-backports main contrib non-free" >> /etc/apt/sources.list
-    echo -e "deb-src http://deb.debian.org/debian bullseye-backports main contrib non-free" >> /etc/apt/sources.list
+# ADDITIONAL DRIVERS VIA BACKPORTS (For intel NUC 12)
+install_linux_image_via_backports() {
+    echo -e "deb http://deb.debian.org/debian bullseye-backports main contrib non-free" > /etc/apt/sources.list.d/bullseye-backports.list
+    echo -e "deb-src http://deb.debian.org/debian bullseye-backports main contrib non-free" >> /etc/apt/sources.list.d/bullseye-backports.list
 
     apt update -y
-    apt -t bullseye-backports upgrade -y
+    apt -t bullseye-backports install -y linux-image-amd64
 }
 
 # WIREGUARD INSTALLATION 
@@ -250,7 +250,7 @@ fi
 if [[ $(dmidecode | grep "Product Name" | head -1) == *"NUC12"* ]] && [[ -z $(iw dev) ]]; then
     echo -e "\e[32m \n\n Installing wifi firmware \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
     install_wifi_firmware 2>&1 | tee -a $LOG_FILE
-    upgrade_via_backports 2>&1 | tee -a $LOG_FILE
+    install_linux_image_via_backports 2>&1 | tee -a $LOG_FILE
 fi
 
 #Check connectivity
