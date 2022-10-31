@@ -247,7 +247,7 @@ else
 fi
 
 # Only install wifi firmware if it does not detect the wifi card (Intel NUC 12)
-if [[ -z $(iw dev) ]]; then
+if [[ $(dmidecode | grep "Product Name" | head -1) == *"NUC12"* ]] && [[ -z $(iw dev) ]]; then
     echo -e "\e[32m \n\n Installing wifi firmware \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
     install_wifi_firmware 2>&1 | tee -a $LOG_FILE
     upgrade_via_backports 2>&1 | tee -a $LOG_FILE
