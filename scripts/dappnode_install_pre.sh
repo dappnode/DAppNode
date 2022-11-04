@@ -17,6 +17,7 @@ DOCKER_CLI_URL="${DOCKER_REPO}/${DOCKER_CLI_PKG}"
 CONTAINERD_URL="${DOCKER_REPO}/${CONTAINERD_PKG}"
 DCMP_URL="https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64"
 WGET="wget -q --show-progress --progress=bar:force"
+LINUX_FIRMWARE_URL="https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/snapshot/linux-firmware-20221012.tar.gz"
 
 #!ISOBUILD Do not modify, variables above imported for ISO build
 
@@ -116,6 +117,53 @@ install_docker_compose() {
     fi
 }
 
+# WIFI FIRMWARE INSTALLATION (For intel NUC 12)
+install_wifi_firmware() {
+    # STEP 0: Declare paths and directories
+    # ----------------------------------------
+    TMP_FIRMWARE_DIR="/tmp/wifi-firmware"
+
+    mkdir -p $TMP_FIRMWARE_DIR
+
+    # STEP 1: Download files
+    $WGET -O $TMP_FIRMWARE_DIR/linux-firmware.tar.gz $LINUX_FIRMWARE_URL
+
+    # STEP 2: Install packages
+    tar -xvf $TMP_FIRMWARE_DIR/linux-firmware.tar.gz -C $TMP_FIRMWARE_DIR
+    cp $TMP_FIRMWARE_DIR/linux-firmware*/iwlwifi-* /lib/firmware/
+    cp $TMP_FIRMWARE_DIR/linux-firmware*/intel/ibt-* /lib/firmware/intel/
+
+    #Check if the firmware was installed
+    if [ -f "/lib/firmware/iwlwifi-ty-a0-gf-a0-73.ucode" ]; then
+        echo -e "\e[32m \n\n Verified wifi firmware installation \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+    else
+        echo -e "\e[31m \n\n ERROR: wifi firmware is not installed \n\n Please re-install it \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+        exit 1
+    fi
+
+    # STEP 3: Clean up
+    rm -rf $TMP_FIRMWARE_DIR
+}
+
+# ADD BACKPORTS SOURCE
+add_backports_source(){
+    echo -e "deb http://deb.debian.org/debian bullseye-backports main contrib non-free" > /etc/apt/sources.list.d/bullseye-backports.list
+    echo -e "deb-src http://deb.debian.org/debian bullseye-backports main contrib non-free" >> /etc/apt/sources.list.d/bullseye-backports.list
+}
+
+# ADDITIONAL DRIVERS VIA BACKPORTS (For intel NUC 12)
+install_linux_image_via_backports() {
+
+    if  find /etc/apt/ -name "*.list" -print0  | xargs --null cat | grep -q "bullseye-backports" ; then
+        echo -e "\e[32m \n\n bullseye-backports source is already added. \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+    else
+        add_backports_source | tee -a $LOG_FILE
+    fi
+
+    apt update -y
+    apt -t bullseye-backports install -y linux-image-amd64
+}
+
 # WIREGUARD INSTALLATION 
 install_wireguard_dkms() {
     apt-get update -y
@@ -206,6 +254,13 @@ if lsof -v >/dev/null 2>&1; then
     echo -e "\e[32m \n\n lsof is already installed \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
 else
     install_lsof 2>&1 | tee -a $LOG_FILE
+fi
+
+# Only install wifi firmware if it does not detect the wifi card (Intel NUC 12)
+if [[ $(dmidecode | grep "Product Name" | head -1) == *"NUC12"* ]] && [[ -z $(iw dev) ]]; then
+    echo -e "\e[32m \n\n Installing wifi firmware \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+    install_wifi_firmware 2>&1 | tee -a $LOG_FILE
+    install_linux_image_via_backports 2>&1 | tee -a $LOG_FILE
 fi
 
 #Check connectivity
