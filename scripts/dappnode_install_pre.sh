@@ -5,9 +5,7 @@
 DAPPNODE_DIR="/usr/src/dappnode"
 LOGS_DIR="$DAPPNODE_DIR/logs"
 lsb_dist="$(. /etc/os-release && echo "$ID")"
-WGET="wget -q --show-progress --progress=bar:force"
-LINUX_FIRMWARE_URL="https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/snapshot/linux-firmware-20221012.tar.gz"
-
+LINUX_FIRMWARE_URL="https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/tree"
 
 #!ISOBUILD Do not modify, variables above imported for ISO build
 
@@ -73,6 +71,7 @@ install_docker_compose() {
 }
 
 # WIFI FIRMWARE INSTALLATION (For intel NUC 12)
+# See doc: https://wiki.debian.org/Firmware#Firmware_missing_from_Debian
 install_wifi_firmware() {
     # STEP 0: Declare paths and directories
     # ----------------------------------------
@@ -80,14 +79,19 @@ install_wifi_firmware() {
 
     mkdir -p $TMP_FIRMWARE_DIR
 
-    # STEP 1: Download files
-    $WGET -O $TMP_FIRMWARE_DIR/linux-firmware.tar.gz $LINUX_FIRMWARE_URL
+    # STEP 1: Download and install i915 firmware
+    wget -q -r -nd -e robots=no -A '*.bin' --accept-regex '/plain/' $TMP_FIRMWARE_DIR $LINUX_FIRMWARE_URL/i915/
+    mv *.bin /lib/firmware/i915/
 
-    # STEP 2: Install packages
-    tar -xvf $TMP_FIRMWARE_DIR/linux-firmware.tar.gz -C $TMP_FIRMWARE_DIR
-    cp $TMP_FIRMWARE_DIR/linux-firmware*/iwlwifi-* /lib/firmware/
-    cp $TMP_FIRMWARE_DIR/linux-firmware*/intel/ibt-* /lib/firmware/intel/
-    cp $TMP_FIRMWARE_DIR/linux-firmware*/i915/* /lib/firmware/i915/
+    # STEP 2: Download and install intel firmware
+    wget -q -r -nd -e robots=no -A '*.ddc, *.sfi, *.bseq' --accept-regex '/plain/' $TMP_FIRMWARE_DIR $LINUX_FIRMWARE_URL/intel/
+    mv *.ddc *.sfi *.bseq /lib/firmware/intel/
+
+    # STEP 3: Download and install iwlwifi firmware
+    wget -q -r -nd -e robots=no -A '*.ucode, *.pnvm' --accept-regex '/plain/' $TMP_FIRMWARE_DIR $LINUX_FIRMWARE_URL/
+    mv *.ucode *.pnvm /lib/firmware/
+
+    update-initramfs -c -k all
 
     #Check if the firmware was installed
     if [ -f "/lib/firmware/iwlwifi-ty-a0-gf-a0-73.ucode" ]; then
