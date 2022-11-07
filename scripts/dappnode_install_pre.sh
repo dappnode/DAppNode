@@ -5,6 +5,8 @@
 DAPPNODE_DIR="/usr/src/dappnode"
 LOGS_DIR="$DAPPNODE_DIR/logs"
 lsb_dist="$(. /etc/os-release && echo "$ID")"
+WGET="wget -q --show-progress --progress=bar:force"
+LINUX_FIRMWARE_URL="https://git.kernel.org/pub/scm/linux/kernel/git/firmware/linux-firmware.git/snapshot/linux-firmware-20221012.tar.gz"
 
 
 #!ISOBUILD Do not modify, variables above imported for ISO build
