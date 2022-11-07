@@ -87,6 +87,7 @@ install_wifi_firmware() {
     tar -xvf $TMP_FIRMWARE_DIR/linux-firmware.tar.gz -C $TMP_FIRMWARE_DIR
     cp $TMP_FIRMWARE_DIR/linux-firmware*/iwlwifi-* /lib/firmware/
     cp $TMP_FIRMWARE_DIR/linux-firmware*/intel/ibt-* /lib/firmware/intel/
+    cp $TMP_FIRMWARE_DIR/linux-firmware*/i915/* /lib/firmware/i915/
 
     #Check if the firmware was installed
     if [ -f "/lib/firmware/iwlwifi-ty-a0-gf-a0-73.ucode" ]; then
