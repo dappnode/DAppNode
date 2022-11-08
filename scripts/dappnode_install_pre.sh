@@ -80,14 +80,17 @@ install_wifi_firmware() {
     mkdir -p $TMP_FIRMWARE_DIR
 
     # STEP 1: Download and install i915 firmware
+    # shellcheck disable=SC2035
     wget -q -r -nd -e robots=no -A '*.bin' --accept-regex '/plain/' $TMP_FIRMWARE_DIR $LINUX_FIRMWARE_URL/i915/
     mv *.bin /lib/firmware/i915/
 
     # STEP 2: Download and install intel firmware
+    # shellcheck disable=SC2035
     wget -q -r -nd -e robots=no -A '*.ddc, *.sfi, *.bseq' --accept-regex '/plain/' $TMP_FIRMWARE_DIR $LINUX_FIRMWARE_URL/intel/
     mv *.ddc *.sfi *.bseq /lib/firmware/intel/
 
     # STEP 3: Download and install iwlwifi firmware
+    # shellcheck disable=SC2035
     wget -q -r -nd -e robots=no -A '*.ucode, *.pnvm' --accept-regex '/plain/' $TMP_FIRMWARE_DIR $LINUX_FIRMWARE_URL/
     mv *.ucode *.pnvm /lib/firmware/
 
