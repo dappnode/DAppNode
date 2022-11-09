@@ -291,6 +291,7 @@ installExtraDpkg() {
 
 add_log_rotate_conf() {
     cat << EOF > /etc/logrotate.d/dappnode
+    $DAPPNODE_CORE_DIR/userActionLogs.json
     $LOGS_DIR/*
     {
         rotate 5
