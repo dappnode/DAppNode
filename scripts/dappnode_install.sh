@@ -289,6 +289,20 @@ installExtraDpkg() {
     fi
 }
 
+add_log_rotate_conf() {
+    cat << EOF > /etc/logrotate.d/dappnode
+    $LOGS_DIR/*
+    {
+        rotate 5
+        weekly
+        missingok
+        notifempty
+        compress
+        delaycompress
+    }
+EOF
+}
+
 ##############################################
 ####             SCRIPT START             ####
 ##############################################
@@ -328,6 +342,10 @@ dappnode_core_download
 
 echo -e "\e[32mLoading DAppNode Core...\e[0m" 2>&1 | tee -a $LOGFILE
 dappnode_core_load
+
+echo -e "\e[32mConfiguring log rotation...\e[0m" 2>&1 | tee -a $LOGFILE
+add_log_rotate_conf
+
 
 if [ ! -f "/usr/src/dappnode/.firstboot" ]; then
     echo -e "\e[32mDAppNode installed\e[0m" 2>&1 | tee -a $LOGFILE

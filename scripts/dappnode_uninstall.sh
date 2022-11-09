@@ -45,6 +45,10 @@ uninstall() {
     echo -e "\e[32mRemoving DAppNode directory\e[0m"
     rm -rf /usr/src/dappnode
 
+    # Remove log rotate conf
+    echo -e "\e[32mRemoving logrotate configuration\e[0m"
+    rm /etc/logrotate.d/dappnode
+
     # Remove profile file
     USER=$(grep 1000 /etc/passwd | cut -f 1 -d:)
     [ -n "$USER" ] && PROFILE=/home/$USER/.profile || PROFILE=/root/.profile
