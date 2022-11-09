@@ -35,7 +35,7 @@ DAppNode is empowering people by creating a simple, transparent system for hosti
 
 ## Discover DAppNode
 
-DAppNode lowers the barrier of entry for non tech-savy participants. It allows you to deploy, update, and manage P2P clients and nodes without leaving your browser. No terminal or command line interface.
+DAppNode lowers the barrier of entry for non tech-savvy participants. It allows you to deploy, update, and manage P2P clients and nodes without leaving your browser. No terminal or command line interface.
 
 <p align="center">
   <a href="https://install.dappnode.io">
@@ -45,7 +45,7 @@ DAppNode lowers the barrier of entry for non tech-savy participants. It allows y
 
 ## Develop with DAppNode
 
-DAppNode modular architecture allows any team to or project to publish a dockerized application to the DAppNode packages eco-system. Benefit from an enthusiatic crypto savy user based and offer a user interface-only experience to lower onboarding friction.
+DAppNode modular architecture allows any team to or project to publish a dockerized application to the DAppNode packages eco-system. Benefit from an enthusiastic crypto savvy user based and offer a user interface-only experience to lower onboarding friction.
 
 Check out the [DAppNodeSDK](https://github.com/dappnode/DAppNodeSDK) to learn how to get started.
 
@@ -123,7 +123,7 @@ Get your DAppNode and start contributing to decentralization by running your own
 
 ### Install DAppNode with ISO
 
-DAppNode ISO available in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases)
+DAppNode ISO available is in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases).
 
 Install DAppNode on your host machine by burning DAppNode ISO to a DVD or creating a bootable USB. Follow the tutorial of your operating system below and come back when you are finished:
 
@@ -150,13 +150,13 @@ _Note_: ISO could be generated as unattended/attended by editing the env var ava
 
 ### Install DAppNode with scripts
 
-Scripts available in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases)
+Scripts are available in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases).
 
-DAppNode could be also installed on a host machine with an OS already running on it. DAppNode has been developed and configured to be run on debian host machines so is preferably to install DAppNode on Debian or debian based (like Ubuntu) host machines.
+DAppNode could be also installed on a host machine with an OS already running on it. DAppNode has been developed and configured to be run on Debian host machines. Therefore, it should work on Debian or Debian based (like Ubuntu) host machines. Minimum recommended Debian version is 11.
 
-**1. Prerrequisites**
+**1. Prerequisites**
 
-Before install DAppNode with the script option, make sure you fullfill the requirements by running the following script:
+Before installing DAppNode with the script option, make sure you fulfill the requirements by running the following script:
 
 ```bash
 sudo wget -O - https://prerequisites.dappnode.io | sudo bash
@@ -172,7 +172,7 @@ sudo wget -O - https://installer.dappnode.io | sudo bash
 
 **3. Uninstall DAppNode**
 
-Uinstall DAppNode on your host machine by running the following command:
+Uninstall DAppNode from your host machine by running the following command:
 
 ```bash
 wget -qO - https://uninstaller.dappnode.io | sudo bash
@@ -188,7 +188,7 @@ sudo wget -O - https://installer.dappnode.io | sudo UPDATE=true bash
 
 ## Releases
 
-Create releases manually with github actions, the github action to run is: **Pre-release**. Requirements are:
+Create releases manually with Github actions, the Github action to run is: **Pre-release**. The requirements are:
 
 - Introduce the core packages versions
 - There must exist the corresponding core package release for the specified version
@@ -206,7 +206,7 @@ The release will contain:
 
 ## Testing with artifacts
 
-Generate ISOs and test them by running the github action: **Artifacts**. This action will generate an artifacts with the same assets as the release, useful for testing purposes.
+Generate ISOs and test them by running the Github action: **Artifacts**. This action will generate an artifacts with the same assets as the release, useful for testing purposes.
 
 ## Versioning
 
@@ -214,7 +214,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Team members
 
-Members of the [White Hat Group (WHG)](https://motherboard.vice.com/en_us/article/qvp5b3/how-ethereum-coders-hacked-back-to-rescue-dollar208-million-in-ethereum) have spent countless hours boostraping and developing DAppNode in 2017. Currently, the project is mantained by a growing multi-disciplary team:
+Members of the [White Hat Group (WHG)](https://motherboard.vice.com/en_us/article/qvp5b3/how-ethereum-coders-hacked-back-to-rescue-dollar208-million-in-ethereum) have spent countless hours bootstrapping and developing DAppNode in 2017. Currently, the project is maintained by a growing multi-disciplinary team:
 
 - **Adviser & Instigator:** Jordi Baylina
 - **Project Lead:** Eduadiez

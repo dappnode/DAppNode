@@ -4,19 +4,8 @@
 
 DAPPNODE_DIR="/usr/src/dappnode"
 LOGS_DIR="$DAPPNODE_DIR/logs"
-DOCKER_PKG="docker-ce_20.10.6~3-0~debian-bullseye_amd64.deb"
-DOCKER_CLI_PKG="docker-ce-cli_20.10.6~3-0~debian-bullseye_amd64.deb"
-CONTAINERD_PKG="containerd.io_1.4.4-1_amd64.deb"
-DOCKER_REPO="https://download.docker.com/linux/debian/dists/bullseye/pool/stable/amd64"
-DOCKER_PATH="${DAPPNODE_DIR}/bin/docker/${DOCKER_PKG}"
-DOCKER_CLI_PATH="${DAPPNODE_DIR}/bin/docker/${DOCKER_CLI_PKG}"
-CONTAINERD_PATH="${DAPPNODE_DIR}/bin/docker/${CONTAINERD_PKG}"
-DCMP_PATH="/usr/local/bin/docker-compose"
-DOCKER_URL="${DOCKER_REPO}/${DOCKER_PKG}"
-DOCKER_CLI_URL="${DOCKER_REPO}/${DOCKER_CLI_PKG}"
-CONTAINERD_URL="${DOCKER_REPO}/${CONTAINERD_PKG}"
-DCMP_URL="https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-linux-x86_64"
-WGET="wget -q --show-progress --progress=bar:force"
+lsb_dist="$(. /etc/os-release && echo "$ID")"
+
 
 #!ISOBUILD Do not modify, variables above imported for ISO build
 
@@ -31,48 +20,24 @@ detect_installation_type() {
     fi
 }
 
+
+add_docker_repo() {
+    apt-get update -y
+    apt-get remove -y docker docker-engine docker.io containerd runc | tee -a $LOG_FILE
+    apt-get install -y ca-certificates curl gnupg lsb-release | tee -a $LOG_FILE
+    mkdir -p /etc/apt/keyrings && chmod -R 0755 /etc/apt/keyrings
+    curl -fsSL "https://download.docker.com/linux/${lsb_dist}/gpg" | gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
+    chmod a+r /etc/apt/keyrings/docker.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$lsb_dist $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+}
+
 # DOCKER INSTALLATION
 install_docker() {
-    # STEP 0: Detect if it's a Debian 9 (stretch) or Debian 10 (Buster) installation
-    # ----------------------------------------
-    if [ -f "/etc/os-release" ] && grep -q "buster" "/etc/os-release"; then
-        DOCKER_PKG="docker-ce_20.10.2~3-0~debian-buster_amd64.deb"
-        DOCKER_CLI_PKG="docker-ce-cli_20.10.2~3-0~debian-buster_amd64.deb"
-        CONTAINERD_PKG="containerd.io_1.4.3-1_amd64.deb"
-        DOCKER_REPO="https://download.docker.com/linux/debian/dists/buster/pool/stable/amd64"
-        DOCKER_PATH="${DAPPNODE_DIR}/bin/docker/${DOCKER_PKG}"
-        DOCKER_CLI_PATH="${DAPPNODE_DIR}/bin/docker/${DOCKER_CLI_PKG}"
-        CONTAINERD_PATH="${DAPPNODE_DIR}/bin/docker/${CONTAINERD_PKG}"
-        DOCKER_URL="${DOCKER_REPO}/${DOCKER_PKG}"
-        DOCKER_CLI_URL="${DOCKER_REPO}/${DOCKER_CLI_PKG}"
-        CONTAINERD_URL="${DOCKER_REPO}/${CONTAINERD_PKG}"
-    elif [ -f "/etc/os-release" ] && grep -q "stretch" "/etc/os-release"; then
-        DOCKER_PKG="docker-ce_19.03.8~3-0~debian-stretch_amd64.deb"
-        DOCKER_CLI_PKG="docker-ce-cli_19.03.8~3-0~debian-stretch_amd64.deb"
-        CONTAINERD_PKG="containerd.io_1.2.6-3_amd64.deb"
-        DOCKER_REPO="https://download.docker.com/linux/debian/dists/stretch/pool/stable/amd64"
-        DOCKER_PATH="${DAPPNODE_DIR}/bin/docker/${DOCKER_PKG}"
-        DOCKER_CLI_PATH="${DAPPNODE_DIR}/bin/docker/${DOCKER_CLI_PKG}"
-        CONTAINERD_PATH="${DAPPNODE_DIR}/bin/docker/${CONTAINERD_PKG}"
-        DOCKER_URL="${DOCKER_REPO}/${DOCKER_PKG}"
-        DOCKER_CLI_URL="${DOCKER_REPO}/${DOCKER_CLI_PKG}"
-        CONTAINERD_URL="${DOCKER_REPO}/${CONTAINERD_PKG}"
-    fi
-
-    # STEP 1: Download files
-    # ----------------------------------------
-    [ -f $DOCKER_PATH ] || $WGET -O $DOCKER_PATH $DOCKER_URL
-    [ -f $DOCKER_CLI_PATH ] || $WGET -O $DOCKER_CLI_PATH $DOCKER_CLI_URL
-    [ -f $CONTAINERD_PATH ] || $WGET -O $CONTAINERD_PATH $CONTAINERD_URL
-
-    # STEP 2: Install packages
-    # ----------------------------------------
-    dpkg -i $CONTAINERD_PATH 2>&1 | tee -a $LOG_FILE
-    dpkg -i $DOCKER_CLI_PATH 2>&1 | tee -a $LOG_FILE
-    dpkg -i $DOCKER_PATH 2>&1 | tee -a $LOG_FILE
+    apt-get update -y
+    apt-get install -y docker-ce docker-ce-cli containerd.io | tee -a $LOG_FILE
 
     # Ensure xz is installed
-    [ -f "/usr/bin/xz" ] || (apt-get update -y && apt-get install -y xz-utils)
+    [ -f "/usr/bin/xz" ] || ( apt-get install -y xz-utils)
 
     USER=$(grep 1000 "/etc/passwd" | cut -f 1 -d:)
     [ -z "$USER" ] || usermod -aG docker "$USER"
@@ -91,18 +56,7 @@ install_docker() {
 
 # DOCKER COMPOSE INSTALLATION
 install_docker_compose() {
-    # STEP 0: Declare paths and directories
-    # ----------------------------------------
-
-    # Ensure paths exist
-    mkdir -p "$(dirname "$DCMP_PATH")" 2>&1 | tee -a $LOG_FILE
-
-    # STEP 1: Download files
-    # ----------------------------------------
-
-    [ -f $DCMP_PATH ] || $WGET -O $DCMP_PATH $DCMP_URL
-    # Give permissions
-    chmod +x $DCMP_PATH 2>&1 | tee -a $LOG_FILE
+    apt-get install -y docker-compose | tee -a $LOG_FILE
 
     # Disable check if ISO installation since it is not possible to check in this way
     if [ "$ISO_INSTALLATION" = "false" ]; then
@@ -119,10 +73,6 @@ install_docker_compose() {
 # WIREGUARD INSTALLATION 
 install_wireguard_dkms() {
     apt-get update -y
-    if [ -f "/etc/os-release" ] && grep -q "buster" "/etc/os-release"; then
-        echo "deb http://deb.debian.org/debian/ buster-backports main" > /etc/apt/sources.list.d/buster-backports.list
-        printf 'Package: *\nPin: release a=buster-backports\nPin-Priority: 90\n' > /etc/apt/preferences.d/limit-backports
-    fi
 
     apt-get install wireguard-dkms -y | tee -a $LOG_FILE
 
@@ -170,7 +120,6 @@ detect_installation_type
 # Ensure paths exist
 mkdir -p $DAPPNODE_DIR
 mkdir -p $LOGS_DIR
-mkdir -p "$(dirname "$DOCKER_PATH")"
 
 touch $LOG_FILE
 
@@ -178,6 +127,13 @@ touch $LOG_FILE
 if [ "$1" == "UPDATE" ]; then
     echo -e "\e[32m \n\n Updating && upgrading host \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
     host_update 2>&1 | tee -a $LOG_FILE
+fi
+
+
+if  find /etc/apt/ -name "*.list" -print0  | xargs --null cat | grep -q "https://download.docker.com/linux/$lsb_dist" ; then
+    echo -e "\e[32m \n\n docker repo is already added \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+else
+    add_docker_repo | tee -a $LOG_FILE
 fi
 
 # Only install docker if needed
