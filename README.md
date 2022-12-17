@@ -4,7 +4,11 @@
 [![Documentation Wiki](https://img.shields.io/badge/Documentation-Wiki-brightgreen.svg)](https://docs.dappnode.io)
 [![GIVETH Campaign](https://img.shields.io/badge/GIVETH-Campaign-1e083c.svg)](https://beta.giveth.io/campaigns/5b44b198647f33526e67c262)
 ![GitHub All Releases](https://img.shields.io/github/downloads/dappnode/DAppNode/total.svg)
+[![GitPOAP Badge](https://public-api.gitpoap.io/v1/repo/dappnode/DAppNode/badge)](https://www.gitpoap.io/gh/dappnode/DAppNode)
 [![Twitter Follow](https://img.shields.io/twitter/follow/espadrine.svg?style=social&label=Follow)](https://twitter.com/DAppNODE?lang=es)
+[![Discord](https://img.shields.io/discord/747647430450741309?logo=discord&style=plastic)](https://discord.gg/dappnode)
+
+
 
 <br/>
 <p align="center">
@@ -24,14 +28,14 @@
 
 DAppNode is empowering people by creating a simple, transparent system for hosting P2P clients for DApps, Cryptocurrencies, VPNs, IPFS and more
 
-- Read about our purpose and mission [https://dappnode.io/](https://dappnode.io/)
-- Join our community [https://discord.gg/c28an8dA5k](https://discord.gg/c28an8dA5k)
-- Check out what we are delivering [https://medium.com/dappnode](https://medium.com/dappnode)
-- Share your ideas and support from us [https://discourse.dappnode.io/](https://discourse.dappnode.io/)
+- Read about our purpose and mission on [Our Website](https://dappnode.io/)
+- Join our community and find support on [Our Discord](https://discord.gg/dappnode)
+- Check out what we are up to on [Our Medium](https://medium.com/dappnode)
+- Share your ideas and find how to guides on [Our Forum](https://discourse.dappnode.io/)
 
 ## Discover DAppNode
 
-DAppNode lowers the barrier of entry for non tech-savy participants. It allows you to deploy, update, and manage P2P clients and nodes without leaving your browser. No terminal or command line interface.
+DAppNode lowers the barrier of entry for non tech-savvy participants. It allows you to deploy, update, and manage P2P clients and nodes without leaving your browser. No terminal or command line interface.
 
 <p align="center">
   <a href="https://install.dappnode.io">
@@ -41,7 +45,7 @@ DAppNode lowers the barrier of entry for non tech-savy participants. It allows y
 
 ## Develop with DAppNode
 
-DAppNode modular architecture allows any team to or project to publish a dockerized application to the DAppNode packages eco-system. Benefit from an enthusiatic crypto savy user based and offer a user interface-only experience to lower onboarding friction.
+DAppNode modular architecture allows any team to or project to publish a dockerized application to the DAppNode packages eco-system. Benefit from an enthusiastic crypto savvy user based and offer a user interface-only experience to lower onboarding friction.
 
 Check out the [DAppNodeSDK](https://github.com/dappnode/DAppNodeSDK) to learn how to get started.
 
@@ -59,7 +63,7 @@ The community and core team members have created many useful packages for users.
 
 ### Champions
 
-Champions are community members that are in charge of maintaining packages updated. All packages in this list without a champions are actively looking for a champion. Join our [DAppNode Discord **#champion-process**](https://discord.gg/MhSPBsHryu) to suggest a package to be championed and/or offer to be a champion for a project you care about!
+Champions are community members that are in charge of maintaining packages: keeping them updated and working. All packages in this list without a champion are actively looking for a champion. Join our [DAppNode Discord **#champion-process**](https://discord.gg/dappnode) to suggest a package to be championed and/or offer to be a champion for a project you care about!
 
 | Package                                                                                  | Champion         |
 | ---------------------------------------------------------------------------------------- | ---------------- |
@@ -115,11 +119,11 @@ Champions are community members that are in charge of maintaining packages updat
 
 Get your DAppNode and start contributing to decentralization by running your own nodes.
 
-[Install DAppNode on your host machine](https://docs.dappnode.io/install/) or buy your DAppNode with all the stuff configured and prepared to be used in [DAppNode shop](https://shop.dappnode.io/)
+[Install DAppNode on your host machine](https://docs.dappnode.io/get-started/installation/custom-hardware/installation/overview) or buy your DAppNode with all the stuff configured and prepared to be used in [DAppNode shop](https://shop.dappnode.io/)
 
 ### Install DAppNode with ISO
 
-DAppNode ISO available in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases)
+DAppNode ISO available is in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases).
 
 Install DAppNode on your host machine by burning DAppNode ISO to a DVD or creating a bootable USB. Follow the tutorial of your operating system below and come back when you are finished:
 
@@ -146,13 +150,13 @@ _Note_: ISO could be generated as unattended/attended by editing the env var ava
 
 ### Install DAppNode with scripts
 
-Scripts available in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases)
+Scripts are available in: [latest DAppNode release](https://github.com/dappnode/DAppNode/releases).
 
-DAppNode could be also installed on a host machine with an OS already running on it. DAppNode has been developed and configured to be run on debian host machines so is preferably to install DAppNode on Debian or debian based (like Ubuntu) host machines.
+DAppNode could be also installed on a host machine with an OS already running on it. DAppNode has been developed and configured to be run on Debian host machines. Therefore, it should work on Debian or Debian based (like Ubuntu) host machines. Minimum recommended Debian version is 11.
 
-**1. Prerrequisites**
+**1. Prerequisites**
 
-Before install DAppNode with the script option, make sure you fullfill the requirements by running the following script:
+Before installing DAppNode with the script option, make sure you fulfill the requirements by running the following script:
 
 ```bash
 sudo wget -O - https://prerequisites.dappnode.io | sudo bash
@@ -168,7 +172,7 @@ sudo wget -O - https://installer.dappnode.io | sudo bash
 
 **3. Uninstall DAppNode**
 
-Uinstall DAppNode on your host machine by running the following command:
+Uninstall DAppNode from your host machine by running the following command:
 
 ```bash
 wget -qO - https://uninstaller.dappnode.io | sudo bash
@@ -184,7 +188,7 @@ sudo wget -O - https://installer.dappnode.io | sudo UPDATE=true bash
 
 ## Releases
 
-Create releases manually with github actions, the github action to run is: **Pre-release**. Requirements are:
+Create releases manually with Github actions, the Github action to run is: **Pre-release**. The requirements are:
 
 - Introduce the core packages versions
 - There must exist the corresponding core package release for the specified version
@@ -202,7 +206,7 @@ The release will contain:
 
 ## Testing with artifacts
 
-Generate ISOs and test them by running the github action: **Artifacts**. This action will generate an artifacts with the same assets as the release, useful for testing purposes.
+Generate ISOs and test them by running the Github action: **Artifacts**. This action will generate an artifacts with the same assets as the release, useful for testing purposes.
 
 ## Versioning
 
@@ -210,7 +214,7 @@ We use [SemVer](http://semver.org/) for versioning. For the versions available, 
 
 ## Team members
 
-Members of the [White Hat Group (WHG)](https://motherboard.vice.com/en_us/article/qvp5b3/how-ethereum-coders-hacked-back-to-rescue-dollar208-million-in-ethereum) have spent countless hours boostraping and developing DAppNode in 2017. Currently, the project is mantained by a growing multi-disciplary team:
+Members of the [White Hat Group (WHG)](https://motherboard.vice.com/en_us/article/qvp5b3/how-ethereum-coders-hacked-back-to-rescue-dollar208-million-in-ethereum) have spent countless hours bootstrapping and developing DAppNode in 2017. Currently, the project is maintained by a growing multi-disciplinary team:
 
 - **Adviser & Instigator:** Jordi Baylina
 - **Project Lead:** Eduadiez
@@ -223,3 +227,7 @@ Members of the [White Hat Group (WHG)](https://motherboard.vice.com/en_us/articl
 ## License
 
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details
+
+## Copyright
+
+Copyright © (2018-2022) [The DAppNode Association](https://dappnode.io)

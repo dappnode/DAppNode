@@ -147,11 +147,18 @@ jobs:
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check git diff
+        id: git_diff
+        run: |
+          git diff --no-index --word-diff-regex=[^[:space:]] --no-patch .dappnode_profile && echo '::set-output name=HAS_CHANGED::true' || echo '::set-output name=HAS_CHANGED::false'
+
       - name: Create Pull Request
+        if: steps.git_diff.outputs.HAS_CHANGED == 'true'
         uses: peter-evans/create-pull-request@v3
         with:
           add-paths: ".dappnode_profile"
-          commit-message: "update profile core packages versions"
+          commit-message: "update core packages versions"
           branch: "update-profile"
-          title: "update profile core packages versions"
+          title: "update core packages versions"
           delete-branch: true

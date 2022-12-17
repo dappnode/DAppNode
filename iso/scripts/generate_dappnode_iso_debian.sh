@@ -2,10 +2,10 @@
 set -e
 
 # Source = https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/
-ISO_NAME=firmware-11.1.0-amd64-netinst.iso
+ISO_NAME=firmware-11.5.0-amd64-netinst.iso
 ISO_PATH="/images/${ISO_NAME}"
-ISO_URL=http://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/archive/11.1.0+nonfree/amd64/iso-cd/
-SHASUM="baab78aa4dac175511915a20b095da69131ef5c84b73e637a6933c03b561cdfd  ${ISO_PATH}"
+ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/11.5.0+nonfree/amd64/iso-cd/
+SHASUM="ce1dcd1fa272976ddc387554202013e69ecf1b02b38fba4f8c35c8b12b8f521e  ${ISO_PATH}"
 
 echo "Downloading debian ISO image: ${ISO_NAME}..."
 if [ ! -f ${ISO_PATH} ]; then
@@ -15,7 +15,10 @@ fi
 echo "Done!"
 
 echo "Verifying download..."
-[[ "$(shasum -a 256 ${ISO_PATH})" != "$SHASUM" ]] && { echo "ERROR: wrong shasum"; exit 1; }
+[[ "$(shasum -a 256 ${ISO_PATH})" != "$SHASUM" ]] && {
+    echo "ERROR: wrong shasum"
+    exit 1
+}
 
 echo "Clean old files..."
 rm -rf dappnode-isoº
@@ -35,26 +38,18 @@ echo "Downloading third-party packages..."
 sed '1,/^\#\!ISOBUILD/!d' /usr/src/app/scripts/dappnode_install_pre.sh >/tmp/vars.sh
 # shellcheck disable=SC1091
 source /tmp/vars.sh
-mkdir -p /images/bin/docker
-cd /images/bin/docker
-[ -f "${DOCKER_PKG}" ] || wget "${DOCKER_URL}"
-[ -f "${DOCKER_CLI_PKG}" ] || wget "${DOCKER_CLI_URL}"
-[ -f "${CONTAINERD_PKG}" ] || wget "${CONTAINERD_URL}"
-[ -f docker-compose-Linux-x86_64 ] || wget "${DCMP_URL}"
-cd - # /usr/src/app/dappnode-iso
 
 echo "Creating necessary directories and copying files..."
-mkdir -p /usr/src/app/dappnode-iso/dappnode 
+mkdir -p /usr/src/app/dappnode-iso/dappnode
 cp -r /usr/src/app/scripts /usr/src/app/dappnode-iso/dappnode
 cp -r /usr/src/app/dappnode/* /usr/src/app/dappnode-iso/dappnode
-cp -vr /images/bin /usr/src/app/dappnode-iso/dappnode/
 
 echo "Customizing preseed..."
 mkdir -p /tmp/makeinitrd
 cd install.amd
 cp initrd.gz /tmp/makeinitrd/
-if [[ ${UNATTENDED} == "true" ]]; then
-   cp /usr/src/app/iso/preseeds/preseed_unattended.cfg /tmp/makeinitrd/preseed.cfg
+if [[ $UNATTENDED == *"true"* ]]; then
+    cp /usr/src/app/iso/preseeds/preseed_unattended.cfg /tmp/makeinitrd/preseed.cfg
 else
     cp /usr/src/app/iso/preseeds/preseed.cfg /tmp/makeinitrd/preseed.cfg
 fi
