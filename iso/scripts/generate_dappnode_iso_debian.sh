@@ -1,10 +1,11 @@
 #!/bin/bash
 set -e
 
-# Source = https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/
+# outdated link to Source = https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/
+# Permalink to archvie = https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/archive/11.5.0+nonfree/amd64/iso-cd/
 ISO_NAME=firmware-11.5.0-amd64-netinst.iso
 ISO_PATH="/images/${ISO_NAME}"
-ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/11.5.0+nonfree/amd64/iso-cd/
+ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/archive/11.5.0+nonfree/amd64/iso-cd/
 SHASUM="ce1dcd1fa272976ddc387554202013e69ecf1b02b38fba4f8c35c8b12b8f521e  ${ISO_PATH}"
 
 echo "Downloading debian ISO image: ${ISO_NAME}..."
