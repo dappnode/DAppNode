@@ -12,13 +12,13 @@
 
 <br/>
 <p align="center">
-  <a href="https://dappnode.io/">
+  <a href="https://dappnode.com/">
     <img width="800" src="doc/DAppNodeLogoWide-outlined.png">
   </a>
 </p>
 <br/>
 <p align="center">
-  <a href="https://install.dappnode.io">
+  <a href="https://docs.dappnode.io/user/quick-start/Core/installation">
     <img width="200" src="doc/DappnodeInstall.png">
   </a>
 </p>
@@ -28,7 +28,7 @@
 
 DAppNode is empowering people by creating a simple, transparent system for hosting P2P clients for DApps, Cryptocurrencies, VPNs, IPFS and more
 
-- Read about our purpose and mission on [Our Website](https://dappnode.io/)
+- Read about our purpose and mission on [Our Website](https://dappnode.com/)
 - Join our community and find support on [Our Discord](https://discord.gg/dappnode)
 - Check out what we are up to on [Our Medium](https://medium.com/dappnode)
 - Share your ideas and find how to guides on [Our Forum](https://discourse.dappnode.io/)
@@ -38,7 +38,7 @@ DAppNode is empowering people by creating a simple, transparent system for hosti
 DAppNode lowers the barrier of entry for non tech-savvy participants. It allows you to deploy, update, and manage P2P clients and nodes without leaving your browser. No terminal or command line interface.
 
 <p align="center">
-  <a href="https://install.dappnode.io">
+  <a href="https://docs.dappnode.io/user/quick-start/Core/installation">
     <img width="800" src="doc/DAppNodeAdminUI-demo.png">
   </a>
 </p>
@@ -119,7 +119,7 @@ Champions are community members that are in charge of maintaining packages: keep
 
 Get your DAppNode and start contributing to decentralization by running your own nodes.
 
-[Install DAppNode on your host machine](https://docs.dappnode.io/get-started/installation/custom-hardware/installation/overview) or buy your DAppNode with all the stuff configured and prepared to be used in [DAppNode shop](https://shop.dappnode.io/)
+[Install DAppNode on your host machine](https://docs.dappnode.io/user/quick-start/Core/installation) or buy your DAppNode with all the stuff configured and prepared to be used in [DAppNode shop](https://dappnode.com/en-us/collections/frontpage)
 
 ### Install DAppNode with ISO
 
@@ -230,4 +230,4 @@ This project is licensed under the GNU General Public License v3.0 - see the [LI
 
 ## Copyright
 
-Copyright © (2018-2022) [The DAppNode Association](https://dappnode.io)
+Copyright © (2018-2023) [The DAppNode Association](https://dappnode.com)
