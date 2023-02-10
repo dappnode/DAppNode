@@ -29,7 +29,7 @@ i.e
 
 By default either script and ISO installs the following core packages (see [ref](https://github.com/dappnode/DAppNode/blob/bdf4bf52a8c18b864a91bec6d625f8de206a2074/iso/scripts/download_core.sh#L17)): DAPPMANAGER, HTTPS, WIFI, WIREGUARD, IPFS and BIND.
 
-Deppending on a few requisites, such as HTTPS ports are in used or there is no Kernel driver for WIREGUARD, the HTTPS package may not be installed and the WIREGUARD package will be switch by the VPN package.
+Depending on a few prerequisites, such as HTTPS ports being in use or there is no Kernel driver for Wireguard; the HTTPS package may not be installed and the Wireguard package may be substituted by the VPN (OpenVPN) package.
 
 ### How to generate a new DAppNode release?
 
