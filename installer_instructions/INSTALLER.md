@@ -33,7 +33,7 @@ Depending on a few prerequisites, such as HTTPS ports being in use or there is n
 
 ### How to generate a new DAppNode release?
 
-There is a CI in the repository to generate a new DAppNode release. This CI requires manual input to be triggered and takes as inputs the versions of the core packages used to generate the release. It is mandatory that this core packages versions exists in their corresponding repositories in the releases section.
+There is a manually triggered CI Workflow in the repository actions, to generate a new DAppNode release. This CI requires manual input to be triggered and takes as inputs the versions of the core packages used to generate the release. It is mandatory that these inputted core package versions exist in their corresponding repositories in each of their releases' sections.
 
 The release action will generate all the assets required as well as the release-changelog.md used to display all the information in a release, excluding the changelog that will be required to introduced manually by editing the release generated
 
