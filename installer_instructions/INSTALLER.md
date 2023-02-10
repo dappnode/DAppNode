@@ -9,7 +9,7 @@ The installer is the repository in charge of generating all the **installation a
 
 ### Release assets
 
-DAppNode can be installed in several ways, check out the [docs](https://docs.dappnode.io/get-started/installation/dappnode-hardware/installation/) for more information. The assets generated in each release are used to update all the installation methods used to install DAppNode.
+DAppNode can be installed in multiple ways, check out the [docs](https://docs.dappnode.io/user/quick-start/Core/installation) for more information. The assets generated in each release are used to update all the installation methods used to install DAppNode.
 
 i.e
 
