@@ -143,7 +143,7 @@ docker-compose up
 DAppNode iso will be generated inside images folder, to verify it:
 
 ```bash
-ls -lrt images/DappNode-*
+ls -lrt images/DAppNode-*
 ```
 
 _Note_: ISO could be generated as unattended/attended by editing the env var available in the docker-compose.yml file
