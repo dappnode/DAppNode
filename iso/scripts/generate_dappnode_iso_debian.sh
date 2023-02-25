@@ -1,8 +1,9 @@
 #!/bin/bash
 set -e
 
-# outdated link to Source = https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/
-# Permalink to archvie = https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/archive/11.5.0+nonfree/amd64/iso-cd/
+
+# Outdated link to Source = https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/
+# updated permalink to archive of debian ISO: https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/archive/11.5.0+nonfree/amd64/iso-cd/
 ISO_NAME=firmware-11.5.0-amd64-netinst.iso
 ISO_PATH="/images/${ISO_NAME}"
 ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/archive/11.5.0+nonfree/amd64/iso-cd/
