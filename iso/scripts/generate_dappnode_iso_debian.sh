@@ -2,10 +2,11 @@
 set -e
 
 # Source = https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/
-ISO_NAME=firmware-11.1.0-amd64-netinst.iso
+# updated permalink to archive of debian ISO: https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/archive/11.5.0+nonfree/amd64/iso-cd/
+ISO_NAME=firmware-11.5.0-amd64-netinst.iso
 ISO_PATH="/images/${ISO_NAME}"
-ISO_URL=http://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/archive/11.1.0+nonfree/amd64/iso-cd/
-SHASUM="baab78aa4dac175511915a20b095da69131ef5c84b73e637a6933c03b561cdfd  ${ISO_PATH}"
+ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/archive/11.5.0+nonfree/amd64/iso-cd/
+SHASUM="ce1dcd1fa272976ddc387554202013e69ecf1b02b38fba4f8c35c8b12b8f521e  ${ISO_PATH}"
 
 echo "Downloading debian ISO image: ${ISO_NAME}..."
 if [ ! -f ${ISO_PATH} ]; then
