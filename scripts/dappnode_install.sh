@@ -289,6 +289,28 @@ installExtraDpkg() {
     fi
 }
 
+generateExtraDappnodePackages() {
+    if [[ ! -z "${EXTRA_PKGS}" ]]; then
+        OUTFILE="extra-pkgs.json"
+        echo "" > $OUTFILE
+        printf "[\n" >> $OUTFILE
+        IFS=',' read -r -a pkgs <<< "$EXTRA_PKGS"
+        for pkg in "${pkgs[@]}"
+        do
+            printf "\t{\n" >> $OUTFILE
+            mapfile -t filelines < extra_dappnode_pkgs/$pkg
+            printf "\t\t\"Title\": \"%s\",\n" "${filelines[0]}" >> $OUTFILE
+            printf "\t\t\"ipfs\": \"%s\",\n" "${filelines[1]}" >> $OUTFILE
+            printf "\t\t\"Description\": \"%s\",\n" "${filelines[2]}" >> $OUTFILE
+            printf "\t\t\"needsUserInput\": \"%s\"\n" "${filelines[3]}" >> $OUTFILE
+            printf "\t},\n" >> $OUTFILE
+        done
+        sed -i '$ d' $OUTFILE
+        printf "\t}\n]" >> $OUTFILE
+        mv $OUTFILE $DAPPNODE_CORE_DIR
+    fi
+}
+
 ##############################################
 ####             SCRIPT START             ####
 ##############################################
@@ -328,6 +350,9 @@ dappnode_core_download
 
 echo -e "\e[32mLoading DAppNode Core...\e[0m" 2>&1 | tee -a $LOGFILE
 dappnode_core_load
+
+echo -e "\e[32mGenerating JSON for Extra Packages...\e[0m" 2>&1 | tee -a $LOGFILE
+generateExtraDappnodePackages
 
 if [ ! -f "/usr/src/dappnode/.firstboot" ]; then
     echo -e "\e[32mDAppNode installed\e[0m" 2>&1 | tee -a $LOGFILE
