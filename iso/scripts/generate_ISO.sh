@@ -17,9 +17,10 @@ if [ "$BUILD" = true ]; then
 else
     /usr/src/app/iso/scripts/download_core.sh
 fi
-
 #file generated to detectd ISO installation
 mkdir -p /usr/src/app/dappnode
 touch /usr/src/app/dappnode/iso_install.log
+
+/usr/src/app/iso/scripts/generate_extra_pkg.sh
 
 /usr/src/app/iso/scripts/generate_dappnode_iso_debian.sh

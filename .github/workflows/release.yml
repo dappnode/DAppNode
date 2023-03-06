@@ -26,6 +26,9 @@ on:
       vpn:
         description: "Version of the vpn. Only numbers"
         required: true
+      extra_pkgs:
+        description: "Extra packages to be installed (ISO only)"
+        required: false
 
 env:
   BIND_VERSION: ${{ github.event.inputs.bind }}
@@ -36,6 +39,7 @@ env:
   HTTPS_VERSION: ${{ github.event.inputs.https }}
   VPN_VERSION: ${{ github.event.inputs.vpn }}
   CORE_VERSION: ${{ github.event.inputs.core }}
+  EXTRA_PKGS: ${{ github.event.inputs.extra_pkgs }}
 
 jobs:
   pre-release:
@@ -100,7 +104,7 @@ jobs:
       # Set new name for the release asset
       - name: Set DAppNode unttended ISO name
         run: |
-          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64-unattended.iso
+          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-${EXTRA_PKGS}-debian-bullseye-amd64-unattended.iso
 
       # Create profile.sh script (not able to set dot (.) before the name in the gh release asset)
       - name: Create dappnode_profile.sh
