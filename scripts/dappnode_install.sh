@@ -290,20 +290,22 @@ installExtraDpkg() {
 }
 
 generateExtraDappnodePackages() {
-    if [[ ! -z "${EXTRA_PKGS}" ]]; then
+    if [[ -n "${EXTRA_PKGS}" ]]; then
         OUTFILE="extra-pkgs.json"
         echo "" > $OUTFILE
         printf "[\n" >> $OUTFILE
         IFS=',' read -r -a pkgs <<< "$EXTRA_PKGS"
         for pkg in "${pkgs[@]}"
         do
-            printf "\t{\n" >> $OUTFILE
-            mapfile -t filelines < extra_dappnode_pkgs/$pkg
-            printf "\t\t\"Title\": \"%s\",\n" "${filelines[0]}" >> $OUTFILE
-            printf "\t\t\"ipfs\": \"%s\",\n" "${filelines[1]}" >> $OUTFILE
-            printf "\t\t\"Description\": \"%s\",\n" "${filelines[2]}" >> $OUTFILE
-            printf "\t\t\"needsUserInput\": \"%s\"\n" "${filelines[3]}" >> $OUTFILE
-            printf "\t},\n" >> $OUTFILE
+            mapfile -t filelines < extra_dappnode_pkgs/"$pkg"
+            {
+                printf "\t{\n"
+                printf "\t\t\"Title\": \"%s\",\n" "${filelines[0]}" 
+                printf "\t\t\"ipfs\": \"%s\",\n" "${filelines[1]}" 
+                printf "\t\t\"Description\": \"%s\",\n" "${filelines[2]}" 
+                printf "\t\t\"needsUserInput\": \"%s\"\n" "${filelines[3]}" 
+                printf "\t},\n"
+            } >> $OUTFILE
         done
         sed -i '$ d' $OUTFILE
         printf "\t}\n]" >> $OUTFILE
