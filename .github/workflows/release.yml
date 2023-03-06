@@ -87,7 +87,7 @@ jobs:
       # Set new name for the release asset
       - name: Set DAppNode attended ISO name
         run: |
-          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso
+          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-${EXTRA_PKGS}-debian-bullseye-amd64.iso
 
       # ISO UNATTENDED
       - name: Build unattended
@@ -102,7 +102,7 @@ jobs:
           ls -lrt images/DAppNode-debian-bullseye-amd64.iso
 
       # Set new name for the release asset
-      - name: Set DAppNode unttended ISO name
+      - name: Set DAppNode unattended ISO name
         run: |
           cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-${EXTRA_PKGS}-debian-bullseye-amd64-unattended.iso
 
@@ -115,13 +115,13 @@ jobs:
       - name: Get SHA-256 attended
         id: shasum-attended
         run: |
-          SHASUM_ATTENDED=$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso)
+          SHASUM_ATTENDED=$(shasum -a 256 DAppNode-${CORE_VERSION}-${EXTRA_PKGS}-debian-bullseye-amd64.iso)
           echo "::set-output name=SHASUM_ATTENDED::$SHASUM_ATTENDED"
 
       - name: Get SHA-256 unattended
         id: shasum-unattended
         run: |
-          SHASUM_UNATTENDED=$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64-unattended.iso)
+          SHASUM_UNATTENDED=$(shasum -a 256 DAppNode-${CORE_VERSION}-${EXTRA_PKGS}-debian-bullseye-amd64-unattended.iso)
           echo "::set-output name=SHASUM_UNATTENDED::$SHASUM_UNATTENDED"
 
       # Release body
