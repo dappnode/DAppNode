@@ -39,7 +39,7 @@ env:
   HTTPS_VERSION: ${{ github.event.inputs.https }}
   VPN_VERSION: ${{ github.event.inputs.vpn }}
   CORE_VERSION: ${{ github.event.inputs.core }}
-  EXTRA_PKGS: ${{ github.event.inputs.extra_pkgs }}
+  EXTRA_PKGS_CI: ${{ github.event.inputs.extra_pkgs }}
 
 jobs:
   pre-release:
@@ -87,7 +87,7 @@ jobs:
       # Set new name for the release asset
       - name: Set DAppNode attended ISO name
         run: |
-          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-${EXTRA_PKGS}-debian-bullseye-amd64.iso
+          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso
 
       # ISO UNATTENDED
       - name: Build unattended
@@ -104,7 +104,25 @@ jobs:
       # Set new name for the release asset
       - name: Set DAppNode unattended ISO name
         run: |
-          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-${EXTRA_PKGS}-debian-bullseye-amd64-unattended.iso
+          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64-unattended.iso
+
+      # ISO EXTRA PACKAGES
+      - name: Build with extra packages
+        run: |
+          sed -i -e "/UNATTENDED/s/false/true/" docker-compose.yml
+          sed -i -e "/EXTRA_PKGS/s/=/=${EXTRA_PKGS_CI}/" docker-compose.yml
+          docker-compose build
+          docker-compose up
+
+      # Verify ISO extra packages was created
+      - name: Check iso with extra packages
+        run: |
+          ls -lrt images/DAppNode-debian-bullseye-amd64.iso
+
+      # Set new name for the release asset
+      - name: Set DAppNode extra packages ISO name
+        run: |
+          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-${EXTRA_PKGS_CI}-debian-bullseye-amd64-unattended.iso
 
       # Create profile.sh script (not able to set dot (.) before the name in the gh release asset)
       - name: Create dappnode_profile.sh
@@ -115,14 +133,20 @@ jobs:
       - name: Get SHA-256 attended
         id: shasum-attended
         run: |
-          SHASUM_ATTENDED=$(shasum -a 256 DAppNode-${CORE_VERSION}-${EXTRA_PKGS}-debian-bullseye-amd64.iso)
+          SHASUM_ATTENDED=$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso)
           echo "::set-output name=SHASUM_ATTENDED::$SHASUM_ATTENDED"
 
       - name: Get SHA-256 unattended
         id: shasum-unattended
         run: |
-          SHASUM_UNATTENDED=$(shasum -a 256 DAppNode-${CORE_VERSION}-${EXTRA_PKGS}-debian-bullseye-amd64-unattended.iso)
+          SHASUM_UNATTENDED=$(shasum -a 256 DAppNode-${CORE_VERSION}-debian-bullseye-amd64-unattended.iso)
           echo "::set-output name=SHASUM_UNATTENDED::$SHASUM_UNATTENDED"
+        
+      - name: Get SHA-256 extra package
+        id: shasum-extra-packages
+        run: |
+          SHASUM_EXTRA_PKGS=$(shasum -a 256 DAppNode-${CORE_VERSION}-${EXTRA_PKGS_CI}-debian-bullseye-amd64-unattended.iso)
+          echo "::set-output name=SHASUM_EXTRA_PKGS::$SHASUM_EXTRA_PKGS"
 
       # Release body
       - name: Write release content
@@ -132,6 +156,7 @@ jobs:
         env:
           SHASUM_ATTENDED: ${{ steps.shasum-attended.outputs.SHASUM_ATTENDED }}
           SHASUM_UNATTENDED: ${{ steps.shasum-unattended.outputs.SHASUM_UNATTENDED }}
+          SHASUM_EXTRA_PKGS: ${{ steps.shasum-unattended.outputs.SHASUM_EXTRA_PKGS }}
 
       # PRE-RELEASE ASSETS
       - name: Pre release
