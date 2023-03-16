@@ -22,4 +22,5 @@ fi
 mkdir -p /usr/src/app/dappnode
 touch /usr/src/app/dappnode/iso_install.log
 
+chmod +x /usr/src/app/iso/scripts/generate_dappnode_iso_debian.sh
 /usr/src/app/iso/scripts/generate_dappnode_iso_debian.sh
