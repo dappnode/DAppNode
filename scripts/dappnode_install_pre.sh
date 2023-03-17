@@ -164,6 +164,8 @@ else
     install_lsof 2>&1 | tee -a $LOG_FILE
 fi
 
+if [[ $NO_CONN_CHECK == "true"  ]]; then exit 0; fi;
+
 #Check connectivity
 { [ -f /etc/network/interfaces ] && grep "iface en.* inet dhcp" /etc/network/interfaces &>/dev/null; } || { echo "Interfaces not found"; exit 1; }
 
