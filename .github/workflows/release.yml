@@ -108,7 +108,7 @@ jobs:
 
       # ISO EXTRA PACKAGES
       - name: Build with extra packages
-        if: ${{ github.event.inputs.EXTRA_PKGS_CI != '' }}
+        if: ${{ github.event.inputs.extra_pkgs != '' }}
         run: |
           sed -i -e "/UNATTENDED/s/false/true/" docker-compose.yml
           sed -i -e "/EXTRA_PKGS/s/=/=${EXTRA_PKGS_CI}/" docker-compose.yml
@@ -117,13 +117,13 @@ jobs:
 
       # Verify ISO extra packages was created
       - name: Check iso with extra packages
-        if: ${{ github.event.inputs.EXTRA_PKGS_CI != '' }}
+        if: ${{ github.event.inputs.extra_pkgs != '' }}
         run: |
           ls -lrt images/DAppNode-debian-bullseye-amd64.iso
 
       # Set new name for the release asset
       - name: Set DAppNode extra packages ISO name
-        if: ${{ github.event.inputs.EXTRA_PKGS_CI != '' }}
+        if: ${{ github.event.inputs.extra_pkgs != '' }}
         run: |
           cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-${EXTRA_PKGS_CI}-debian-bullseye-amd64-unattended.iso
 
@@ -146,7 +146,7 @@ jobs:
           echo "::set-output name=SHASUM_UNATTENDED::$SHASUM_UNATTENDED"
         
       - name: Get SHA-256 extra package
-        if: ${{ github.event.inputs.EXTRA_PKGS_CI != '' }}
+        if: ${{ github.event.inputs.extra_pkgs != '' }}
         id: shasum-extra-packages
         run: |
           SHASUM_EXTRA_PKGS=$(shasum -a 256 DAppNode-${CORE_VERSION}-${EXTRA_PKGS_CI}-debian-bullseye-amd64-unattended.iso)
@@ -161,7 +161,7 @@ jobs:
           SHASUM_UNATTENDED: ${{ steps.shasum-unattended.outputs.SHASUM_UNATTENDED }}
 
       - name: Write release content for extra pkgs
-        if: ${{ github.event.inputs.EXTRA_PKGS_CI != '' }}
+        if: ${{ github.event.inputs.extra_pkgs != '' }}
         run: |
           echo -en "# Unattended version with extra packages: ${EXTRA_PKGS_CI}\nInstall DAppNode easily using the ISO: **DAppNode-${CORE_VERSION}-${EXTRA_PKGS_CI}-debian-bullseye-amd64-unattended.iso**\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install dappnode automatically, deleting all existing partitions in the disk\n\ndefault login data:\n - **__user__**: dappnode\n - **__password__**: dappnode.s0\n## ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-${EXTRA_PKGS_CI}-debian-bullseye-amd64-unattended.iso\n${SHASUM_EXTRA_PKGS}\n\`\`\`\n" >> CHANGELOG.md
         env:
