@@ -105,6 +105,17 @@ install_iptables () {
     fi
 }
 
+# UNATTENDED UPGRADES INSTALLATION: for upgrading system automatically
+install_unattendedupgrades() {
+    apt-get update -y
+    apt-get install unattended-upgrades -y | tee -a $LOG_FILE
+    if  unattended-upgrades -h >/dev/null 2>&1 ; then
+        echo -e "\e[32m \n\n Verified unattended-upgrades installation \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+    else
+        echo -e "\e[31m \n\n WARNING: unattended-upgrades not installed, upgrades must be done manually! \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+    fi
+}
+
 # HOST UPDATE
 host_update () {
     apt-get update 2>&1 | tee -a $LOG_FILE
@@ -162,6 +173,13 @@ if lsof -v >/dev/null 2>&1; then
     echo -e "\e[32m \n\n lsof is already installed \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
 else
     install_lsof 2>&1 | tee -a $LOG_FILE
+fi
+
+# Only install unatended upgrades if needed
+if unattended-upgrades -h  >/dev/null 2>&1; then
+    echo -e "\e[32m \n\n unattended-upgrades is already installed \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+else
+    instal_unattendedupgrades 2>&1 | tee -a $LOG_FILE
 fi
 
 #Check connectivity
