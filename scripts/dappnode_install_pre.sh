@@ -179,7 +179,7 @@ fi
 if unattended-upgrades -h  >/dev/null 2>&1; then
     echo -e "\e[32m \n\n unattended-upgrades is already installed \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
 else
-    instal_unattendedupgrades 2>&1 | tee -a $LOG_FILE
+    install_unattendedupgrades 2>&1 | tee -a $LOG_FILE
 fi
 
 #Check connectivity
