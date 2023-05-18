@@ -175,11 +175,13 @@ else
     install_lsof 2>&1 | tee -a $LOG_FILE
 fi
 
-# Only install unatended upgrades if needed
-if unattended-upgrades -h  >/dev/null 2>&1; then
-    echo -e "\e[32m \n\n unattended-upgrades is already installed \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
-else
-    install_unattendedupgrades 2>&1 | tee -a $LOG_FILE
+if [[ $SKIP_UNNATENDED_UPGRADES != "true"  ]]; then 
+    # Only install unatended upgrades if needed
+    if unattended-upgrades -h  >/dev/null 2>&1; then
+        echo -e "\e[32m \n\n unattended-upgrades is already installed \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+    else
+        install_unattendedupgrades 2>&1 | tee -a $LOG_FILE
+    fi
 fi
 
 #Check connectivity
