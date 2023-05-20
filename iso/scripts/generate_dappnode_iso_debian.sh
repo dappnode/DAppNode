@@ -1,12 +1,13 @@
 #!/bin/bash
 set -e
 
-# Outdated Link Source: https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/
-# Updated permalink to archive directory of Debian ISO: https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/archive/11.5.0+nonfree/amd64/iso-cd/
-ISO_NAME=firmware-11.5.0-amd64-netinst.iso
+# Source = https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/ 
+# https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/current/amd64/iso-cd/firmware-11.7.0-amd64-netinst.iso
+# updated permalink to archive of debian 11.5 ISO: https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/archive/11.5.0+nonfree/amd64/iso-cd/
+ISO_NAME=firmware-11.7.0-amd64-netinst.iso
 ISO_PATH="/images/${ISO_NAME}"
-ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/archive/11.5.0+nonfree/amd64/iso-cd/
-SHASUM="ce1dcd1fa272976ddc387554202013e69ecf1b02b38fba4f8c35c8b12b8f521e  ${ISO_PATH}"
+ISO_URL=https://cdimage.debian.org/cdimage/unofficial/non-free/cd-including-firmware/11.7.0+nonfree/amd64/iso-cd/
+SHASUM="8c1687c1c93fc32720bc23b0250f3bf9ad346a158dd0a00031b7556c9d5b06c0  ${ISO_PATH}"
 
 echo "Downloading debian ISO image: ${ISO_NAME}..."
 if [ ! -f ${ISO_PATH} ]; then
