@@ -7,7 +7,7 @@ services:
     environment:
       - BUILD=false # In case you want to re-generate a all the images, not recommended
       - CLEAN=true # it remove the images directory
-      - UNATTENDED=true # UNATTENDED version
+      - UNATTENDED=false # UNATTENDED version
     volumes:
       - ./images:/images
       - "/var/run/docker.sock:/var/run/docker.sock"
