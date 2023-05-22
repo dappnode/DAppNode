@@ -104,25 +104,25 @@ install_wifi_firmware() {
     # STEP 3: Clean up
     rm -rf $TMP_FIRMWARE_DIR
 }
-
+## Test removing back ports leaving only the wifi driver install
 # ADD BACKPORTS SOURCE
-add_backports_source(){
-    echo -e "deb http://deb.debian.org/debian bullseye-backports main contrib non-free" > /etc/apt/sources.list.d/bullseye-backports.list
-    echo -e "deb-src http://deb.debian.org/debian bullseye-backports main contrib non-free" >> /etc/apt/sources.list.d/bullseye-backports.list
-}
-
+#add_backports_source(){
+#    echo -e "deb http://deb.debian.org/debian bullseye-backports main contrib non-free" > /etc/apt/sources.list.d/bullseye-backports.list
+#    echo -e "deb-src http://deb.debian.org/debian bullseye-backports main contrib non-free" >> /etc/apt/sources.list.d/bullseye-backports.list
+#}
+#
 # ADDITIONAL DRIVERS VIA BACKPORTS (For intel NUC 12)
-install_linux_image_via_backports() {
-
-    if  find /etc/apt/ -name "*.list" -print0  | xargs --null cat | grep -q "bullseye-backports" ; then
-        echo -e "\e[32m \n\n bullseye-backports source is already added. \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
-    else
-        add_backports_source | tee -a $LOG_FILE
-    fi
-
-    apt update -y
-    apt -t bullseye-backports install -y linux-image-amd64
-}
+#install_linux_image_via_backports() {
+#
+#    if  find /etc/apt/ -name "*.list" -print0  | xargs --null cat | grep -q "bullseye-backports" ; then
+#        echo -e "\e[32m \n\n bullseye-backports source is already added. \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+#    else
+#        add_backports_source | tee -a $LOG_FILE
+#    fi
+#
+#    apt update -y
+#    apt -t bullseye-backports install -y linux-image-amd64
+#}
 
 # WIREGUARD INSTALLATION 
 install_wireguard_dkms() {
