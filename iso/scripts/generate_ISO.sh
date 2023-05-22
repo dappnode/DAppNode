@@ -22,4 +22,5 @@ fi
 mkdir -p /usr/src/app/dappnode
 touch /usr/src/app/dappnode/iso_install.log
 
-/usr/src/app/iso/scripts/generate_dappnode_iso_debian.sh
+#Added sudo to following command to fix permissions error with CI test scripts
+sudo /usr/src/app/iso/scripts/generate_dappnode_iso_debian.sh
