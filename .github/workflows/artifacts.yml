@@ -83,7 +83,7 @@ jobs:
       # Set new name for the release asset
       - name: Set DAppNode attended ISO name
         run: |
-          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bookworm-amd64.iso
+          cp ./images/DAppNode-debian-bookworm-amd64.iso DAppNode-${CORE_VERSION}-debian-bookworm-amd64.iso
 
       # ISO UNATTENDED
       - name: Build unattended
