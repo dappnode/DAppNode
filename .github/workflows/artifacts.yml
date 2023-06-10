@@ -3,28 +3,28 @@ on:
   workflow_dispatch:
     inputs:
       core:
-        description: "Version of the core. Must go with v (e.g v0.2.47)"
+        description: "Version of the Core. Must be prefixed with v (e.g v0.2.47)"
         required: true
       dappmanager:
-        description: "Version of the dappmanager. Only numbers"
+        description: "Version of the Dappmanager. Only numbers"
         required: true
       wifi:
-        description: "Version of the wifi. Only numbers"
+        description: "Version of the WiFi Package. Only numbers"
         required: true
       bind:
-        description: "Version of the bind. Only numbers"
+        description: "Version of the Bind Package. Only numbers"
         required: true
       ipfs:
-        description: "Version of the ipfs. Only numbers"
+        description: "Version of the IPFS Package. Only numbers"
         required: true
       https:
-        description: "Version of the https. Only numbers"
+        description: "Version of the HTTPS Package. Only numbers"
         required: true
       wireguard:
-        description: "Version of the wireguard. Only numbers"
+        description: "Version of the Wireguard Package. Only numbers"
         required: true
       vpn:
-        description: "Version of the vpn. Only numbers"
+        description: "Version of the OpenVPN Package. Only numbers"
         required: true
 
 env:
@@ -78,12 +78,12 @@ jobs:
       # Verify ISO attended created
       - name: Check iso attended
         run: |
-          ls -lrt images/DAppNode-debian-bullseye-amd64.iso
+          ls -lrt images/DAppNode-debian-bookworm-amd64.iso
 
       # Set new name for the release asset
       - name: Set DAppNode attended ISO name
         run: |
-          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64.iso
+          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bookworm-amd64.iso
 
       # ISO UNATTENDED
       - name: Build unattended
@@ -95,12 +95,12 @@ jobs:
       # Verify ISO unattended was created
       - name: Check iso unattended
         run: |
-          ls -lrt images/DAppNode-debian-bullseye-amd64.iso
+          ls -lrt images/DAppNode-debian-bookworm-amd64.iso
 
       # Set new name for the release asset
       - name: Set DAppNode unttended ISO name
         run: |
-          cp ./images/DAppNode-debian-bullseye-amd64.iso DAppNode-${CORE_VERSION}-debian-bullseye-amd64-unattended.iso
+          cp ./images/DAppNode-debian-bookworm-amd64.iso DAppNode-${CORE_VERSION}-debian-bookworm-amd64-unattended.iso
 
       - name: Create dappnode_profile.sh
         run: |
