@@ -82,4 +82,4 @@ echo "Generating new iso..."
 xorriso -as mkisofs -isohybrid-mbr isolinux/isohdpfx.bin \
     -c isolinux/boot.cat -b isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 \
     -boot-info-table -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot \
-    -isohybrid-gpt-basdat -o /images/DAppNode-debian-bullseye-amd64.iso .
+    -isohybrid-gpt-basdat -o /images/DAppNode-debian-bookworm-amd64.iso .
