@@ -14,10 +14,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2.3.1
-      - name: setup test environment
+      - name: Setup Test Environment
         run: |
           sudo /bin/bash ./test/environment_setup.sh
-      - name: install prerrequisites
+      - name: Install Prerequisites
         run: |
           sudo /bin/bash ./scripts/dappnode_install_pre.sh UPDATE
       - name: Install DAppNode
@@ -45,4 +45,4 @@ jobs:
           ls images/
       - name: verify image
         run: |
-          ls -lrt images/DAppNode-debian-bullseye-amd64.iso
+          ls -lrt images/DAppNode-debian-bookworm-amd64.iso
