@@ -336,6 +336,9 @@ fi
 
 # Run test in interactive terminal
 if [ -f "/usr/src/dappnode/.firstboot" ]; then
+    # ensure openvt is installed prior to using it
+    apt-get update
+    apt-get install -y kbd
     openvt -s -w -- sudo -u root /usr/src/dappnode/scripts/dappnode_test_install.sh
     exit 0
 fi
