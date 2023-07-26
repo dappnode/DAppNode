@@ -36,6 +36,9 @@ alias dappnode_wireguard='docker exec -i DAppNodeCore-api.wireguard.dnp.dappnode
 alias dappnode_connect='/usr/bin/bash /usr/src/dappnode/scripts/dappnode_access_credentials.sh'
 # Return all available commands
 alias dappnode_help='echo -e "\n\tDAppNode commands available:\n\n\tdappnode_help\t\tprints out this message\n\n\tdappnode_wifi\t\tget wifi credentials (SSID and password)\n\n\tdappnode_openvpn\tget Open VPN credentials\n\n\tdappnode_wireguard\tget Wireguard VPN credentials (dappnode_wireguard --help for more info)\n\n\tdappnode_connect\tcheck connectivity methods available in DAppNode\n\n\tdappnode_status\t\tget status of dappnode containers\n\n\tdappnode_start\t\tstart dappnode containers\n\n\tdappnode_stop\t\tstop dappnode containers\n"'
+# Compose alias for backward compatibility
+if docker compose version >/dev/null 2>&1; then
+    alias docker-compose='docker compose'
+fi
 
 return
-
