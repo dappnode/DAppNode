@@ -164,7 +164,7 @@ dappnode_core_download() {
         if [[ ${!ver} != dev:* ]]; then
             # Download DAppNode Core Images if it's needed
             echo "Downloading ${comp} tar..."
-            eval "[ -f \$${comp}_FILE ] || $WGET -O \$${comp}_FILE \$${comp}_URL || exit 1"
+            eval "[ -f \$${comp}_FILE ] || $WGET -O \$${comp}_FILE \$${comp}_URL || { echo 'Error: Unable to find the file ' \$${comp}_FILE ' or download from ' \$${comp}_URL; exit 1; }"
             # Download DAppNode Core docker-compose yml files if it's needed
             echo "Downloading ${comp} yml..."
             eval "[ -f \$${comp}_YML_FILE ] || $WGET -O \$${comp}_YML_FILE \$${comp}_YML || exit 1"
