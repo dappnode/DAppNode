@@ -167,10 +167,10 @@ dappnode_core_download() {
             eval "[ -f \$${comp}_FILE ] || $WGET -O \$${comp}_FILE \$${comp}_URL || { echo 'Error: Unable to find the file ' \$${comp}_FILE ' or download from ' \$${comp}_URL; exit 1; }"
             # Download DAppNode Core docker-compose yml files if it's needed
             echo "Downloading ${comp} yml..."
-            eval "[ -f \$${comp}_YML_FILE ] || $WGET -O \$${comp}_YML_FILE \$${comp}_YML || { echo 'Error: Unable to find the file ' \$${comp}_YML_FILE ' or download from ' \$${comp}_URL; exit 1; }"
+            eval "[ -f \$${comp}_YML_FILE ] || $WGET -O \$${comp}_YML_FILE \$${comp}_YML || { echo 'Error: Unable to find the file ' \$${comp}_YML_FILE ' or download from ' \$${comp}_YML; exit 1; }"
             # Download DAppNode Core manifest files if it's needed
             echo "Downloading ${comp} manifest..."
-            eval "[ -f \$${comp}_MANIFEST_FILE ] || $WGET -O \$${comp}_MANIFEST_FILE \$${comp}_MANIFEST || { echo 'Error: Unable to find the file ' \$${comp}_MANIFEST_FILE ' or download from ' \$${comp}_URL; exit 1; }"
+            eval "[ -f \$${comp}_MANIFEST_FILE ] || $WGET -O \$${comp}_MANIFEST_FILE \$${comp}_MANIFEST || { echo 'Error: Unable to find the file ' \$${comp}_MANIFEST_FILE ' or download from ' \$${comp}_MANIFEST; exit 1; }"
         fi
     done
 }
