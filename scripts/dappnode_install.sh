@@ -66,15 +66,15 @@ determine_packages() {
     is_port_used
     if [ "$IS_ISO_INSTALL" == "false" ]; then
         if [ "$IS_PORT_USED" == "true" ]; then
-            PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI)
+            PKGS=(BIND IPFS WIREGUARD DAPPMANAGER)
         else
-            PKGS=(HTTPS BIND IPFS WIREGUARD DAPPMANAGER WIFI)
+            PKGS=(HTTPS BIND IPFS WIREGUARD DAPPMANAGER)
         fi
     else
         if [ "$IS_PORT_USED" == "true" ]; then
-            PKGS=(BIND IPFS WIREGUARD DAPPMANAGER WIFI)
+            PKGS=(BIND IPFS WIREGUARD DAPPMANAGER)
         else
-            PKGS=(HTTPS BIND IPFS WIREGUARD DAPPMANAGER WIFI)
+            PKGS=(HTTPS BIND IPFS WIREGUARD DAPPMANAGEr)
         fi
     fi
     echo -e "\e[32mPackages to be installed: ${PKGS[*]}\e[0m" 2>&1 | tee -a $LOGFILE

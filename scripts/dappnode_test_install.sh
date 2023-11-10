@@ -22,7 +22,7 @@ detect_installation_type() {
     fi
 }
 
-components=(BIND IPFS VPN DAPPMANAGER WIFI)
+components=(BIND IPFS HTTPS DAPPMANAGER WIFI)
 detect_installation_type
 if ping -c 1 -q google.com >&/dev/null; then
     echo -e "\e[32m Connectivity OK\n \e[0m"

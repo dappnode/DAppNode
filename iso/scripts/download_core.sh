@@ -14,7 +14,7 @@ IPFS_ENDPOINT=${IPFS_ENDPOINT:-"http://ipfs.io"}
 SWGET="wget -q -O-"
 WGET="wget"
 
-components=(BIND IPFS WIREGUARD DAPPMANAGER WIFI HTTPS)
+components=(BIND IPFS WIREGUARD DAPPMANAGER HTTPS)
 
 # The indirect variable expansion used in ${!ver##*:} allows us to use versions like 'dev:development'
 # If such variable with 'dev:'' suffix is used, then the component is built from specified branch or commit.
