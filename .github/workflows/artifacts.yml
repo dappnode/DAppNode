@@ -54,7 +54,7 @@ jobs:
             [[ $VPN_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $CORE_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "versions introduced in wrong format"; exit 1; }
 
       - name: Checkout
-        uses: actions/checkout@v2.3.1
+        uses: actions/checkout@v4
 
       # Edit the profile with the new versions introduced
       - name: Set new versions
@@ -108,7 +108,7 @@ jobs:
 
       # ARTIFACTS ASSETS
       - name: Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test-artifact
           path: |
