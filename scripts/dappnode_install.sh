@@ -146,7 +146,7 @@ dappnode_core_build() {
             # Change version in YAML to the custom one
             DOCKER_VER=$(echo "${!ver##*:}" | sed 's/\//_/g')
             sed -i "s~^\(\s*image\s*:\s*\).*~\1${comp,,}.dnp.dappnode.eth:${DOCKER_VER}~" DNP_"${comp}"/docker-compose.yml
-            docker-compose -f ./DNP_"${comp}"/docker-compose.yml build
+            docker compose -f ./DNP_"${comp}"/docker-compose.yml build
             cp ./DNP_"${comp}"/docker-compose.yml "${DAPPNODE_CORE_DIR}"/docker-compose-"${comp,,}".yml
             cp ./DNP_"${comp}"/dappnode_package.json "${DAPPNODE_CORE_DIR}"/dappnode_package-"${comp,,}".json
             rm -r ./DNP_"${comp}"
@@ -225,7 +225,7 @@ dappnode_start() {
     # Execute `compose-up` independently
     # To execute `compose-up` against more than 1 compose, composes files must share compose file version (e.g 3.5)
     for comp in "${DNCORE_YMLS_ARRAY[@]}"; do
-        docker-compose -f "$comp" up -d 2>&1 | tee -a $LOGFILE
+        docker compose -f "$comp" up -d 2>&1 | tee -a $LOGFILE
         echo "${comp} started" 2>&1 | tee -a $LOGFILE
     done
     echo -e "\e[32mDAppNode started\e[0m" 2>&1 | tee -a $LOGFILE

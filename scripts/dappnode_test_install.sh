@@ -36,8 +36,8 @@ else
     error_exit
 fi
 
-if docker-compose -v >/dev/null 2>&1; then
-    echo -e "\e[32m docker-compose installed ok\e[0m"
+if docker compose -v >/dev/null 2>&1; then
+    echo -e "\e[32m docker compose installed ok\e[0m"
 else
     error_exit
 fi

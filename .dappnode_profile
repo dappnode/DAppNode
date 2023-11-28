@@ -18,11 +18,11 @@ DNCORE_YMLS=$(find $DAPPNODE_CORE_DIR -name "docker-compose-*.yml" -printf "-f %
 DNCORE_YMLS_ARRAY=($(find /usr/src/dappnode/DNCORE -name "docker-compose-*.yml" | sort))
 
 # Returns docker core containers status
-alias dappnode_status='docker-compose $DNCORE_YMLS ps'
+alias dappnode_status='docker compose $DNCORE_YMLS ps'
 # Stop docker core containers
-alias dappnode_stop='docker-compose $DNCORE_YMLS stop && docker stop $(docker container ls -a -q -f name=DAppNode*)'
+alias dappnode_stop='docker compose $DNCORE_YMLS stop && docker stop $(docker container ls -a -q -f name=DAppNode*)'
 # Start docker core containers
-alias dappnode_start='docker-compose $DNCORE_YMLS up -d && docker start $(docker container ls -a -q -f name=DAppNode*)'
+alias dappnode_start='docker compose $DNCORE_YMLS up -d && docker start $(docker container ls -a -q -f name=DAppNode*)'
 # Return open-vpn credentials from a specific user. e.g: dappnode_get dappnode_admin
 alias dappnode_openvpn_get='docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth vpncli get'
 # Return open-vpn admin credentials
