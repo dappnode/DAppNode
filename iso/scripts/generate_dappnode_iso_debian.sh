@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-# Source = https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.2.0-amd64-netinst.iso
+# Source = https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.4.0-amd64-netinst.iso
 ISO_NAME=debian-12.4.0-amd64-netinst.iso
 ISO_PATH="/images/${ISO_NAME}"
 ISO_URL=https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/
