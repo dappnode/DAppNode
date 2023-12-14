@@ -58,7 +58,7 @@ install_docker() {
 alias_docker_compose() {
     cat > /usr/local/bin/docker-compose<<EOL
 #!/bin/bash
-docker compose "$@"
+docker compose "\$@"
 EOL
     chmod +x /usr/local/bin/docker-compose
 }
