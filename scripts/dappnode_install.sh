@@ -318,7 +318,7 @@ if [ "$ARCH" == "amd64" ]; then
 fi
 
 echo -e "\e[32mCreating dncore_network if needed...\e[0m" 2>&1 | tee -a $LOGFILE
-docker network create --driver bridge --subnet 172.33.0.0/16 dncore_network 2>&1 | tee -a $LOGFILE
+docker network create --driver bridge --subnet 10.20.0.0/24 dncore_network 2>&1 | tee -a $LOGFILE
 
 echo -e "\e[32mBuilding DAppNode Core if needed...\e[0m" 2>&1 | tee -a $LOGFILE
 dappnode_core_build
