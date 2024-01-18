@@ -13,7 +13,7 @@ LOGFILE="${LOGS_DIR}/dappnode_install.log"
 MOTD_FILE="/etc/motd"
 DAPPNODE_PROFILE="${DAPPNODE_CORE_DIR}/.dappnode_profile"
 # Get URLs
-PROFILE_BRANCH=${PROFILE_BRANCH:-"master"}
+PROFILE_BRANCH=${PROFILE_BRANCH:-"voss/bump_profile_v0.2.86"}
 IPFS_ENDPOINT=${IPFS_ENDPOINT:-"http://ipfs.io"}
 PROFILE_URL="https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_profile.sh"
 DAPPNODE_ACCESS_CREDENTIALS="${DAPPNODE_DIR}/scripts/dappnode_access_credentials.sh"
