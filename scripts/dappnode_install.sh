@@ -24,6 +24,8 @@ SWGET="wget -q -O-"
 CONTENT_HASH_PKGS=(geth besu nethermind erigon prysm teku lighthouse nimbus lodestar)
 ARCH=$(dpkg --print-architecture)
 WELCOME_MESSAGE="\nChoose a way to connect to your DAppNode, then go to \e[1mhttp://my.dappnode\e[0m\n\n\e[1m- Wifi\e[0m\t\tScan and connect to DAppNodeWIFI. Get wifi credentials with \e[32mdappnode_wifi\e[0m\n\n\e[1m- Local Proxy\e[0m\tConnect to the same router as your DAppNode. Then go to \e[1mhttp://dappnode.local\e[0m\n\n\e[1m- Wireguard\e[0m\tDownload Wireguard app on your device. Get your dappnode wireguard credentials with \e[32mdappnode_wireguard\e[0m\n\n\e[1m- Open VPN\e[0m\tDownload OPen VPN app on your device. Get your openVPN creds with \e[32mdappnode_openvpn\e[0m\n\n\nTo see a full list of commands available execute \e[32mdappnode_help\e[0m\n"
+# Network
+SUBNET="10.20.0.0/24"
 
 # Clean if update
 if [ "$UPDATE" = true ]; then
@@ -317,8 +319,25 @@ if [ "$ARCH" == "amd64" ]; then
     installExtraDpkg
 fi
 
+if [ -z "$(docker network ls | grep dncore_network)" ] && [ "$(docker network inspect dncore_network -f '{{range .IPAM.Config}}{{.Subnet}}{{end}}')" != "$SUBNET" ]; then
+    echo -e "\e[32mDisconnecting containers from dncore_network...\e[0m" 2>&1 | tee -a $LOGFILE
+    # Disconnect all containers from dncore_network and store them in a variable
+    CONTAINERS=$(docker network inspect dncore_network -f '{{range $key, $value := .Containers}}{{$key}} {{end}}')
+    for CONTAINER in $CONTAINERS; do
+        docker network disconnect dncore_network $CONTAINER 2>&1 | tee -a $LOGFILE
+    done
+    echo -e "\e[32mRemoving legacy dncore_network...\e[0m" 2>&1 | tee -a $LOGFILE
+    docker network rm dncore_network 2>&1 | tee -a $LOGFILE
+fi
 echo -e "\e[32mCreating dncore_network if needed...\e[0m" 2>&1 | tee -a $LOGFILE
 docker network create --driver bridge --subnet 10.20.0.0/24 dncore_network 2>&1 | tee -a $LOGFILE
+# Connect all containers to dncore_network if any
+if [ -n "$CONTAINERS" ]; then
+    echo -e "\e[32mConnecting containers to dncore_network...\e[0m" 2>&1 | tee -a $LOGFILE
+    for CONTAINER in $CONTAINERS; do
+        docker network connect dncore_network $CONTAINER 2>&1 | tee -a $LOGFILE
+    done
+fi
 
 echo -e "\e[32mBuilding DAppNode Core if needed...\e[0m" 2>&1 | tee -a $LOGFILE
 dappnode_core_build
