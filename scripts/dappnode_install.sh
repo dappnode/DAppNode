@@ -330,7 +330,7 @@ if [ -z "$(docker network ls | grep dncore_network)" ] && [ "$(docker network in
     docker network rm dncore_network 2>&1 | tee -a $LOGFILE
 fi
 echo -e "\e[32mCreating dncore_network if needed...\e[0m" 2>&1 | tee -a $LOGFILE
-docker network create --driver bridge --subnet 10.20.0.0/24 dncore_network 2>&1 | tee -a $LOGFILE
+docker network create --driver bridge --subnet "${SUBNET}" dncore_network 2>&1 | tee -a $LOGFILE
 # Connect all containers to dncore_network if any
 if [ -n "$CONTAINERS" ]; then
     echo -e "\e[32mConnecting containers to dncore_network...\e[0m" 2>&1 | tee -a $LOGFILE
