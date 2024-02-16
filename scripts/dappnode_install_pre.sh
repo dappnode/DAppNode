@@ -34,7 +34,7 @@ add_docker_repo() {
 # DOCKER INSTALLATION
 install_docker() {
     apt-get update -y
-    apt-get install -y docker-ce docker-ce-cli containerd.io | tee -a $LOG_FILE
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin | tee -a $LOG_FILE
 
     # Ensure xz is installed
     [ -f "/usr/bin/xz" ] || ( apt-get install -y xz-utils)
@@ -54,20 +54,13 @@ install_docker() {
     fi
 }
 
-# DOCKER COMPOSE INSTALLATION
-install_docker_compose() {
-    apt-get install -y docker-compose | tee -a $LOG_FILE
-
-    # Disable check if ISO installation since it is not possible to check in this way
-    if [ "$ISO_INSTALLATION" = "false" ]; then
-        # Validate the installation of docker-compose
-        if docker-compose -v; then
-            echo -e "\e[32m \n\n Verified docker-compose installation \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
-        else
-            echo -e "\e[31m \n\n ERROR: docker-compose is not installed \n\n Please re-install it \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
-            exit 1
-        fi
-    fi
+# DOCKER-COMPOSE FOR LEGACY SCRIPTS, SHOULD BE REMOVED EVENTUALLY
+alias_docker_compose() {
+    cat > /usr/local/bin/docker-compose<<EOL
+#!/bin/bash
+docker compose "\$@"
+EOL
+    chmod +x /usr/local/bin/docker-compose
 }
 
 # WIREGUARD INSTALLATION 
@@ -145,9 +138,9 @@ fi
 
 # Only install docker-compose if needed
 if docker-compose -v >/dev/null 2>&1; then
-    echo -e "\e[32m \n\n docker-compose is already installed \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+    echo -e "\e[32m \n\n docker-compose is already aliased \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
 else
-    install_docker_compose 2>&1 | tee -a $LOG_FILE
+    alias_docker_compose 2>&1 | tee -a $LOG_FILE
 fi
 
 # Only install wireguard-dkms if needed

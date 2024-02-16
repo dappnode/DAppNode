@@ -136,8 +136,8 @@ Install DAppNode on your host machine by burning DAppNode ISO to a DVD or creati
 ```bash
 git clone https://github.com/dappnode/DAppNode.git
 cd DAppNode
-docker-compose build
-docker-compose up
+docker compose build
+docker compose up
 ```
 
 DAppNode iso will be generated inside images folder, to verify it:
