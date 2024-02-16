@@ -7,7 +7,7 @@ RUN apk update && \
 
 #RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing aufs-util
 
-RUN addgroup -g 2999 docker
+# RUN addgroup -g 2999 docker
 
 # Create app directory
 WORKDIR /usr/src/app
