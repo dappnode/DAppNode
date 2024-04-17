@@ -15,7 +15,8 @@ DAPPNODE_PROFILE="${DAPPNODE_CORE_DIR}/.dappnode_profile"
 # Get URLs
 PROFILE_BRANCH=${PROFILE_BRANCH:-"master"}
 IPFS_ENDPOINT=${IPFS_ENDPOINT:-"http://ipfs.io"}
-PROFILE_URL="https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_profile.sh"
+# PROFILE_URL env is used to fetch the core packages versions that will be used to build the release in script install method
+PROFILE_URL=${PROFILE_URL:-"https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_profile.sh"}
 DAPPNODE_ACCESS_CREDENTIALS="${DAPPNODE_DIR}/scripts/dappnode_access_credentials.sh"
 DAPPNODE_ACCESS_CREDENTIALS_URL="https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_access_credentials.sh"
 WGET="wget -q --show-progress --progress=bar:force"
@@ -105,7 +106,7 @@ if [[ -n "$STATIC_IP" ]]; then
     fi
 fi
 
-# Load profile
+# Loads profile, if not exists it means it is script install so the versions will be fetched from the latest profile
 [ -f $DAPPNODE_PROFILE ] || ${WGET} -O ${DAPPNODE_PROFILE} ${PROFILE_URL}
 # shellcheck disable=SC1090
 source "${DAPPNODE_PROFILE}"
