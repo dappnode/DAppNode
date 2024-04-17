@@ -16,9 +16,7 @@ DAPPNODE_PROFILE="${DAPPNODE_CORE_DIR}/.dappnode_profile"
 PROFILE_BRANCH=${PROFILE_BRANCH:-"master"}
 IPFS_ENDPOINT=${IPFS_ENDPOINT:-"http://ipfs.io"}
 # PROFILE_URL env is used to fetch the core packages versions that will be used to build the release in script install method
-if [ -z "${PROFILE_URL}" ]; then
-    PROFILE_URL="https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_profile.sh"
-fi
+PROFILE_URL=${PROFILE_URL:-"https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_profile.sh"}
 DAPPNODE_ACCESS_CREDENTIALS="${DAPPNODE_DIR}/scripts/dappnode_access_credentials.sh"
 DAPPNODE_ACCESS_CREDENTIALS_URL="https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_access_credentials.sh"
 WGET="wget -q --show-progress --progress=bar:force"
