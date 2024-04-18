@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Script sourced by installer script `dappnode_install.sh`
+# It is sourced to grab and download the core packages content from github and/or IPFS
+# - Github: i.e `BIND_VERSION=0.2.11`
+# - IPFS: i.e `DAPPMANAGER_VERSION=/ipfs/QmRe6V5vZYFv68WeX3vh2N9hVEeDnp8f7rmxP47xjGNrNF:0.2.71` This string will be splitted by the semicolon `:`
+#   - `/ipfs/QmRe6...` -> indicates the ipfs hash used to download the content
+#   - `0.2.71` -> indicates the version. It must be the one uploaded to such IPFS hash
+
 export BIND_VERSION="${BIND_VERSION:-0.2.11}"
 export IPFS_VERSION="${IPFS_VERSION:-0.2.22}"
 export VPN_VERSION="${VPN_VERSION:-0.2.10}"
