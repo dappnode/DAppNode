@@ -38,25 +38,11 @@ osirrox -indev ${BASE_ISO_PATH} -extract / dappnode-iso
 echo "Obtaining the MBR for hybrid ISO..."
 dd if=${BASE_ISO_PATH} bs=512 count=1 of=${ISO_BUILD_PATH}/mbr
 
-fdisk -l ${BASE_ISO_PATH}
-
 efi_start=$(fdisk -l ${BASE_ISO_PATH} | grep 'Appended2' | awk '{print $2}')
 efi_end=$(fdisk -l ${BASE_ISO_PATH} | grep 'Appended2' | awk '{print $3}')
 efi_size=$(expr ${efi_end} - ${efi_start} + 1)
 echo "Obtaining the EFI partition image from ${efi_start} with size ${efi_size}..."
 dd if=${BASE_ISO_PATH} bs=512 skip="$efi_start" count="$efi_size" of=${ISO_BUILD_PATH}/efi
-
-echo "Creating the new Ubuntu ISO..."
-mkisofs \
-    -rational-rock -joliet -joliet-long -full-iso9660-filenames \
-    -iso-level 3 -partition_offset 16 --grub2-mbr ${ISO_BUILD_PATH}/mbr \
-    --mbr-force-bootable -append_partition 2 0xEF ${ISO_BUILD_PATH}/efi \
-    -appended_part_as_gpt \
-    -eltorito-catalog /boot.catalog \
-    -eltorito-boot /boot/grub/i386-pc/eltorito.img -no-emul-boot -boot-load-size 4 \
-    -boot-info-table --grub2-boot-info -eltorito-alt-boot --efi-boot '--interval:appended_partition_2:all::' -no-emul-boot \
-    -o ${DAPPNODE_ISO_PATH} ${ISO_BUILD_PATH}
-exit 0
 
 echo "Downloading third-party packages..."
 sed '1,/^\#\!ISOBUILD/!d' ${DAPPNODE_SCRIPTS_PATH}/dappnode_install_pre.sh >${VARS_FILE}
@@ -68,52 +54,35 @@ mkdir -p ${ISO_BUILD_PATH}/dappnode
 cp -r ${DAPPNODE_SCRIPTS_PATH} ${ISO_BUILD_PATH}/dappnode
 cp -r /usr/src/app/dappnode/* ${ISO_BUILD_PATH}/dappnode
 
-echo "Customizing preseed..."
-mkdir -p ${TMP_INITRD}
-cp ${ISO_BUILD_PATH}/casper/initrd ${TMP_INITRD}/
+echo "Adding preseed..."
 if [[ $UNATTENDED == *"true"* ]]; then
-    # TODO: Check if this is the correct preseed file for Ubuntu
-    cp /usr/src/app/iso/preseeds/preseed_unattended.cfg ${TMP_INITRD}/preseed.cfg
+    cp /usr/src/app/iso/preseeds//ubuntu/autoinstall_unattended.yaml ${ISO_BUILD_PATH}/autoinstall.yaml
 else
-    cp /usr/src/app/iso/preseeds/preseed.cfg ${TMP_INITRD}/preseed.cfg
+    cp /usr/src/app/iso/preseeds/ubuntu/autoinstall.yaml ${ISO_BUILD_PATH}/autoinstall.yaml
 fi
-
-cpio -id -H newc <${TMP_INITRD}/initrd
-# shellcheck disable=SC2002
-cat ${TMP_INITRD}/initrd | cpio -t >/tmp/list
-echo "preseed.cfg" >>/tmp/list
-rm ${TMP_INITRD}/initrd
-cpio -o -H newc </tmp/list >initrd
-#gzip initrd
-cd -
-mv ${TMP_INITRD}/initrd ${ISO_BUILD_PATH}/casper/initrd
-cd ..
 
 #mkdir -p boot/grub/theme
 
 echo "Configuring the boot menu for DappNode..."
-cp /usr/src/app/iso/boot/grub.cfg boot/grub/grub.cfg
+cp /usr/src/app/iso/boot/ubuntu/grub.cfg ${ISO_BUILD_PATH}/boot/grub/grub.cfg
 #cp /usr/src/app/iso/boot/theme_1 boot/grub/theme/1
 #cp /usr/src/app/iso/boot/isolinux.cfg isolinux/isolinux.cfg
 #cp /usr/src/app/iso/boot/menu.cfg isolinux/menu.cfg
 #cp /usr/src/app/iso/boot/txt.cfg isolinux/txt.cfg
 #cp /usr/src/app/iso/boot/splash.png isolinux/splash.png
 
+# TODO: Is this necessary? How to do it?
 echo "Fix md5 sum..."
 # shellcheck disable=SC2046
 md5sum $(find . ! -name "md5sum.txt" -type f) >md5sum.txt
 
-echo "Generating new iso..."
-# Adjust paths as necessary based on actual directory contents
-xorriso -as mkisofs \
-    -isohybrid-mbr boot/grub/isohdpfx.bin \
-    -b EFI/boot/grubx64.efi \
-    -no-emul-boot \
-    -boot-load-size 4 \
-    -boot-info-table \
-    -eltorito-alt-boot \
-    -e boot/grub/i386-pc/eltorito.img \
-    -no-emul-boot \
-    -isohybrid-gpt-basdat \
-    -o /images/DAppNode-${ISO_NAME} \
-    . #    -c boot/grub/boot.cat \
+echo "Creating the new Ubuntu ISO..."
+mkisofs \
+    -rational-rock -joliet -joliet-long -full-iso9660-filenames \
+    -iso-level 3 -partition_offset 16 --grub2-mbr ${ISO_BUILD_PATH}/mbr \
+    --mbr-force-bootable -append_partition 2 0xEF ${ISO_BUILD_PATH}/efi \
+    -appended_part_as_gpt \
+    -eltorito-catalog /boot.catalog \
+    -eltorito-boot /boot/grub/i386-pc/eltorito.img -no-emul-boot -boot-load-size 4 \
+    -boot-info-table --grub2-boot-info -eltorito-alt-boot --efi-boot '--interval:appended_partition_2:all::' -no-emul-boot \
+    -o ${DAPPNODE_ISO_PATH} ${ISO_BUILD_PATH}
