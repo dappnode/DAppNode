@@ -25,12 +25,13 @@ rm -rf dappnode-isoº
 rm -rf DappNode-debian-*
 
 echo "Extracting the iso..."
-xorriso -osirrox on -indev /images/${ISO_NAME} \
-    -extract / dappnode-iso
+osirrox -indev /images/${ISO_NAME} -extract / dappnode-iso
 
+# Using a 512-byte block size to ensure the entire Master Boot Record (MBR) is captured.
+# The MBR contains boot code, the partition table, and a boot signature, all essential for creating bootable media.
+# This ensures that the new ISO being created is bootable under different system setups
 echo "Obtaining the isohdpfx.bin for hybrid ISO..."
-dd if=/images/${ISO_NAME} bs=432 count=1 \
-    of=dappnode-iso/isolinux/isohdpfx.bin
+dd if=/images/${ISO_NAME} bs=512 count=1 of=dappnode-iso/isolinux/isohdpfx.bin
 
 cd /usr/src/app/dappnode-iso # /usr/src/app/dappnode-iso
 
