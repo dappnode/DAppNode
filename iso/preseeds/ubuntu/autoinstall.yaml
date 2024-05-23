@@ -1,0 +1,45 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    realname: "DAppNode User"
+    username: dappnode
+    hostname: dappnode
+    password: "$6$exDY1mhS4KUYCE/2$zmn9ToZwTKLhCw.b4/b.ZRTIZM30JZ4QrOQ2aOXJ8yk96xpcCof0kxKwuX1kqLG/ygbJ1f8wxED22bTL4F46P0"
+  keyboard:
+    layout: "us"
+  locale: "en_US.UTF-8"
+  network:
+    network:
+      version: 2
+      ethernets:
+        eth0:
+          dhcp4: true
+  ssh:
+    install-server: true
+    allow-pw: true
+    authorized-keys: []
+  packages:
+    - openssh-server
+    - vim
+    - sudo
+#    - iw # TODO: FIX
+#    - iwd
+    - wpasupplicant
+    - intel-microcode
+#    - build-essential # TODO: FIX
+    - linux-generic
+#    - firmware-iwlwifi
+#    - avahi-utils # TODO: Fix
+#    - iptables # TODO: Try
+  apt:
+    fallback: continue-anyway
+  late-commands:
+    - "mkdir -p /target/usr/src/dappnode"
+    - "cp -ar /cdrom/dappnode/* /target/usr/src/dappnode/"
+    - "cp -a /cdrom/dappnode/scripts/rc.local /target/etc/rc.local"
+    - "chmod +x /target/usr/src/dappnode/scripts/dappnode_install_pre.sh"
+    - "chmod +x /target/usr/src/dappnode/scripts/static_ip.sh"
+    - "sh -c 'gpasswd -a $(getent passwd 1000 | cut -d: -f1) sudo' "
+    - "/target/usr/src/dappnode/scripts/static_ip.sh"
+#    - "in-target /usr/src/dappnode/scripts/dappnode_install_pre.sh UPDATE" # TODO: Fix
