@@ -35,16 +35,27 @@ osirrox -indev ${BASE_ISO_PATH} -extract / dappnode-iso
 
 # Using a 512-byte block size to ensure the entire Master Boot Record (MBR) is captured.
 # The MBR contains boot code, the partition table, and a boot signature, all essential for creating bootable media.
-echo "Obtaining the isohdpfx.bin for hybrid ISO..."
-dd if=/images/${BASE_ISO_NAME} bs=512 count=1 of=${ISO_BUILD_PATH}/boot/grub/isohdpfx.bin
+echo "Obtaining the MBR for hybrid ISO..."
+dd if=${BASE_ISO_PATH} bs=512 count=1 of=${ISO_BUILD_PATH}/mbr
+
+fdisk -l ${BASE_ISO_PATH}
+
+efi_start=$(fdisk -l ${BASE_ISO_PATH} | grep 'Appended2' | awk '{print $2}')
+efi_end=$(fdisk -l ${BASE_ISO_PATH} | grep 'Appended2' | awk '{print $3}')
+efi_size=$(expr ${efi_end} - ${efi_start} + 1)
+echo "Obtaining the EFI partition image from ${efi_start} with size ${efi_size}..."
+dd if=${BASE_ISO_PATH} bs=512 skip="$efi_start" count="$efi_size" of=${ISO_BUILD_PATH}/efi
 
 echo "Creating the new Ubuntu ISO..."
-mkisofs -isohybrid-mbr ${ISO_BUILD_PATH}/boot/grub/isohdpfx.bin \
-    -eltorito-catalog ${ISO_BUILD_PATH}/boot.catalog \
-    -eltorito-boot ${ISO_BUILD_PATH}/boot/grub/i386-pc/eltorito.img -no-emul-boot -boot-load-size 4 \
-    -boot-info-table -eltorito-alt-boot --efi-boot ${ISO_BUILD_PATH}/EFI/boot/bootx64.efi -no-emul-boot \
-    -isohybrid-gpt-basdat -o ${DAPPNODE_ISO_NAME} .
-
+mkisofs \
+    -rational-rock -joliet -joliet-long -full-iso9660-filenames \
+    -iso-level 3 -partition_offset 16 --grub2-mbr ${ISO_BUILD_PATH}/mbr \
+    --mbr-force-bootable -append_partition 2 0xEF ${ISO_BUILD_PATH}/efi \
+    -appended_part_as_gpt \
+    -eltorito-catalog /boot.catalog \
+    -eltorito-boot /boot/grub/i386-pc/eltorito.img -no-emul-boot -boot-load-size 4 \
+    -boot-info-table --grub2-boot-info -eltorito-alt-boot --efi-boot '--interval:appended_partition_2:all::' -no-emul-boot \
+    -o ${DAPPNODE_ISO_PATH} ${ISO_BUILD_PATH}
 exit 0
 
 echo "Downloading third-party packages..."
