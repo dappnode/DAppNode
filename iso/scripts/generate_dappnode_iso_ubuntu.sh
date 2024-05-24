@@ -61,17 +61,8 @@ else
     cp /usr/src/app/iso/preseeds/ubuntu/autoinstall.yaml ${ISO_BUILD_PATH}/autoinstall.yaml
 fi
 
-#mkdir -p boot/grub/theme
-
 echo "Configuring the boot menu for DappNode..."
-cp /usr/src/app/iso/boot/ubuntu/* ${ISO_BUILD_PATH}/boot/grub/
-#cp /usr/src/app/iso/boot/ubuntu/grub.cfg ${ISO_BUILD_PATH}/boot/grub/grub.cfg
-#cp /usr/src/app/iso/boot/splash.png ${ISO_BUILD_PATH}/boot/grub/splash.png
-#cp /usr/src/app/iso/boot/theme_1 boot/grub/theme/1
-
-#cp /usr/src/app/iso/boot/isolinux.cfg isolinux/isolinux.cfg
-#cp /usr/src/app/iso/boot/menu.cfg isolinux/menu.cfg
-#cp /usr/src/app/iso/boot/txt.cfg isolinux/txt.cfg
+cp -r /usr/src/app/iso/boot/ubuntu/* ${ISO_BUILD_PATH}/boot/grub/
 
 # TODO: Is this necessary? How to do it?
 echo "Fix md5 sum..."
