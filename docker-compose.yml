@@ -8,7 +8,7 @@ services:
       - BUILD=false # In case you want to re-generate a all the images, not recommended
       - CLEAN=false # it remove the images directory
       - UNATTENDED=true # UNATTENDED version
-      - BASE_OS=debian # Base OS version (debian or ubuntu)
+      - BASE_OS=ubuntu # Base OS version (debian or ubuntu)
     volumes:
       - ./images:/images
       - "/var/run/docker.sock:/var/run/docker.sock"

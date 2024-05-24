@@ -1,5 +1,5 @@
 title-color: "white"
-title-text: "DAppNode Installer"
+title-text: "Dappnode Installer"
 title-font: "Sans Regular 16"
 desktop-color: "black"
 desktop-image: "/boot/grub/splash.png"

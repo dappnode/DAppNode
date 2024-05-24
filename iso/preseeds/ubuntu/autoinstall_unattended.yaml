@@ -1,33 +1,52 @@
 #cloud-config
 autoinstall:
   version: 1
+
   locale: en_US.UTF-8
+
   keyboard:
     layout: us
-  network:
-    network:
-      version: 2
-      ethernets:
-        eth0:
-          dhcp4: true
+
+  # network left as default (DHCP in interfaces named en* or eth*)
+
   storage:
     layout:
       name: lvm
       config:
-        - {ptable: gpt, path: sda, preserve: false, name: '', grub_device: true}
-        - {volume_group: rootvg, devices: [sda1]}
-        - {name: root, volgroup: rootvg, size: 100%FREE, format: {type: ext4}, mount: {path: /}}
+        - {
+            ptable: gpt, 
+            path: sda, 
+            preserve: false, 
+            name: '', 
+            grub_device: true
+          }
+        - {
+            volume_group: rootvg, 
+            devices: [sda1]
+          }
+        - {
+            name: root, 
+            volgroup: rootvg, 
+            size: 100%FREE, 
+            format: {
+              type: ext4
+            }, 
+            mount: {
+              path: /
+            }
+          }
+
   identity:
     hostname: dappnode
     username: dappnode
     password: "$6$insecur3$rnEv9Amdjn3ctXxPYOlzj/cwvLT43GjWzkPECIHNqd8Vvza5bMG8QqMwEIBKYqnj609D.4ngi4qlmt29dLE.71"
+
   ssh:
     install-server: true
-    allow-pw: true
-    authorized-keys: []
-  user-data:
-    disable_root: false
+    # By default, the password is allowed if no authorized keys are provided
+
   packages:
+#    - chrony 
     - openssh-server
     - vim
     - sudo
@@ -43,12 +62,11 @@ autoinstall:
 #    - avahi-utils # TODO: Fix
 #    - iptables # TODO: Try
   timezone: UTC
-  ntp:
-    enabled: true
+
   late-commands:
     - "mkdir -p /target/usr/src/dappnode"
     - "cp -ar /cdrom/dappnode/* /target/usr/src/dappnode/"
     - "cp -a /cdrom/dappnode/scripts/rc.local /target/etc/rc.local"
     - "chmod +x /target/usr/src/dappnode/scripts/dappnode_install_pre.sh"
-    - "echo 'touch /usr/src/dappnode/.firstboot' | in-target"
-#    - "in-target /usr/src/dappnode/scripts/dappnode_install_pre.sh UPDATE" # TODO: Fix
+    - "echo 'touch /target/usr/src/dappnode/.firstboot'"
+    - "/target/usr/src/dappnode/scripts/dappnode_install_pre.sh UPDATE || true"
