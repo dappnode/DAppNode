@@ -60,13 +60,14 @@ autoinstall:
 #    - firmware-misc-nonfree # TODO: Remove?
 #    - firmware-iwlwifi # TODO: Remove?
 #    - avahi-utils # TODO: Fix
-#    - iptables # TODO: Try
+    - iptables # TODO: Try
   timezone: UTC
 
   late-commands:
+    - "apt update && apt install -y chrony build-essential iw iwd avahi-utils || true"
     - "mkdir -p /target/usr/src/dappnode"
     - "cp -ar /cdrom/dappnode/* /target/usr/src/dappnode/"
     - "cp -a /cdrom/dappnode/scripts/rc.local /target/etc/rc.local"
     - "chmod +x /target/usr/src/dappnode/scripts/dappnode_install_pre.sh"
     - "echo 'touch /target/usr/src/dappnode/.firstboot'"
-    - "/target/usr/src/dappnode/scripts/dappnode_install_pre.sh UPDATE || true"
+    - "/target/usr/src/dappnode/scripts/dappnode_install_pre.sh UPDATE > /target/usr/src/dappnode/scripts/dappnode_install_pre.log || true"
