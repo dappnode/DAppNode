@@ -13,28 +13,21 @@ autoinstall:
     install-server: true
 
   packages:
-#    - chrony
-    - openssh-server
-    - vim
-    - sudo
-#    - iw # TODO: FIX
-#    - iwd
+    - linux-generic
     - wpasupplicant
     - intel-microcode
-#    - build-essential # TODO: FIX
-    - linux-generic
-#    - firmware-iwlwifi
-#    - avahi-utils # TODO: Fix
-#    - iptables # TODO: Try
-  apt:
-    fallback: continue-anyway
+    - iucode-tool
+    - iptables
 
   late-commands:
+    - "curtin in-target --target=/target -- apt update && apt install -y chrony build-essential iw iwd avahi-utils"
     - "mkdir -p /target/usr/src/dappnode"
     - "cp -ar /cdrom/dappnode/* /target/usr/src/dappnode/"
     - "cp -a /cdrom/dappnode/scripts/rc.local /target/etc/rc.local"
     - "chmod +x /target/usr/src/dappnode/scripts/dappnode_install_pre.sh"
-    - "chmod +x /target/usr/src/dappnode/scripts/static_ip.sh"
-    - "sh -c 'gpasswd -a $(getent passwd 1000 | cut -d: -f1) sudo' "
+    - "touch /target/usr/src/dappnode/.firstboot"
+#    - "cp -ar /etc/netplan/* /target/etc/netplan/" # TODO: Is this necessary?
+#    - "chmod +x /target/usr/src/dappnode/scripts/static_ip.sh" # TODO: Remove if not necessary to validate IP
+#    - "sh -c 'gpasswd -a $(getent passwd 1000 | cut -d: -f1) sudo' " # TODO: Check if dappnode user needs to be manually added to sudoers
 #    - "/target/usr/src/dappnode/scripts/static_ip.sh"
     - "/target/usr/src/dappnode/scripts/dappnode_install_pre.sh UPDATE"
