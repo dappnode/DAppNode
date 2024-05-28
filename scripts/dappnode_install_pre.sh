@@ -40,13 +40,14 @@ add_docker_repo() {
 # DOCKER INSTALLATION
 install_docker() {
     apt-get update -y
-    apt-get install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin | tee -a $LOG_FILE
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin | tee -a $LOG_FILE
 
     # Ensure xz is installed
     [ -f "/usr/bin/xz" ] || (apt-get install -y xz-utils)
 
-    CURRENT_USER=$(grep 1000 "/etc/passwd" | cut -f 1 -d:)
-    [ -z "$CURRENT_USER" ] || usermod -aG docker "$CURRENT_USER"
+    # Not working in Ubuntu ISO because the user is not created before executing late-commands
+    USER=$(grep 1000 "/etc/passwd" | cut -f 1 -d:)
+    [ -z "$USER" ] || usermod -aG docker "$USER"
 
     # Disable check if ISO installation since it is not possible to check in this way
     if [ "$ISO_INSTALLATION" = "false" ]; then
