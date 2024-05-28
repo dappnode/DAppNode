@@ -46,9 +46,6 @@ autoinstall:
     # By default, the password is allowed if no authorized keys are provided
 
   packages:
-    - openssh-server # TODO: Remove?
-    - vim # TODO: Remove?
-    - sudo # TODO: Remove?
     - linux-generic
     - wpasupplicant
     - intel-microcode
@@ -63,5 +60,6 @@ autoinstall:
     - "cp -a /cdrom/dappnode/scripts/rc.local /target/etc/rc.local"
     - "chmod +x /target/usr/src/dappnode/scripts/dappnode_install_pre.sh"
     - "touch /target/usr/src/dappnode/.firstboot"
+    - "cp -ar /etc/netplan/* /target/etc/netplan/" # Necessary for prerequisites
     - "curtin in-target --target=/target -- /usr/src/dappnode/scripts/dappnode_install_pre.sh UPDATE"
 # TODO: Handle /etc/network/interfaces and /etc/network/devhotplug
