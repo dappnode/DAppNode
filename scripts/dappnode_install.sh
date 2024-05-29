@@ -218,13 +218,13 @@ EOF
 generateMotdScript() {
 
     motd_script_file="${UPDATE_MOTD_DIR}/60-dappnode-info"
-    disabled_motd_dir="/etc/update-motd.d/disabled"
+    disabled_motd_dir="${UPDATE_MOTD_DIR}/disabled"
 
     mkdir -p "${disabled_motd_dir}"
 
     # Move all the files in /etc/update-motd.d/ to /etc/update-motd.d/disabled/
     # Except for the files listed in "files_to_keep"
-    files_to_keep="00-header 50-landscape-sysinfo 90-updates-available 98-reboot-required"
+    files_to_keep="00-header 50-landscape-sysinfo 98-reboot-required"
     for file in ${UPDATE_MOTD_DIR}/*; do
         base_file=$(basename "${file}")
         if [ -f "${file}" ] && ! echo "${files_to_keep}" | grep -qw "${base_file}"; then
@@ -238,8 +238,8 @@ generateMotdScript() {
 
     chmod +x "${motd_script_file}"
 
-    sh -c 'echo "#!/bin/sh" > ${motd_script_file}'
-    echo "cat ${MOTD_FILE}" >>"${motd_script_file}"
+    echo "#!/bin/sh" >${motd_script_file}
+    echo "cat ${MOTD_FILE}" >>${motd_script_file}
 }
 
 addSwap() {
