@@ -192,7 +192,7 @@ customMotd() {
 
     if [ -d "${UPDATE_MOTD_DIR}" ]; then
         # Ubuntu configuration
-        generateMotdScript
+        modifyMotdGeneration
     fi
 }
 
@@ -215,9 +215,7 @@ EOF
 }
 
 # Ubuntu distros use /etc/update-motd.d/ to generate the motd
-generateMotdScript() {
-
-    motd_script_file="${UPDATE_MOTD_DIR}/60-dappnode-info"
+modifyMotdGeneration() {
     disabled_motd_dir="${UPDATE_MOTD_DIR}/disabled"
 
     mkdir -p "${disabled_motd_dir}"
@@ -231,15 +229,6 @@ generateMotdScript() {
             mv "${file}" "${disabled_motd_dir}/"
         fi
     done
-
-    if [ ! -f "${motd_script_file}" ]; then
-        touch "${motd_script_file}"
-    fi
-
-    chmod +x "${motd_script_file}"
-
-    echo "#!/bin/sh" >${motd_script_file}
-    echo "cat ${MOTD_FILE}" >>${motd_script_file}
 }
 
 addSwap() {
