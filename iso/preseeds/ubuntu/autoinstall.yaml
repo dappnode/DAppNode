@@ -27,7 +27,4 @@ autoinstall:
     - "chmod +x /target/usr/src/dappnode/scripts/dappnode_install_pre.sh"
     - "touch /target/usr/src/dappnode/.firstboot"
     - "cp -ar /etc/netplan/* /target/etc/netplan/" # Necessary for prerequisites
-#    - "chmod +x /target/usr/src/dappnode/scripts/static_ip.sh" # TODO: Remove if not necessary to validate IP
-#    - "sh -c 'gpasswd -a $(getent passwd 1000 | cut -d: -f1) sudo' " # TODO: Check if dappnode user needs to be manually added to sudoers
-#    - "/target/usr/src/dappnode/scripts/static_ip.sh"
     - "/target/usr/src/dappnode/scripts/dappnode_install_pre.sh UPDATE"
