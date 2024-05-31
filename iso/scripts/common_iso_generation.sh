@@ -3,7 +3,6 @@
 WORKDIR="/usr/src/app"
 ISO_BUILD_PATH="${WORKDIR}/dappnode-iso"
 DAPPNODE_ISO_PREFIX="Dappnode-"
-DAPPNODE_ISO_NAME="${DAPPNODE_ISO_PREFIX}${BASE_ISO_NAME}"
 
 add_dappnode_files() {
     local iso_build_path=$1

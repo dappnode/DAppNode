@@ -9,6 +9,9 @@ BASE_ISO_PATH="/images/${BASE_ISO_NAME}"
 BASE_ISO_URL="https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/${BASE_ISO_NAME}"
 BASE_ISO_SHASUM="013f5b44670d81280b5b1bc02455842b250df2f0c6763398feb69af1a805a14f  ${BASE_ISO_PATH}"
 
+DAPPNODE_ISO_NAME="${DAPPNODE_ISO_PREFIX}${BASE_ISO_NAME}"
+DAPPNODE_ISO_PATH="/images/${DAPPNODE_ISO_NAME}"
+
 customize_debian_preseed() {
     local iso_build_path=$1
     local workdir=$2
@@ -75,10 +78,10 @@ generate_debian_iso() {
 
     echo "[INFO] Generating new ISO..."
 
-    xorriso -as mkisofs -isohybrid-mbr ${ISO_BUILD_PATH}/isolinux/isohdpfx.bin \
+    xorriso -as mkisofs -isohybrid-mbr ${mbr_path} \
         -c /isolinux/boot.cat -b /isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 \
         -boot-info-table -eltorito-alt-boot -e /boot/grub/efi.img -no-emul-boot \
-        -isohybrid-gpt-basdat -o "/images/${DAPPNODE_ISO_NAME}" ${ISO_BUILD_PATH}
+        -isohybrid-gpt-basdat -o "${iso_output_path}" ${iso_build_path}
 }
 
 download_iso "${BASE_ISO_PATH}" "${BASE_ISO_NAME}" "${BASE_ISO_URL}"
@@ -91,4 +94,4 @@ add_dappnode_files "${ISO_BUILD_PATH}" "${WORKDIR}"
 customize_debian_preseed "${ISO_BUILD_PATH}" "${WORKDIR}"
 configure_boot_menu "${ISO_BUILD_PATH}" "${WORKDIR}"
 handle_checksums # TODO: Check if it fits both ubuntu and debian
-generate_debian_iso "${ISO_BUILD_PATH}/isolinux/isohdpfx.bin" "${DAPPNODE_ISO_NAME}" "${ISO_BUILD_PATH}"
+generate_debian_iso "${ISO_BUILD_PATH}/isolinux/isohdpfx.bin" "${DAPPNODE_ISO_PATH}" "${ISO_BUILD_PATH}"

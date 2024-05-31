@@ -10,8 +10,10 @@ TMP_INITRD="/tmp/makeinitrd"
 BASE_ISO_NAME=ubuntu-24.04-live-server-amd64.iso
 BASE_ISO_PATH="/images/${BASE_ISO_NAME}"
 BASE_ISO_URL="https://labs.eif.urjc.es/mirror/ubuntu-releases/24.04/${BASE_ISO_NAME}"
-DAPPNODE_ISO_PATH="/images/DAppNode-${BASE_ISO_NAME}"
 BASE_ISO_SHASUM="8762f7e74e4d64d72fceb5f70682e6b069932deedb4949c6975d0f0fe0a91be3  ${BASE_ISO_PATH}"
+
+DAPPNODE_ISO_NAME="${DAPPNODE_ISO_PREFIX}${BASE_ISO_NAME}"
+DAPPNODE_ISO_PATH="/images/${DAPPNODE_ISO_NAME}"
 
 get_efi_partition() {
     local base_iso_path=$1
