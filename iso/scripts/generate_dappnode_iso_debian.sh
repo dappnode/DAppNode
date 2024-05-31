@@ -1,39 +1,23 @@
 #!/bin/bash
 set -e
 
-source /usr/src/app/iso/scripts/common_functions.sh
+source /usr/src/app/iso/scripts/common_iso_generation.sh
 
 # Source = https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.5.0-amd64-netinst.iso
 BASE_ISO_NAME="debian-12.5.0-amd64-netinst.iso"
 BASE_ISO_PATH="/images/${BASE_ISO_NAME}"
 BASE_ISO_URL="https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/${BASE_ISO_NAME}"
-BASE_ISO_SHASUM="013f5b44670d81280b5b1bc02455842b250df2f0c6763398feb69af1a805a14f"
-
-WORKDIR="/usr/src/app"
-ISO_BUILD_PATH="${WORKDIR}/dappnode-iso"
-DAPPNODE_ISO_PREFIX="Dappnode-"
-DAPPNODE_ISO_NAME="${DAPPNODE_ISO_PREFIX}${BASE_ISO_NAME}"
-
-download_third_party_packages() {
-    echo "[INFO] Downloading third-party packages..."
-    sed '1,/^\#\!ISOBUILD/!d' ${WORKDIR}/scripts/dappnode_install_pre.sh >/tmp/vars.sh
-    # shellcheck disable=SC1091
-    source /tmp/vars.sh
-}
-
-add_dappnode_files() {
-    echo "[INFO] Creating necessary directories and copying files..."
-    mkdir -p ${ISO_BUILD_PATH}/dappnode
-    cp -r ${WORKDIR}/scripts ${ISO_BUILD_PATH}/dappnode
-    cp -r ${WORKDIR}/dappnode/* ${ISO_BUILD_PATH}/dappnode
-}
+BASE_ISO_SHASUM="013f5b44670d81280b5b1bc02455842b250df2f0c6763398feb69af1a805a14f  ${BASE_ISO_PATH}"
 
 customize_debian_preseed() {
+    local iso_build_path=$1
+    local workdir=$2
+
     echo "[INFO] Customizing preseed..."
 
     local tmp_initrd="/tmp/makeinitrd"
-    local install_dir="${ISO_BUILD_PATH}/install.amd"
-    local preseeds_dir="${WORKDIR}/iso/preseeds"
+    local install_dir="${iso_build_path}/install.amd"
+    local preseeds_dir="${workdir}/iso/preseeds"
 
     rm -rf "${tmp_initrd}"
     mkdir -p "${tmp_initrd}"
@@ -70,18 +54,24 @@ customize_debian_preseed() {
 }
 
 configure_boot_menu() {
-    local boot_dir="${WORKDIR}/iso/boot"
+    local iso_build_path=$1
+    local workdir=$2
+
+    local boot_dir="${workdir}/iso/boot"
 
     echo "[INFO] Configuring the boot menu for Dappnode..."
-    cp ${boot_dir}/grub.cfg ${ISO_BUILD_PATH}/boot/grub/grub.cfg
-    cp ${boot_dir}/theme_1 ${ISO_BUILD_PATH}/boot/grub/theme/1
-    cp ${boot_dir}/isolinux.cfg ${ISO_BUILD_PATH}/isolinux/isolinux.cfg
-    cp ${boot_dir}/menu.cfg ${ISO_BUILD_PATH}/isolinux/menu.cfg
-    cp ${boot_dir}/txt.cfg ${ISO_BUILD_PATH}/isolinux/txt.cfg
-    cp ${boot_dir}/splash.png ${ISO_BUILD_PATH}/isolinux/splash.png
+    cp ${boot_dir}/grub.cfg ${iso_build_path}/boot/grub/grub.cfg
+    cp ${boot_dir}/theme_1 ${iso_build_path}/boot/grub/theme/1
+    cp ${boot_dir}/isolinux.cfg ${iso_build_path}/isolinux/isolinux.cfg
+    cp ${boot_dir}/menu.cfg ${iso_build_path}/isolinux/menu.cfg
+    cp ${boot_dir}/txt.cfg ${iso_build_path}/isolinux/txt.cfg
+    cp ${boot_dir}/splash.png ${iso_build_path}/isolinux/splash.png
 }
 
 generate_debian_iso() {
+    local mbr_path=$1
+    local iso_output_path=$2
+    local iso_build_path=$3
 
     echo "[INFO] Generating new ISO..."
 
@@ -97,8 +87,8 @@ clean_old_files "${ISO_BUILD_PATH}" "${DAPPNODE_ISO_PREFIX}"
 extract_iso "${BASE_ISO_PATH}" "${ISO_BUILD_PATH}"
 prepare_boot_process "${BASE_ISO_PATH}" "${ISO_BUILD_PATH}/isolinux/isohdpfx.bin"
 download_third_party_packages
-add_dappnode_files
-customize_debian_preseed
-configure_boot_menu
+add_dappnode_files "${ISO_BUILD_PATH}" "${WORKDIR}"
+customize_debian_preseed "${ISO_BUILD_PATH}" "${WORKDIR}"
+configure_boot_menu "${ISO_BUILD_PATH}" "${WORKDIR}"
 handle_checksums # TODO: Check if it fits both ubuntu and debian
-generate_debian_iso
+generate_debian_iso "${ISO_BUILD_PATH}/isolinux/isohdpfx.bin" "${DAPPNODE_ISO_NAME}" "${ISO_BUILD_PATH}"

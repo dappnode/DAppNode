@@ -1,11 +1,26 @@
 #!/bin/bash
 
+WORKDIR="/usr/src/app"
+ISO_BUILD_PATH="${WORKDIR}/dappnode-iso"
+DAPPNODE_ISO_PREFIX="Dappnode-"
+DAPPNODE_ISO_NAME="${DAPPNODE_ISO_PREFIX}${BASE_ISO_NAME}"
+
+add_dappnode_files() {
+    local iso_build_path=$1
+    local workdir=$2
+
+    echo "[INFO] Creating necessary directories and copying files..."
+    mkdir -p ${iso_build_path}/dappnode
+    cp -r ${workdir}/scripts ${iso_build_path}/dappnode
+    cp -r ${workdir}/dappnode/* ${iso_build_path}/dappnode
+}
+
 download_iso() {
     local iso_path=$1
     local iso_name=$2
     local iso_url=$3
 
-    echo "[INFO] Downloading ISO image: ${iso_name}..."
+    echo "[INFO] Downloading base ISO image: ${iso_name}..."
     if [ ! -f "${iso_path}" ]; then
         wget "${iso_url}" -O "${iso_path}"
     fi
@@ -17,11 +32,10 @@ verify_download() {
     local expected_shasum=$2
 
     echo "[INFO] Verifying download..."
-    local calculated_shasum=$(shasum -a 256 "${iso_path}" | awk '{ print $1 }')
-    if [ "${calculated_shasum}" != "${expected_shasum}" ]; then
-        echo "[ERROR] Wrong shasum"
+    [[ "$(shasum -a 256 ${iso_path})" != "$expected_shasum" ]] && {
+        echo "[ERROR] Wrong shasum for ${iso_path}"
         exit 1
-    fi
+    }
     echo "[INFO] Verification complete!"
 }
 
@@ -54,6 +68,14 @@ prepare_boot_process() {
     dd if="${iso_path}" bs=${block_size} count=1 of="${mbr_output_path}"
 }
 
+download_third_party_packages() {
+    echo "[INFO] Downloading third-party packages..."
+    sed '1,/^\#\!ISOBUILD/!d' ${WORKDIR}/scripts/dappnode_install_pre.sh >/tmp/vars.sh
+    # shellcheck disable=SC1091
+    source /tmp/vars.sh
+}
+
+# TODO: Is this ok for Ubuntu?
 handle_checksums() {
     echo "Fix md5 sum..."
     # shellcheck disable=SC2046
