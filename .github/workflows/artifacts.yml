@@ -151,8 +151,10 @@ jobs:
         with:
           name: test-artifact
           path: |
-            ./DAppNode-*-amd64.iso
-            ./DAppNode-*-amd64-unattended.iso
+            ./Dappnode-debian-*.iso
+            ./Dappnode-debian-*-unattended.iso
+            ./Dappnode-ubuntu-*.iso
+            ./Dappnode-ubuntu-*-unattended.iso
             ./scripts/dappnode_install.sh
             ./scripts/dappnode_install_pre.sh
             ./scripts/dappnode_uninstall.sh
