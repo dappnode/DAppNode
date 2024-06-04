@@ -40,9 +40,7 @@ jobs:
         uses: actions/checkout@v4
       - name: create iso
         run: |
-          docker-compose build
-          docker-compose up
-          ls images/
+          docker-compose up --build
       - name: verify image
         run: |
-          ls -lrt images/DAppNode-debian-bookworm-amd64.iso
+          ls -lrt images/Dappnode-*.iso
