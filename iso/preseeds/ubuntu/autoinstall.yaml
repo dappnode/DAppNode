@@ -27,4 +27,4 @@ autoinstall:
     - "chmod +x /target/usr/src/dappnode/scripts/dappnode_install_pre.sh"
     - "touch /target/usr/src/dappnode/.firstboot"
     - "cp -ar /etc/netplan/* /target/etc/netplan/" # Necessary for prerequisites
-    - "/target/usr/src/dappnode/scripts/dappnode_install_pre.sh UPDATE"
+    - "curtin in-target --target=/target -- /usr/src/dappnode/scripts/dappnode_install_pre.sh UPDATE"
