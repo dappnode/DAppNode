@@ -8,33 +8,10 @@ autoinstall:
     layout: us
 
   # network left as default (DHCP in interfaces named en* or eth*)
-
   storage:
     layout:
       name: lvm
-      config:
-        - {
-            ptable: gpt, 
-            path: sda, 
-            preserve: false, 
-            name: '', 
-            grub_device: true
-          }
-        - {
-            volume_group: rootvg, 
-            devices: [sda1]
-          }
-        - {
-            name: root, 
-            volgroup: rootvg, 
-            size: 100%FREE, 
-            format: {
-              type: ext4
-            }, 
-            mount: {
-              path: /
-            }
-          }
+      sizing-policy: all
 
   identity:
     hostname: dappnode
