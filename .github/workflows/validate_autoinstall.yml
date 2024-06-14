@@ -30,8 +30,8 @@ jobs:
 
     - name: Extract autoinstall properties from YAML files
       run: |
-        yq eval '.autoinstall' iso/preseeds/ubuntu/autoinstall.yaml > attended.yaml
-        yq eval '.autoinstall' iso/preseeds/ubuntu/autoinstall_unattended.yaml > unattended.yaml
+        yq '.autoinstall' iso/preseeds/ubuntu/autoinstall.yaml > attended.yaml
+        yq '.autoinstall' iso/preseeds/ubuntu/autoinstall_unattended.yaml > unattended.yaml
 
     - name: Validate attended autoinstall.yaml
       run: |
