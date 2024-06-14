@@ -2,11 +2,7 @@ name: Validate Ubuntu autoinstall YAML Files
 
 on:
   push:
-    branches:
-      - main
   pull_request:
-    branches:
-      - main
 
 jobs:
   validate:
