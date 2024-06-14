@@ -20,10 +20,10 @@ jobs:
         pip install check-jsonschema yamllint yq
 
     - name: Lint attended autoinstall.yaml
-      run: yamllint iso/preseeds/ubuntu/autoinstall.yaml
+      run: yamllint -c .yamllint iso/preseeds/ubuntu/autoinstall.yaml
   
     - name: Lint unattended autoinstall.yaml
-      run: yamllint iso/preseeds/ubuntu/autoinstall_unattended.yaml
+      run: yamllint -c .yamllint iso/preseeds/ubuntu/autoinstall_unattended.yaml
 
     - name: Download JSON schema
       run: curl -o schema.json https://raw.githubusercontent.com/canonical/subiquity/main/autoinstall-schema.json

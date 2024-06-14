@@ -1,4 +1,5 @@
-#cloud-config
+# cloud-config
+---
 autoinstall:
   version: 1
 
@@ -28,6 +29,7 @@ autoinstall:
     - intel-microcode
     - iucode-tool
     - iptables
+
   timezone: UTC
 
   late-commands:
@@ -37,6 +39,6 @@ autoinstall:
     - "cp -a /cdrom/dappnode/scripts/rc.local /target/etc/rc.local"
     - "chmod +x /target/usr/src/dappnode/scripts/dappnode_install_pre.sh"
     - "touch /target/usr/src/dappnode/.firstboot"
-    - "cp -ar /etc/netplan/* /target/etc/netplan/" # Necessary for prerequisites
+    - "cp -ar /etc/netplan/* /target/etc/netplan/"  # Necessary for prerequisites
     - "curtin in-target --target=/target -- /usr/src/dappnode/scripts/dappnode_install_pre.sh UPDATE"
-# TODO: Handle /etc/network/interfaces and /etc/network/devhotplug
+    # TODO: Handle /etc/network/interfaces and /etc/network/devhotplug
