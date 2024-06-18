@@ -9,9 +9,7 @@ autoinstall:
     - network
     - storage
     - timezone
-
-  ssh:
-    install-server: true
+    - ssh
 
   packages:
     - linux-generic
