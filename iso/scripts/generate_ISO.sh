@@ -22,4 +22,8 @@ fi
 mkdir -p /usr/src/app/dappnode
 touch /usr/src/app/dappnode/iso_install.log
 
-/usr/src/app/iso/scripts/generate_dappnode_iso_debian.sh
+if [ "$BASE_OS" = "ubuntu" ]; then
+    /usr/src/app/iso/scripts/generate_dappnode_iso_ubuntu.sh
+else
+    /usr/src/app/iso/scripts/generate_dappnode_iso_debian.sh
+fi

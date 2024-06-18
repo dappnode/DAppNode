@@ -1,0 +1,44 @@
+# cloud-config
+---
+autoinstall:
+  version: 1
+
+  locale: en_US.UTF-8
+
+  keyboard:
+    layout: us
+
+  # network left as default (DHCP in interfaces named en* or eth*)
+  storage:
+    layout:
+      name: lvm
+      sizing-policy: all
+
+  identity:
+    hostname: dappnode
+    username: dappnode
+    password: "$6$insecur3$rnEv9Amdjn3ctXxPYOlzj/cwvLT43GjWzkPECIHNqd8Vvza5bMG8QqMwEIBKYqnj609D.4ngi4qlmt29dLE.71"
+
+  ssh:
+    install-server: true
+    # By default, the password is allowed if no authorized keys are provided
+
+  packages:
+    - linux-generic
+    - wpasupplicant
+    - intel-microcode
+    - iucode-tool
+    - iptables
+
+  timezone: UTC
+
+  late-commands:
+    - "curtin in-target --target=/target -- apt update && apt install -y chrony build-essential iw iwd avahi-utils"
+    - "mkdir -p /target/usr/src/dappnode"
+    - "cp -ar /cdrom/dappnode/* /target/usr/src/dappnode/"
+    - "cp -a /cdrom/dappnode/scripts/rc.local /target/etc/rc.local"
+    - "chmod +x /target/usr/src/dappnode/scripts/dappnode_install_pre.sh"
+    - "touch /target/usr/src/dappnode/.firstboot"
+    - "cp -ar /etc/netplan/* /target/etc/netplan/"  # Necessary for prerequisites
+    - "curtin in-target --target=/target -- /usr/src/dappnode/scripts/dappnode_install_pre.sh UPDATE"
+    # TODO: Handle /etc/network/interfaces and /etc/network/devhotplug

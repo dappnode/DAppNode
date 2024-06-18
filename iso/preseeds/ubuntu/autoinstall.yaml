@@ -1,0 +1,29 @@
+# cloud-config
+---
+autoinstall:
+  version: 1
+  interactive-sections:
+    - identity
+    - keyboard
+    - locale
+    - network
+    - storage
+    - timezone
+    - ssh
+
+  packages:
+    - linux-generic
+    - wpasupplicant
+    - intel-microcode
+    - iucode-tool
+    - iptables
+
+  late-commands:
+    - "curtin in-target --target=/target -- apt update && apt install -y chrony build-essential iw iwd avahi-utils"
+    - "mkdir -p /target/usr/src/dappnode"
+    - "cp -ar /cdrom/dappnode/* /target/usr/src/dappnode/"
+    - "cp -a /cdrom/dappnode/scripts/rc.local /target/etc/rc.local"
+    - "chmod +x /target/usr/src/dappnode/scripts/dappnode_install_pre.sh"
+    - "touch /target/usr/src/dappnode/.firstboot"
+    - "cp -ar /etc/netplan/* /target/etc/netplan/"  # Necessary for prerequisites
+    - "curtin in-target --target=/target -- /usr/src/dappnode/scripts/dappnode_install_pre.sh UPDATE"
