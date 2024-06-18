@@ -6,8 +6,6 @@ DAPPNODE_DIR="/usr/src/dappnode"
 LOGS_DIR="$DAPPNODE_DIR/logs"
 lsb_dist="$(. /etc/os-release && echo "$ID")"
 
-#!ISOBUILD Do not modify, variables above imported for ISO build
-
 detect_installation_type() {
     if [ -f "${DAPPNODE_DIR}/iso_install.log" ]; then
         LOG_FILE="${LOGS_DIR}/iso_install.log"
