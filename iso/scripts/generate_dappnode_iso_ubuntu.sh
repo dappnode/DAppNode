@@ -1,11 +1,9 @@
 #!/bin/bash
 set -e
 
-source /usr/src/app/iso/scripts/common_iso_generation.sh
+SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
 
-DAPPNODE_SCRIPTS_PATH="/usr/src/app/scripts"
-VARS_FILE="/tmp/vars.sh"
-TMP_INITRD="/tmp/makeinitrd"
+source ${SCRIPTS_DIR}/common_iso_generation.sh
 
 BASE_ISO_NAME=ubuntu-24.04-live-server-amd64.iso
 BASE_ISO_PATH="/images/${BASE_ISO_NAME}"
@@ -69,8 +67,7 @@ clean_old_files "${ISO_BUILD_PATH}" "${DAPPNODE_ISO_PREFIX}"
 extract_iso "${BASE_ISO_PATH}" "${ISO_BUILD_PATH}"
 prepare_boot_process "${BASE_ISO_PATH}" "${ISO_BUILD_PATH}/mbr"
 get_efi_partition "${BASE_ISO_PATH}" "${ISO_BUILD_PATH}/efi"
-download_third_party_packages
-add_dappnode_files "${ISO_BUILD_PATH}" "${WORKDIR}"
+add_dappnode_files_to_iso_build "${ISO_BUILD_PATH}" "${WORKDIR}"
 add_ubuntu_autoinstall "/usr/src/app/iso/preseeds/ubuntu" "${ISO_BUILD_PATH}"
 configure_boot_menu
 handle_checksums

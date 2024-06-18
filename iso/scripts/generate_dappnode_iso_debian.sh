@@ -1,7 +1,9 @@
 #!/bin/bash
 set -e
 
-source /usr/src/app/iso/scripts/common_iso_generation.sh
+SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
+
+source ${SCRIPTS_DIR}/common_iso_generation.sh
 
 # Source = https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.5.0-amd64-netinst.iso
 BASE_ISO_NAME="debian-12.5.0-amd64-netinst.iso"
@@ -89,8 +91,7 @@ verify_download "${BASE_ISO_PATH}" "${BASE_ISO_SHASUM}"
 clean_old_files "${ISO_BUILD_PATH}" "${DAPPNODE_ISO_PREFIX}"
 extract_iso "${BASE_ISO_PATH}" "${ISO_BUILD_PATH}"
 prepare_boot_process "${BASE_ISO_PATH}" "${ISO_BUILD_PATH}/isolinux/isohdpfx.bin"
-download_third_party_packages
-add_dappnode_files "${ISO_BUILD_PATH}" "${WORKDIR}"
+add_dappnode_files_to_iso_build "${ISO_BUILD_PATH}" "${WORKDIR}"
 customize_debian_preseed "${ISO_BUILD_PATH}" "${WORKDIR}"
 configure_boot_menu "${ISO_BUILD_PATH}" "${WORKDIR}"
 handle_checksums # TODO: Check if it fits both ubuntu and debian
