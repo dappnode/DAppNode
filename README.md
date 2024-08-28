@@ -13,7 +13,7 @@
 <br/>
 <p align="center">
   <a href="https://dappnode.com/">
-    <img width="800" src="doc/DAppNodeLogoWide-outlined.png">
+    <img width="800" src="doc/DappnodeLogoWide-outlined.png">
   </a>
 </p>
 <br/>
