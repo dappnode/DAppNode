@@ -76,7 +76,7 @@ install_wireguard_dkms() {
     fi
 }
 
-# LSOF INSTALLATION: used to scan host port 80 in use, https package installation will deppend on it  
+# LSOF INSTALLATION: used to scan host port 80 in use, https package installation will depend on it  
 install_lsof() {
     apt-get update -y
     apt-get install lsof -y | tee -a $LOG_FILE
