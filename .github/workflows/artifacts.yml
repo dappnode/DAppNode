@@ -72,8 +72,8 @@ jobs:
       - name: Build attended
         run: |
           sed -i -e "/UNATTENDED/s/true/false/" docker-compose.yml 
-          docker-compose build
-          docker-compose up
+          docker compose build
+          docker compose up
 
       # Verify ISO attended created
       - name: Check iso attended
@@ -89,8 +89,8 @@ jobs:
       - name: Build unattended
         run: |
           sed -i -e "/UNATTENDED/s/false/true/" docker-compose.yml
-          docker-compose build
-          docker-compose up
+          docker compose build
+          docker compose up
 
       # Verify ISO unattended was created
       - name: Check iso unattended
