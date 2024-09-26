@@ -264,7 +264,7 @@ installExtraDpkg() {
 grabContentHashes() {
     if [ ! -f "${CONTENT_HASH_FILE}" ]; then
         for comp in "${CONTENT_HASH_PKGS[@]}"; do
-            CONTENT_HASH=$(eval "${SWGET}" https://github.com/dappnode/DAppNodePackage-"${comp}"/releases/latest/download/content-hash)
+            CONTENT_HASH=$(eval "${SWGET}" https://github.com/dappnode/DAppNodePackage-"${comp}"/releases/latest/download/content-hash_${comp})
             if [ -z "$CONTENT_HASH" ]; then
                 echo "ERROR! Failed to find content hash of ${comp}." 2>&1 | tee -a $LOGFILE
                 exit 1
