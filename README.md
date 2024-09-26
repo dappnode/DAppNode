@@ -18,7 +18,7 @@
 </p>
 <br/>
 <p align="center">
-  <a href="https://docs.dappnode.io/user/quick-start/Core/installation">
+  <a href="https://docs.dappnode.io/docs/user/install/overview">
     <img width="200" src="doc/DappnodeInstall.png">
   </a>
 </p>
@@ -38,7 +38,7 @@ DAppNode is empowering people by creating a simple, transparent system for hosti
 DAppNode lowers the barrier of entry for non tech-savvy participants. It allows you to deploy, update, and manage P2P clients and nodes without leaving your browser. No terminal or command line interface.
 
 <p align="center">
-  <a href="https://docs.dappnode.io/user/quick-start/Core/installation">
+  <a href="https://docs.dappnode.io/docs/user/install/overview">
     <img width="800" src="doc/DAppNodeAdminUI-demo.png">
   </a>
 </p>
@@ -119,7 +119,7 @@ Champions are community members that are in charge of maintaining packages: keep
 
 Get your DAppNode and start contributing to decentralization by running your own nodes.
 
-[Install DAppNode on your host machine](https://docs.dappnode.io/user/quick-start/Core/installation) or buy your DAppNode with all the stuff configured and prepared to be used in [DAppNode shop](https://dappnode.com/en-us/collections/frontpage)
+[Install DAppNode on your host machine](https://docs.dappnode.io/docs/user/install/overview) or buy your DAppNode with all the stuff configured and prepared to be used in [DAppNode shop](https://dappnode.com/en-us/collections/frontpage)
 
 ### Install DAppNode with ISO
 
