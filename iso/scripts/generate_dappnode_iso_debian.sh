@@ -2,10 +2,10 @@
 set -e
 
 # Source = https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.5.0-amd64-netinst.iso
-ISO_NAME=debian-12.5.0-amd64-netinst.iso
+ISO_NAME=debian-12.7.0-amd64-netinst.iso
 ISO_PATH="/images/${ISO_NAME}"
 ISO_URL=https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/
-SHASUM="013f5b44670d81280b5b1bc02455842b250df2f0c6763398feb69af1a805a14f  ${ISO_PATH}"
+SHASUM="8fde79cfc6b20a696200fc5c15219cf6d721e8feb367e9e0e33a79d1cb68fa83  ${ISO_PATH}"
 
 echo "Downloading debian ISO image: ${ISO_NAME}..."
 if [ ! -f ${ISO_PATH} ]; then
