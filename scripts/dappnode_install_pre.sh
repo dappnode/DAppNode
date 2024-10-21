@@ -168,13 +168,6 @@ else
     install_docker 2>&1 | tee -a $LOG_FILE
 fi
 
-# Only install docker-compose if needed
-if docker-compose -v >/dev/null 2>&1; then
-    echo -e "\e[32m \n\n docker-compose is already aliased \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
-else
-    alias_docker_compose 2>&1 | tee -a $LOG_FILE
-fi
-
 # Only install wireguard-dkms if needed
 if modprobe wireguard >/dev/null 2>&1; then
     echo -e "\e[32m \n\n wireguard-dkms is already installed \n\n \e[0m" 2>&1 | tee -a $LOG_FILE

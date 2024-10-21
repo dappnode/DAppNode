@@ -6,10 +6,10 @@ SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
 source ${SCRIPTS_DIR}/common_iso_generation.sh
 
 # Source = https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.5.0-amd64-netinst.iso
-BASE_ISO_NAME="debian-12.5.0-amd64-netinst.iso"
+BASE_ISO_NAME="debian-12.7.0-amd64-netinst.iso"
 BASE_ISO_PATH="/images/${BASE_ISO_NAME}"
 BASE_ISO_URL="https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/${BASE_ISO_NAME}"
-BASE_ISO_SHASUM="013f5b44670d81280b5b1bc02455842b250df2f0c6763398feb69af1a805a14f  ${BASE_ISO_PATH}"
+BASE_ISO_SHASUM="8fde79cfc6b20a696200fc5c15219cf6d721e8feb367e9e0e33a79d1cb68fa83  ${BASE_ISO_PATH}"
 
 DAPPNODE_ISO_NAME="${DAPPNODE_ISO_PREFIX}${BASE_ISO_NAME}"
 DAPPNODE_ISO_PATH="/images/${DAPPNODE_ISO_NAME}"
