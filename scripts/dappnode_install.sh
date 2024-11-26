@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 #############
 # VARIABLES #
@@ -290,6 +291,13 @@ installExtraDpkg() {
     fi
 }
 
+rollback() {
+    echo -e "\e[33m[ERROR]\e[0m something went wrong, uninstalling dappnode"
+    wget -qO - https://uninstaller.dappnode.io | bash
+    echo -e "Uninstalled dappnode"
+    exit 1
+}
+
 ##############################################
 ####             SCRIPT START             ####
 ##############################################
@@ -343,5 +351,8 @@ if [ -f "/usr/src/dappnode/.firstboot" ]; then
     openvt -s -w -- sudo -u root /usr/src/dappnode/scripts/dappnode_test_install.sh
     exit 0
 fi
+
+# Rollback on error: https://medium.com/@dirk.avery/the-bash-trap-trap-ce6083f36700
+trap 'rollback' EXIT
 
 exit 0
