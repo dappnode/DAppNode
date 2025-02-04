@@ -96,6 +96,63 @@ install_iptables() {
     fi
 }
 
+# UNATTENDED UPGRADES INSTALLATION: for upgrading system automatically
+install_unattendedupgrades() {
+    apt-get update -y
+    apt-get install unattended-upgrades -y | tee -a $LOG_FILE
+    if  unattended-upgrades -h >/dev/null 2>&1 ; then
+        echo -e "\e[32m \n\n Verified unattended-upgrades installation \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+    else
+        echo -e "\e[31m \n\n WARNING: unattended-upgrades not installed, upgrades must be done manually! \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+    fi
+}
+
+# UNATTENDED UPGRADES SETUP: Enable unattended upgrades and set the configuration
+setup_unattendedupgrades() {
+    # Check and configure unattended-upgrades config file
+    unattended_config_file="/etc/apt/apt.conf.d/50unattended-upgrades"
+    if [ ! -f "$unattended_config_file" ]; then
+        echo -e "\e[31m \n\n WARNING: $unattended_config_file should have been created by the unattended-upgrades package \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+        return 1
+    fi
+
+    # Enable automatic removal of unused dependencies and disable automatic reboot
+    modify_config_file "$unattended_config_file" 'Unattended-Upgrade::Remove-Unused-Dependencies' 'true'
+    modify_config_file "$unattended_config_file" 'Unattended-Upgrade::Automatic-Reboot' 'false'
+
+    # Check and configure auto-upgrades config file
+    auto_upgrades_file="/etc/apt/apt.conf.d/20auto-upgrades"
+    if [ ! -f "$auto_upgrades_file" ]; then
+        # Create the file
+        echo unattended-upgrades unattended-upgrades/enable_auto_updates boolean true | debconf-set-selections
+        dpkg-reconfigure -f noninteractive unattended-upgrades
+
+        # Check if the file was created
+        if [ ! -f "$auto_upgrades_file" ]; then
+            echo -e "\e[31m \n\n WARNING: $auto_upgrades_file could not be created \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+            return 1
+        fi
+    fi
+
+    # Enable automatic updates and unattended-upgrades (file should exist now)
+    modify_config_file "$auto_upgrades_file" 'APT::Periodic::Update-Package-Lists' '1'
+    modify_config_file "$auto_upgrades_file" 'APT::Periodic::Unattended-Upgrade' '1'
+
+    echo -e "\e[32m \n\n Verified unattended-upgrades installation and setup. \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+}
+
+# UNATTENDED UPGRADES SETUP: Auxiliary function to modify a setting in a config file
+modify_config_file() {
+    local config_file="$1"
+    local config_setting_key="$2"
+    local config_setting_value="$3"
+    # Remove any appearances of the key from the file
+    sed -i "/^$config_setting_key .*/d" "$config_file"
+    # Add the updated setting
+    echo "$config_setting_key \"$config_setting_value\";" >> "$config_file"
+}
+
+
 # HOST UPDATE
 host_update() {
     apt-get update 2>&1 | tee -a $LOG_FILE
@@ -145,6 +202,15 @@ if lsof -v >/dev/null 2>&1; then
     echo -e "\e[32m \n\n lsof is already installed \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
 else
     install_lsof 2>&1 | tee -a $LOG_FILE
+fi
+
+if [[ $SKIP_UNATTENDED_UPGRADES != "true"  ]]; then 
+    # Only install unatended upgrades if needed
+    if unattended-upgrades -h  >/dev/null 2>&1; then
+        echo -e "\e[32m \n\n unattended-upgrades is already installed \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
+    else
+        install_unattendedupgrades 2>&1 | tee -a $LOG_FILE
+    fi
 fi
 
 #Check connectivity
