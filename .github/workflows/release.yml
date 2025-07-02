@@ -169,21 +169,6 @@ jobs:
         run: |
           echo "# Versions | Package | Version | |---------------------------------|-----------------------| | bind.dnp.dappnode.eth | ${BIND_VERSION} | | ipfs.dnp.dappnode.eth | ${IPFS_VERSION} | | vpn.dnp.dappnode.eth | ${VPN_VERSION} | | dappmanager.dnp.dappnode.eth | ${DAPPMANAGER_VERSION}| | wifi.dnp.dappnode.eth | ${WIFI_VERSION} | | https.dnp.dappnode.eth | ${HTTPS_VERSION} | | wireguard.dnp.dappnode.eth | ${WIREGUARD_VERSION} | # Changes Changes implemented in release ${CORE_VERSION} # Debian Attended Install and customize Dappnode using the Debian attended ISO: **Dappnode-${CORE_VERSION}-debian-bookworm-amd64.iso** ## ISO SHA-256 Checksum \`\`\` ${{ steps.shasum-debian-attended.outputs.SHASUM_DEBIAN_ATTENDED }} \`\`\` # Debian Unattended Install Debian unattended ISO: **Dappnode-${CORE_VERSION}-debian-bookworm-amd64-unattended.iso** Reboot right after installation. :warning: **Warning**: This will install Dappnode automatically, wiping all partitions. ## ISO SHA-256 Checksum \`\`\` ${{ steps.shasum-debian-unattended.outputs.SHASUM_DEBIAN_UNATTENDED }} \`\`\` # Ubuntu Attended Install using the Ubuntu attended ISO: **Dappnode-${CORE_VERSION}-ubuntu-bookworm-amd64.iso** ## ISO SHA-256 Checksum \`\`\` ${{ steps.shasum-ubuntu-attended.outputs.SHASUM_UBUNTU_ATTENDED }} \`\`\` # Ubuntu Unattended Install using the Ubuntu unattended ISO: **Dappnode-${CORE_VERSION}-ubuntu-bookworm-amd64-unattended.iso** ## ISO SHA-256 Checksum \`\`\` ${{ steps.shasum-ubuntu-unattended.outputs.SHASUM_UBUNTU_UNATTENDED }} \`\`\` # Dappnode for Raspberry Pi 4 (64-bit) [Installation guide →](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide) **Default login:** - __user__: dappnode - __password__: dappnodepi" > CHANGELOG.md
           cat CHANGELOG.md
-      - name: Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: test-artifact
-          path: |
-            ./Dappnode-debian-*.iso
-            ./Dappnode-ubuntu-*.iso
-            ./scripts/dappnode_install.sh
-            ./scripts/dappnode_install_pre.sh
-            ./scripts/dappnode_uninstall.sh
-            ./scripts/dappnode_access_credentials.sh
-            dappnode_profile.sh
-
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Check git diff
         id: git_diff
         run: |
@@ -204,7 +189,6 @@ jobs:
           body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Create Pull Request
         if: steps.git_diff.outputs.HAS_CHANGED == 'true'
         uses: peter-evans/create-pull-request@v5
