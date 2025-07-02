@@ -100,21 +100,21 @@ jobs:
           unattended_filename="${core_filename/%.iso/-unattended.iso}"
           cp "$file" "$unattended_filename"
 
-      - name: Build Ubuntu attended
-        run: |
-          sed -i -e "/BASE_OS/s/debian/ubuntu/" docker-compose.yml
-          sed -i -e "/UNATTENDED/s/true/false/" docker-compose.yml 
-          docker compose up --build
+      # - name: Build Ubuntu attended
+      #   run: |
+      #     sed -i -e "/BASE_OS/s/debian/ubuntu/" docker-compose.yml
+      #     sed -i -e "/UNATTENDED/s/true/false/" docker-compose.yml
+      #     docker compose up --build
 
-      - name: Check Ubuntu ISO attended
-        run: |
-          ls -lrt images/Dappnode-ubuntu-*.iso
+      # - name: Check Ubuntu ISO attended
+      #   run: |
+      #     ls -lrt images/Dappnode-ubuntu-*.iso
 
-      - name: Set Ubuntu Dappnode attended ISO name
-        run: |
-          file=$(ls images/Dappnode-ubuntu-*.iso)
-          attended_filename="${file/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
-          cp "$file" "$attended_filename"
+      # - name: Set Ubuntu Dappnode attended ISO name
+      #   run: |
+      #     file=$(ls images/Dappnode-ubuntu-*.iso)
+      #     attended_filename="${file/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
+      #     cp "$file" "$attended_filename"
 
       - name: Build Ubuntu unattended
         run: |
@@ -152,12 +152,12 @@ jobs:
           SHASUM_DEBIAN_UNATTENDED=$(shasum -a 256 $file)
           echo "::set-output name=SHASUM_DEBIAN_UNATTENDED::$SHASUM_DEBIAN_UNATTENDED"
 
-      - name: Get SHA-256 Debian attended
-        id: shasum-ubuntu-attended
-        run: |
-          file=$(find . -type f -name 'Dappnode-ubuntu-*.iso' ! -name '*unattended*')
-          SHASUM_UBUNTU_ATTENDED=$(shasum -a 256 $file)s
-          echo "::set-output name=SHASUM_UBUNTU_ATTENDED::$SHASUM_UBUNTU_ATTENDED"
+      # - name: Get SHA-256 Debian attended
+      #   id: shasum-ubuntu-attended
+      #   run: |
+      #     file=$(find . -type f -name 'Dappnode-ubuntu-*.iso' ! -name '*unattended*')
+      #     SHASUM_UBUNTU_ATTENDED=$(shasum -a 256 $file)s
+      #     echo "::set-output name=SHASUM_UBUNTU_ATTENDED::$SHASUM_UBUNTU_ATTENDED"
 
       - name: Get SHA-256 Debian unattended
         id: shasum-ubuntu-unattended
@@ -179,11 +179,11 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.core }}
           prerelease: true
+          # ./Dappnode-${CORE_VERSION}-ubuntu-*-unattended.iso
           files: |
             ./Dappnode-${CORE_VERSION}-debian-*.iso
             ./Dappnode-${CORE_VERSION}-debian-*-unattended.iso
             ./Dappnode-${CORE_VERSION}-ubuntu-*.iso
-            ./Dappnode-${CORE_VERSION}-ubuntu-*-unattended.iso
             ./scripts/dappnode_install*.sh
             dappnode_profile.sh
           body_path: CHANGELOG.md
