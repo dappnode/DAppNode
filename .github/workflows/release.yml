@@ -81,7 +81,7 @@ jobs:
           file=$(ls images/Dappnode-debian-*.iso)
           filename=$(basename "$file")  # Extract only the file name (without path)
           attended_filename="images/Dappnode-${CORE_VERSION}-debian-${filename#Dappnode-debian-}"  # Modify the filename using CORE_VERSION
-          cp "$file" "$attended_filename"
+          sudo cp "$file" "$attended_filename"
 
       - name: Build Debian unattended
         run: |
@@ -100,7 +100,7 @@ jobs:
           filename=$(basename "$file")  # Extract only the file name (without path)
           core_filename="Dappnode-${CORE_VERSION}-debian-${filename#Dappnode-debian-}"  # Modify the filename using CORE_VERSION
           unattended_filename="${core_filename/%.iso/-unattended.iso}"  # Replace .iso with -unattended.iso
-          cp "$file" "images/$unattended_filename"
+          sudo cp "$file" "images/$unattended_filename"
 
       - name: Build Ubuntu unattended
         run: |
@@ -118,7 +118,7 @@ jobs:
           filename=$(basename "$file")  # Extract only the file name (without path)
           core_filename="Dappnode-${CORE_VERSION}-ubuntu-${filename#Dappnode-ubuntu-}"  # Modify the filename using CORE_VERSION
           unattended_filename="${core_filename/%.iso/-unattended.iso}"  # Replace .iso with -unattended.iso
-          cp "$file" "images/$unattended_filename"
+          sudo cp "$file" "images/$unattended_filename"
 
       - name: Create dappnode_profile.sh
         run: |
