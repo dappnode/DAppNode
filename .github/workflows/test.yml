@@ -32,17 +32,35 @@ jobs:
           sudo /bin/bash ./scripts/dappnode_uninstall.sh y
 
   iso:
-    name: test ISO
+    name: test Debian and Ubuntu ISO
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: create iso
+
+      # Create Debian ISO
+      - name: create Debian ISO
         run: |
+          sed -i -e "/BASE_OS/s/ubuntu/debian/" docker-compose.yml
           docker compose build
           docker compose up
           ls images/
-      - name: verify image
+
+      # Verify Debian ISO creation
+      - name: verify Debian ISO
         run: |
-          ls -lrt images/DAppNode-debian-bookworm-amd64.iso
+          ls -lrt images/Dappnode-debian-*.iso
+
+      # Create Ubuntu ISO
+      - name: create Ubuntu ISO
+        run: |
+          sed -i -e "/BASE_OS/s/debian/ubuntu/" docker-compose.yml
+          docker compose build
+          docker compose up
+          ls images/
+
+      # Verify Ubuntu ISO creation
+      - name: verify Ubuntu ISO
+        run: |
+          ls -lrt images/Dappnode-ubuntu-*.iso

@@ -1,0 +1,42 @@
+name: Validate Ubuntu autoinstall YAML Files
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install check-jsonschema yamllint yq
+
+    - name: Lint attended autoinstall.yaml
+      run: yamllint -c .yamllint iso/preseeds/ubuntu/autoinstall.yaml
+  
+    - name: Lint unattended autoinstall.yaml
+      run: yamllint -c .yamllint iso/preseeds/ubuntu/autoinstall_unattended.yaml
+
+    - name: Download JSON schema
+      run: curl -o schema.json https://raw.githubusercontent.com/canonical/subiquity/main/autoinstall-schema.json
+
+    - name: Extract autoinstall properties from YAML files
+      run: |
+        yq '.autoinstall' iso/preseeds/ubuntu/autoinstall.yaml > attended.yaml
+        yq '.autoinstall' iso/preseeds/ubuntu/autoinstall_unattended.yaml > unattended.yaml
+
+    - name: Validate attended autoinstall.yaml
+      run: |
+        check-jsonschema --schemafile schema.json attended.yaml
+
+    - name: Validate unattended autoinstall.yaml
+      run: |
+        check-jsonschema --schemafile schema.json unattended.yaml

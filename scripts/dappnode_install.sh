@@ -11,6 +11,7 @@ LOGS_DIR="$DAPPNODE_DIR/logs"
 CONTENT_HASH_FILE="${DAPPNODE_CORE_DIR}/packages-content-hash.csv"
 LOGFILE="${LOGS_DIR}/dappnode_install.log"
 MOTD_FILE="/etc/motd"
+UPDATE_MOTD_DIR="/etc/update-motd.d"
 DAPPNODE_PROFILE="${DAPPNODE_CORE_DIR}/.dappnode_profile"
 # Get URLs
 PROFILE_BRANCH=${PROFILE_BRANCH:-"master"}
@@ -186,16 +187,48 @@ dappnode_core_load() {
 }
 
 customMotd() {
-    if [ -f ${MOTD_FILE} ]; then
-        cat <<EOF >${MOTD_FILE}
- ___   _             _  _         _
-|   \ /_\  _ __ _ __| \| |___  __| |___
-| |) / _ \| '_ \ '_ \ .  / _ \/ _  / -_)
-|___/_/ \_\ .__/ .__/_|\_\___/\__,_\___|
-          |_|  |_|
-EOF
-        echo -e "$WELCOME_MESSAGE" >>"$MOTD_FILE"
+
+    generateMotdText
+
+    if [ -d "${UPDATE_MOTD_DIR}" ]; then
+        # Ubuntu configuration
+        modifyMotdGeneration
     fi
+}
+
+# Debian distros use /etc/motd plain text file
+generateMotdText() {
+    # Check and create the MOTD file if it does not exist
+    if [ ! -f "${MOTD_FILE}" ]; then
+        touch "${MOTD_FILE}"
+    fi
+
+    # Write the ASCII art and welcome message as plain text
+    cat <<'EOF' >"${MOTD_FILE}"
+  ___                              _     
+ |   \ __ _ _ __ _ __ _ _  ___  __| |___ 
+ | |) / _` | '_ \ '_ \ ' \/ _ \/ _` / -_)
+ |___/\__,_| .__/ .__/_||_\___/\__,_\___|
+           |_|  |_|                      
+EOF
+    echo -e "$WELCOME_MESSAGE" >>"${MOTD_FILE}"
+}
+
+# Ubuntu distros use /etc/update-motd.d/ to generate the motd
+modifyMotdGeneration() {
+    disabled_motd_dir="${UPDATE_MOTD_DIR}/disabled"
+
+    mkdir -p "${disabled_motd_dir}"
+
+    # Move all the files in /etc/update-motd.d/ to /etc/update-motd.d/disabled/
+    # Except for the files listed in "files_to_keep"
+    files_to_keep="00-header 50-landscape-sysinfo 98-reboot-required"
+    for file in ${UPDATE_MOTD_DIR}/*; do
+        base_file=$(basename "${file}")
+        if [ -f "${file}" ] && ! echo "${files_to_keep}" | grep -qw "${base_file}"; then
+            mv "${file}" "${disabled_motd_dir}/"
+        fi
+    done
 }
 
 addSwap() {
@@ -290,6 +323,30 @@ installExtraDpkg() {
     fi
 }
 
+# The main user needs to be added to the docker group to be able to run docker commands without sudo
+# Explained in: https://docs.docker.com/engine/install/linux-postinstall/
+addUserToDockerGroup() {
+    # UID is provided to the first regular user created in the system
+    USER=$(grep 1000 "/etc/passwd" | cut -f 1 -d:)
+
+    # If USER is not found, warn the user and return
+    if [ -z "$USER" ]; then
+        echo -e "\e[33mWARN: Default user not found. Could not add it to the docker group.\e[0m" 2>&1 | tee -a $LOGFILE
+        return
+    fi
+
+    if groups "$USER" | grep &>/dev/null '\bdocker\b'; then
+        echo -e "\e[32mUser $USER is already in the docker group\e[0m" 2>&1 | tee -a $LOGFILE
+        return
+    fi
+
+    # This step is already done in the dappnode_install_pre.sh script,
+    # but it's not working in the Ubuntu ISO because the late-commands in the autoinstall.yaml
+    # file are executed before the user is created.
+    usermod -aG docker "$USER"
+    echo -e "\e[32mUser $USER added to the docker group\e[0m" 2>&1 | tee -a $LOGFILE
+}
+
 ##############################################
 ####             SCRIPT START             ####
 ##############################################
@@ -315,8 +372,11 @@ if [ "$ARCH" == "amd64" ]; then
     installSgx
 
     echo -e "\e[32mInstalling extra packages...\e[0m" 2>&1 | tee -a $LOGFILE
-    installExtraDpkg
+    installExtraDpkg # TODO: Why is this being called twice?
 fi
+
+echo -e "\e[32mAdding user to docker group...\e[0m" 2>&1 | tee -a $LOGFILE
+addUserToDockerGroup
 
 echo -e "\e[32mCreating dncore_network if needed...\e[0m" 2>&1 | tee -a $LOGFILE
 docker network create --driver bridge --subnet 172.33.0.0/16 dncore_network 2>&1 | tee -a $LOGFILE

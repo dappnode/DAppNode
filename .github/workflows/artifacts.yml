@@ -68,39 +68,80 @@ jobs:
           sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${HTTPS_VERSION}"/" .dappnode_profile
           cat .dappnode_profile
 
-      # ISO ATTENDED
-      - name: Build attended
+      # Debian ISO ATTENDED
+      - name: Build Debian attended
         run: |
+          sed -i -e "/BASE_OS/s/ubuntu/debian/" docker-compose.yml
           sed -i -e "/UNATTENDED/s/true/false/" docker-compose.yml 
           docker compose build
           docker compose up
 
-      # Verify ISO attended created
-      - name: Check iso attended
+      - name: Check Debian ISO attended
         run: |
-          ls -lrt images/DAppNode-debian-bookworm-amd64.iso
+          ls -lrt images/Dappnode-debian-*.iso
 
-      # Set new name for the release asset
-      - name: Set DAppNode attended ISO name
+      - name: Set Debian Dappnode attended ISO name
         run: |
-          cp ./images/DAppNode-debian-bookworm-amd64.iso DAppNode-${CORE_VERSION}-debian-bookworm-amd64.iso
+          file=$(ls images/Dappnode-debian-*.iso)
+          attended_filename="${file/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
+          mv "$file" "$attended_filename"
 
-      # ISO UNATTENDED
-      - name: Build unattended
+      # Debian ISO UNATTENDED
+      - name: Build Debian unattended
         run: |
+          sed -i -e "/BASE_OS/s/ubuntu/debian/" docker-compose.yml
           sed -i -e "/UNATTENDED/s/false/true/" docker-compose.yml
           docker compose build
           docker compose up
 
-      # Verify ISO unattended was created
-      - name: Check iso unattended
+      - name: Check Debian ISO unattended
         run: |
-          ls -lrt images/DAppNode-debian-bookworm-amd64.iso
+          ls -lrt images/Dappnode-debian-*.iso
 
       # Set new name for the release asset
-      - name: Set DAppNode unttended ISO name
+      - name: Set Dappnode unttended ISO name
         run: |
-          cp ./images/DAppNode-debian-bookworm-amd64.iso DAppNode-${CORE_VERSION}-debian-bookworm-amd64-unattended.iso
+          file=$(ls images/Dappnode-debian-*.iso)
+
+          core_filename="${file/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
+          unattended_filename="${core_filename/%.iso/-unattended.iso}"
+
+          mv "$file" "$unattended_filename"
+
+      # Ubuntu ISO ATTENDED
+      - name: Build Ubuntu attended
+        run: |
+          sed -i -e "/BASE_OS/s/debian/ubuntu/" docker-compose.yml
+          sed -i -e "/UNATTENDED/s/true/false/" docker-compose.yml 
+          docker-compose up --build
+
+      - name: Check Ubuntu ISO attended
+        run: |
+          ls -lrt images/Dappnode-ubuntu-*.iso
+
+      - name: Set Ubuntu Dappnode attended ISO name
+        run: |
+          file=$(ls images/Dappnode-ubuntu-*.iso)
+          attended_filename="${file/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
+          mv "$file" "$attended_filename"
+
+      # Ubuntu ISO UNATTENDED
+      - name: Build Ubuntu unattended
+        run: |
+          sed -i -e "/BASE_OS/s/ubuntu/debian/" docker-compose.yml
+          sed -i -e "/UNATTENDED/s/false/true/" docker-compose.yml
+          docker-compose up --build
+
+      - name: Check Ubuntu ISO unattended
+        run: |
+          ls -lrt images/Dappnode-ubuntu-*.iso
+
+      - name: Set Ubuntu Dappnode unattended ISO name
+        run: |
+          file=$(ls images/Dappnode-ubuntu-*.iso)
+          core_filename="${file/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
+          unattended_filename="${core_filename/%.iso/-unattended.iso}"
+          mv "$file" "$unattended_filename"
 
       - name: Create dappnode_profile.sh
         run: |
@@ -112,8 +153,8 @@ jobs:
         with:
           name: test-artifact
           path: |
-            ./DAppNode-*-amd64.iso
-            ./DAppNode-*-amd64-unattended.iso
+            ./Dappnode-debian-*.iso
+            ./Dappnode-ubuntu-*.iso
             ./scripts/dappnode_install.sh
             ./scripts/dappnode_install_pre.sh
             ./scripts/dappnode_uninstall.sh

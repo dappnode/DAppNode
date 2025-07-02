@@ -6,8 +6,6 @@ DAPPNODE_DIR="/usr/src/dappnode"
 LOGS_DIR="$DAPPNODE_DIR/logs"
 lsb_dist="$(. /etc/os-release && echo "$ID")"
 
-#!ISOBUILD Do not modify, variables above imported for ISO build
-
 detect_installation_type() {
     if [ -f "${DAPPNODE_DIR}/iso_install.log" ]; then
         LOG_FILE="${LOGS_DIR}/iso_install.log"
@@ -22,21 +20,30 @@ detect_installation_type() {
 add_docker_repo() {
     apt-get update -y
     apt-get remove -y docker docker-engine docker.io containerd runc | tee -a $LOG_FILE
-    apt-get install -y ca-certificates curl gnupg lsb-release | tee -a $LOG_FILE
-    mkdir -p /etc/apt/keyrings && chmod -R 0755 /etc/apt/keyrings
-    curl -fsSL "https://download.docker.com/linux/${lsb_dist}/gpg" | gpg --dearmor --yes -o /etc/apt/keyrings/docker.gpg
+
+    # Add Docker GPG key
+    apt-get install -y ca-certificates curl lsb-release | tee -a $LOG_FILE
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL "https://download.docker.com/linux/${lsb_dist}/gpg" -o /etc/apt/keyrings/docker.asc
     chmod a+r /etc/apt/keyrings/docker.gpg
-    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/$lsb_dist $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list >/dev/null
+
+    # Add the repository to APT sources
+    echo \
+        "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/$lsb_dist $(lsb_release -cs) stable" |
+        tee /etc/apt/sources.list.d/docker.list >/dev/null
+
+    apt-get update -y
 }
 
 # DOCKER INSTALLATION
 install_docker() {
     apt-get update -y
-    apt-get install -y docker-ce docker-ce-cli containerd.io | tee -a $LOG_FILE
+    apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin | tee -a $LOG_FILE
 
     # Ensure xz is installed
     [ -f "/usr/bin/xz" ] || (apt-get install -y xz-utils)
 
+    # Not working in Ubuntu ISO because the user is not created before executing late-commands
     USER=$(grep 1000 "/etc/passwd" | cut -f 1 -d:)
     [ -z "$USER" ] || usermod -aG docker "$USER"
 
@@ -102,6 +109,34 @@ host_update() {
     apt-get -y upgrade 2>&1 | tee -a $LOG_FILE
 }
 
+check_ubuntu_connectivity() {
+    { netplan get | grep "dhcp4: true" &>/dev/null; } || {
+        echo "Interfaces not found"
+        exit 1
+    }
+}
+
+check_debian_connectivity() {
+    { [ -f /etc/network/interfaces ] && grep "iface en.* inet dhcp" /etc/network/interfaces &>/dev/null; } || {
+        echo "Interfaces not found"
+        exit 1
+    }
+}
+
+add_debian_missing_interfaces() {
+    # shellcheck disable=SC2013
+    for IFACE in $(grep "en.*" /usr/src/dappnode/hotplug); do
+        # shellcheck disable=SC2143
+        if [[ $(grep -L "$IFACE" /etc/network/interfaces) ]]; then
+            {
+                echo "# $IFACE"
+                echo "allow-hotplug $IFACE"
+                echo "iface $IFACE inet dhcp"
+            } >>/etc/network/interfaces
+        fi
+    done
+}
+
 ##############################################
 ####             SCRIPT START             ####
 ##############################################
@@ -147,17 +182,10 @@ else
     install_lsof 2>&1 | tee -a $LOG_FILE
 fi
 
-## Add missing interfaces
-if [ -f /usr/src/dappnode/hotplug ]; then
-    # shellcheck disable=SC2013
-    for IFACE in $(grep "en.*" /usr/src/dappnode/hotplug); do
-        # shellcheck disable=SC2143
-        if [[ $(grep -L "$IFACE" /etc/network/interfaces) ]]; then
-            {
-                echo "# $IFACE"
-                echo "allow-hotplug $IFACE"
-                echo "iface $IFACE inet dhcp"
-            } >>/etc/network/interfaces
-        fi
-    done
+## Add or Update Network Configuration Based on OS
+if [ "$lsb_dist" = "ubuntu" ]; then
+    check_ubuntu_connectivity
+else
+    check_debian_connectivity
+    add_debian_missing_interfaces
 fi
