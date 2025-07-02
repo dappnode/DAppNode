@@ -1,8 +1,11 @@
 FROM docker:dind
+
+# Install required packages
 RUN apk update && \
     apk add --no-cache xorriso git xz curl ca-certificates iptables cpio bash perl-utils && \
-    addgroup -S docker && \
-    adduser -S docker-user -G docker
+    # Add user to the existing docker group
+    adduser -S docker-user && \
+    addgroup docker-user docker
 
 WORKDIR /usr/src/app
 COPY . .
