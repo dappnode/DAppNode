@@ -79,8 +79,9 @@ jobs:
       - name: Set Debian Dappnode attended ISO name
         run: |
           file=$(ls images/Dappnode-debian-*.iso)
-          attended_filename="${file/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
-          cp "$file" "$attended_filename"
+          filename=$(basename "$file")
+          attended_filename="${filename/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
+          cp "$file" "images/$attended_filename"
 
       - name: Build Debian unattended
         run: |
@@ -96,7 +97,8 @@ jobs:
       - name: Set Dappnode unattended ISO name
         run: |
           file=$(ls images/Dappnode-debian-*.iso) 
-          core_filename="${file/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
+          filename=$(basename "$file")
+          core_filename="${filename/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
           unattended_filename="${core_filename/%.iso/-unattended.iso}"
           cp "$file" "$unattended_filename"
 
@@ -129,9 +131,10 @@ jobs:
       - name: Set Ubuntu Dappnode unattended ISO name
         run: |
           file=$(ls images/Dappnode-ubuntu-*.iso)
-          core_filename="${file/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
+          filename=$(basename "$file")
+          core_filename="${filename/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
           unattended_filename="${core_filename/%.iso/-unattended.iso}"
-          cp "$file" "$unattended_filename"
+          cp "$file" "images/$unattended_filename"
 
       - name: Create dappnode_profile.sh
         run: |
@@ -165,14 +168,16 @@ jobs:
           file=$(find . -type f -name 'Dappnode-ubuntu-*unattended.iso')
           SHASUM_UBUNTU_UNATTENDED=$(shasum -a 256 $file)
           echo "::set-output name=SHASUM_UBUNTU_UNATTENDED::$SHASUM_UBUNTU_UNATTENDED"
+
       - name: Write release content
         run: |
-          echo "# Versions | Package | Version | |---------------------------------|-----------------------| | bind.dnp.dappnode.eth | ${BIND_VERSION} | | ipfs.dnp.dappnode.eth | ${IPFS_VERSION} | | vpn.dnp.dappnode.eth | ${VPN_VERSION} | | dappmanager.dnp.dappnode.eth | ${DAPPMANAGER_VERSION}| | wifi.dnp.dappnode.eth | ${WIFI_VERSION} | | https.dnp.dappnode.eth | ${HTTPS_VERSION} | | wireguard.dnp.dappnode.eth | ${WIREGUARD_VERSION} | # Changes Changes implemented in release ${CORE_VERSION} # Debian Attended Install and customize Dappnode using the Debian attended ISO: **Dappnode-${CORE_VERSION}-debian-bookworm-amd64.iso** ## ISO SHA-256 Checksum \`\`\` ${{ steps.shasum-debian-attended.outputs.SHASUM_DEBIAN_ATTENDED }} \`\`\` # Debian Unattended Install Debian unattended ISO: **Dappnode-${CORE_VERSION}-debian-bookworm-amd64-unattended.iso** Reboot right after installation. :warning: **Warning**: This will install Dappnode automatically, wiping all partitions. ## ISO SHA-256 Checksum \`\`\` ${{ steps.shasum-debian-unattended.outputs.SHASUM_DEBIAN_UNATTENDED }} \`\`\` # Ubuntu Attended Install using the Ubuntu attended ISO: **Dappnode-${CORE_VERSION}-ubuntu-bookworm-amd64.iso** ## ISO SHA-256 Checksum \`\`\` ${{ steps.shasum-ubuntu-attended.outputs.SHASUM_UBUNTU_ATTENDED }} \`\`\` # Ubuntu Unattended Install using the Ubuntu unattended ISO: **Dappnode-${CORE_VERSION}-ubuntu-bookworm-amd64-unattended.iso** ## ISO SHA-256 Checksum \`\`\` ${{ steps.shasum-ubuntu-unattended.outputs.SHASUM_UBUNTU_UNATTENDED }} \`\`\` # Dappnode for Raspberry Pi 4 (64-bit) [Installation guide →](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide) **Default login:** - __user__: dappnode - __password__: dappnodepi" > CHANGELOG.md
+          echo -en "# Versions\n|  Package  | Version  |\n|---|---|\nbind.dnp.dappnode.eth|${BIND_VERSION}|\n|ipfs.dnp.dappnode.eth|${IPFS_VERSION}|\n|vpn.dnp.dappnode.eth |${VPN_VERSION}|\n|dappmanager.dnp.dappnode.eth|${DAPPMANAGER_VERSION}|\n|wifi.dnp.dappnode.eth|${WIFI_VERSION}|\n|https.dnp.dappnode.eth|${HTTPS_VERSION}|\n|wireguard.dnp.dappnode.eth|${WIREGUARD_VERSION}|\n# Changes\nChanges implemented in release ${CORE_VERSION}\n# Debian Attended version\nInstall and customize DAppNode using the attended ISO: **DAppNode-${CORE_VERSION}-debian-bookworm-amd64.iso**\n\n## ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-debian-bookworm-amd64.iso\n${SHASUM_DEBIAN_ATTENDED}\n\`\`\`\n# Debian Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${CORE_VERSION}-debian-bookworm-amd64-unattended.iso**\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install Dappnode automatically, deleting all existing partitions on the disk\n\n## ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-debian-bookworm-amd64-unattended.iso\n${SHASUM_DEBIAN_UNATTENDED}\n\`\`\`\n# Ubuntu Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${CORE_VERSION}-ubuntu-bookworm-amd64-unattended.iso**\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install Dappnode automatically, deleting all existing partitions on the disk\n\n## ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-ubuntu-bookworm-amd64-unattended.iso\n${SHASUM_UBUNTU_UNATTENDED}\n\`\`\`\n# DAppNode for Raspberry Pi 4 64bit\n[Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)\n\ndefault login data:\n - **__user__**: dappnode\n - **__password__**: dappnodepi" > CHANGELOG.md
           cat CHANGELOG.md
-      - name: Check git diff
-        id: git_diff
-        run: |
-          git diff --no-index --word-diff-regex=[^[:space:]] --no-patch .dappnode_profile && echo '::set-output name=HAS_CHANGED::true' || echo '::set-output name=HAS_CHANGED::false'
+        env:
+          SHASUM_DEBIAN_ATTENDED: ${{ steps.shasum-debian-attended.outputs.SHASUM_DEBIAN_ATTENDED }}
+          SHASUM_DEBIAN_UNATTENDED: ${{ steps.shasum-debian-unattended.outputs.SHASUM_DEBIAN_UNATTENDED }}
+          # SHASUM_UBUNTU_ATTENDED: ${{ steps.shasum-ubuntu-attended.outputs.SHASUM_UBUNTU_ATTENDED }}
+          SHASUM_UBUNTU_UNATTENDED: ${{ steps.shasum-ubuntu-unattended.outputs.SHASUM_UBUNTU_UNATTENDED }}
 
       - name: Create pre-release
         uses: softprops/action-gh-release@v2
@@ -189,12 +194,3 @@ jobs:
           body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Create Pull Request
-        if: steps.git_diff.outputs.HAS_CHANGED == 'true'
-        uses: peter-evans/create-pull-request@v5
-        with:
-          add-paths: ".dappnode_profile"
-          commit-message: "update core packages versions"
-          branch: "update-profile"
-          title: "update core packages versions"
-          delete-branch: true
