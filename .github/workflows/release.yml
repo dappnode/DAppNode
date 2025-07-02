@@ -80,6 +80,7 @@ jobs:
       - name: Set Debian Dappnode attended ISO name
         run: |
           file=$(ls images/Dappnode-debian-*.iso)
+          chmod 777 "$file"
           attended_filename="${file/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
           mv "$file" "$attended_filename"
 
@@ -96,6 +97,7 @@ jobs:
       - name: Set Dappnode unattended ISO name
         run: |
           file=$(ls images/Dappnode-debian-*.iso)
+          chmod 777 "$file" 
           core_filename="${file/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
           unattended_filename="${core_filename/%.iso/-unattended.iso}"
           mv "$file" "$unattended_filename"
@@ -113,6 +115,7 @@ jobs:
       - name: Set Ubuntu Dappnode attended ISO name
         run: |
           file=$(ls images/Dappnode-ubuntu-*.iso)
+          chmod 777 "$file"
           attended_filename="${file/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
           mv "$file" "$attended_filename"
 
@@ -129,6 +132,7 @@ jobs:
       - name: Set Ubuntu Dappnode unattended ISO name
         run: |
           file=$(ls images/Dappnode-ubuntu-*.iso)
+          chmod 777 "$file"
           core_filename="${file/images\/Dappnode-/Dappnode-${CORE_VERSION}-}"
           unattended_filename="${core_filename/%.iso/-unattended.iso}"
           mv "$file" "$unattended_filename"
