@@ -80,8 +80,9 @@ jobs:
         run: |
           file=$(ls images/Dappnode-debian-*.iso)
           filename=$(basename "$file")  # Extract only the file name (without path)
-          attended_filename="images/Dappnode-${CORE_VERSION}-debian-${filename#Dappnode-debian-}"  # Modify the filename using CORE_VERSION
-          sudo cp "$file" "$attended_filename"
+          core_filename="Dappnode-${CORE_VERSION}-debian-${filename#Dappnode-debian-}"  # Modify the filename using CORE_VERSION
+          attended_filename="${core_filename/%.iso/-attended.iso}"  # Replace .iso with -attended.iso
+          sudo cp "$file" "images/$attended_filename"
 
       - name: Build Debian unattended
         run: |
@@ -167,9 +168,9 @@ jobs:
           tag_name: ${{ github.event.inputs.core }}
           prerelease: true
           files: |
-            ./images/Dappnode-${CORE_VERSION}-debian-*.iso
-            ./images/Dappnode-${CORE_VERSION}-debian-*-unattended.iso
-            ./images/Dappnode-${CORE_VERSION}-ubuntu-*-unattended.iso
+            ./images/Dappnode-*-debian-*-attended.iso
+            ./images/Dappnode-*-debian-*-unattended.iso
+            ./images/Dappnode-*-ubuntu-*-unattended.iso
             ./scripts/dappnode_install*.sh
             ./scripts/dappnode_uninstall*.sh
             dappnode_profile.sh
