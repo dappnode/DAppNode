@@ -111,7 +111,12 @@ jobs:
 
       - name: Check Ubuntu ISO unattended
         run: |
-          ls -lrt images/Dappnode-ubuntu-*.iso
+          ls -lrt images/Dappnode-ubuntu-*-unattended.iso.xz
+
+      - name: Compress Ubuntu Dappnode unattended ISO
+        run: |
+          file=$(ls images/Dappnode-*-ubuntu-*-unattended.iso)
+          xz -T0 -z -v "$file"
 
       - name: Set Ubuntu Dappnode unattended ISO name
         run: |
@@ -120,6 +125,8 @@ jobs:
           core_filename="Dappnode-${CORE_VERSION}-ubuntu-${filename#Dappnode-ubuntu-}"  # Modify the filename using CORE_VERSION
           unattended_filename="${core_filename/%.iso/-unattended.iso}"  # Replace .iso with -unattended.iso
           sudo cp "$file" "images/$unattended_filename"
+          # Compress the new file as well
+          xz -T0 -z -v "images/$unattended_filename"
 
       - name: Create dappnode_profile.sh
         run: |
@@ -140,10 +147,10 @@ jobs:
           SHASUM_DEBIAN_UNATTENDED=$(shasum -a 256 $file)
           echo "::set-output name=SHASUM_DEBIAN_UNATTENDED::$SHASUM_DEBIAN_UNATTENDED"
 
-      - name: Get SHA-256 Debian unattended
+      - name: Get SHA-256 Ubuntu unattended
         id: shasum-ubuntu-unattended
         run: |
-          file=$(find . -type f -name 'Dappnode-ubuntu-*unattended.iso')
+          file=$(find . -type f -name 'Dappnode-ubuntu-*unattended.iso.xz')
           SHASUM_UBUNTU_UNATTENDED=$(shasum -a 256 $file)
           echo "::set-output name=SHASUM_UBUNTU_UNATTENDED::$SHASUM_UBUNTU_UNATTENDED"
 
@@ -170,7 +177,7 @@ jobs:
           files: |
             ./images/Dappnode-*-debian-*-attended.iso
             ./images/Dappnode-*-debian-*-unattended.iso
-            ./images/Dappnode-*-ubuntu-*-unattended.iso
+            ./images/Dappnode-*-ubuntu-*-unattended.iso.xz
             ./scripts/dappnode_install*.sh
             ./scripts/dappnode_uninstall*.sh
             dappnode_profile.sh
