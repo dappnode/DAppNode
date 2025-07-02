@@ -1,15 +1,12 @@
 FROM docker:dind
-# hadolint ignore=DL3018
 RUN apk update && \
-    apk add --no-cache xorriso git xz curl ca-certificates iptables cpio bash perl-utils \
-    rm -rf /var/cache/apk/* 
+    apk add --no-cache xorriso git xz curl ca-certificates iptables cpio bash perl-utils && \
+    addgroup -S docker && \
+    adduser -S docker-user -G docker
 
-#RUN apk add -U --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing aufs-util
-
-# RUN addgroup -g 2999 docker
-
-# Create app directory
 WORKDIR /usr/src/app
 COPY . .
 
-CMD ["/usr/src/app/iso/scripts/generate_ISO.sh"] 
+USER docker-user  # Ensure the container runs as a non-root user
+
+CMD ["/usr/src/app/iso/scripts/generate_ISO.sh"]
