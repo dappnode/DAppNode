@@ -104,7 +104,7 @@ jobs:
         run: |
           sed -i -e "/BASE_OS/s/debian/ubuntu/" docker-compose.yml
           sed -i -e "/UNATTENDED/s/true/false/" docker-compose.yml 
-          docker-compose up --build
+          docker compose up --build
 
       - name: Check Ubuntu ISO attended
         run: |
@@ -120,7 +120,7 @@ jobs:
         run: |
           sed -i -e "/BASE_OS/s/ubuntu/debian/" docker-compose.yml
           sed -i -e "/UNATTENDED/s/false/true/" docker-compose.yml
-          docker-compose up --build
+          docker compose up --build
 
       - name: Check Ubuntu ISO unattended
         run: |
