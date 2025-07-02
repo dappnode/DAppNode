@@ -68,10 +68,9 @@ jobs:
 
       - name: Build Debian attended
         run: |
-          sed -i -e "/BASE_OS/s/ubuntu/debian/" docker-compose.yml
-          sed -i -e "/UNATTENDED/s/true/false/" docker-compose.yml 
-          docker compose build
-          docker compose up
+          export BASE_OS=debian
+          export UNATTENDED=false
+          docker compose up --build
 
       - name: Check Debian ISO attended
         run: |
@@ -85,7 +84,8 @@ jobs:
 
       - name: Build Debian unattended
         run: |
-          sed -i -e "/UNATTENDED/s/false/true/" docker-compose.yml
+          export BASE_OS=debian
+          export UNATTENDED=true
           docker compose build
           docker compose up
 
@@ -102,8 +102,8 @@ jobs:
 
       # - name: Build Ubuntu attended
       #   run: |
-      #     sed -i -e "/BASE_OS/s/debian/ubuntu/" docker-compose.yml
-      #     sed -i -e "/UNATTENDED/s/true/false/" docker-compose.yml
+      #     export BASE_OS=ubuntu
+      #     export UNATTENDED=false
       #     docker compose up --build
 
       # - name: Check Ubuntu ISO attended
@@ -118,8 +118,8 @@ jobs:
 
       - name: Build Ubuntu unattended
         run: |
-          sed -i -e "/BASE_OS/s/ubuntu/debian/" docker-compose.yml
-          sed -i -e "/UNATTENDED/s/false/true/" docker-compose.yml
+          export BASE_OS=ubuntu
+          export UNATTENDED=true
           docker compose up --build
 
       - name: Check Ubuntu ISO unattended

@@ -42,9 +42,9 @@ jobs:
       # Create Debian ISO
       - name: create Debian ISO
         run: |
-          sed -i -e "/BASE_OS/s/ubuntu/debian/" docker-compose.yml
-          docker compose build
-          docker compose up
+          export BASE_OS=debian
+          export UNATTENDED=true
+          docker compose up --build
           ls images/
 
       # Verify Debian ISO creation
@@ -55,9 +55,9 @@ jobs:
       # Create Ubuntu ISO
       - name: create Ubuntu ISO
         run: |
-          sed -i -e "/BASE_OS/s/debian/ubuntu/" docker-compose.yml
-          docker compose build
-          docker compose up
+          export BASE_OS=ubuntu
+          export UNATTENDED=true
+          docker compose up --build
           ls images/
 
       # Verify Ubuntu ISO creation
