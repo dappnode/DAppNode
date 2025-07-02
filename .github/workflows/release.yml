@@ -170,7 +170,8 @@ jobs:
             ./images/Dappnode-${CORE_VERSION}-debian-*.iso
             ./images/Dappnode-${CORE_VERSION}-debian-*-unattended.iso
             ./images/Dappnode-${CORE_VERSION}-ubuntu-*-unattended.iso
-            ./images/scripts/dappnode_install*.sh
+            ./scripts/dappnode_install*.sh
+            ./scripts/dappnode_uninstall*.sh
             dappnode_profile.sh
           body_path: CHANGELOG.md
         env:
