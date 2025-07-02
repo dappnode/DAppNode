@@ -155,6 +155,12 @@ jobs:
           SHASUM_DEBIAN_UNATTENDED: ${{ steps.shasum-debian-unattended.outputs.SHASUM_DEBIAN_UNATTENDED }}
           SHASUM_UBUNTU_UNATTENDED: ${{ steps.shasum-ubuntu-unattended.outputs.SHASUM_UBUNTU_UNATTENDED }}
 
+      # print images directory
+      - name: Print images directory
+        run: |
+          echo "Images directory content:"
+          ls -lrt images/
+
       - name: Create pre-release
         uses: softprops/action-gh-release@v2
         with:
