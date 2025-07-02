@@ -111,7 +111,7 @@ jobs:
 
       - name: Check Ubuntu ISO unattended
         run: |
-          ls -lrt images/Dappnode-ubuntu-*-unattended.iso.xz
+          ls -lrt images/Dappnode-ubuntu-*.iso
 
       - name: Compress Ubuntu Dappnode unattended ISO
         run: |
