@@ -124,7 +124,7 @@ jobs:
       - name: Compress Ubuntu Dappnode unattended ISO
         run: |
           file=$(ls images/Dappnode-*-ubuntu-*-unattended.iso)
-          xz -T0 -z -v "$file"
+          sudo xz -T0 -z -v "$file"
 
       - name: Create dappnode_profile.sh
         run: |
