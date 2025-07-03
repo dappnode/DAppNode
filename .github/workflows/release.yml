@@ -113,11 +113,6 @@ jobs:
         run: |
           ls -lrt images/Dappnode-ubuntu-*.iso
 
-      - name: Compress Ubuntu Dappnode unattended ISO
-        run: |
-          file=$(ls images/Dappnode-*-ubuntu-*-unattended.iso)
-          xz -T0 -z -v "$file"
-
       - name: Set Ubuntu Dappnode unattended ISO name
         run: |
           file=$(ls images/Dappnode-ubuntu-*.iso)
@@ -125,8 +120,11 @@ jobs:
           core_filename="Dappnode-${CORE_VERSION}-ubuntu-${filename#Dappnode-ubuntu-}"  # Modify the filename using CORE_VERSION
           unattended_filename="${core_filename/%.iso/-unattended.iso}"  # Replace .iso with -unattended.iso
           sudo cp "$file" "images/$unattended_filename"
-          # Compress the new file as well
-          xz -T0 -z -v "images/$unattended_filename"
+
+      - name: Compress Ubuntu Dappnode unattended ISO
+        run: |
+          file=$(ls images/Dappnode-*-ubuntu-*-unattended.iso)
+          xz -T0 -z -v "$file"
 
       - name: Create dappnode_profile.sh
         run: |
