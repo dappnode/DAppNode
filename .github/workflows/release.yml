@@ -103,28 +103,23 @@ jobs:
           unattended_filename="${core_filename/%.iso/-unattended.iso}"  # Replace .iso with -unattended.iso
           sudo cp "$file" "images/$unattended_filename"
 
-      - name: Build Ubuntu unattended
-        run: |
-          export BASE_OS=ubuntu
-          export UNATTENDED=true
-          docker compose up --build
+      # - name: Build Ubuntu unattended
+      #   run: |
+      #     export BASE_OS=ubuntu
+      #     export UNATTENDED=true
+      #     docker compose up --build
 
-      - name: Check Ubuntu ISO unattended
-        run: |
-          ls -lrt images/Dappnode-ubuntu-*.iso
+      # - name: Check Ubuntu ISO unattended
+      #   run: |
+      #     ls -lrt images/Dappnode-ubuntu-*.iso
 
-      - name: Set Ubuntu Dappnode unattended ISO name
-        run: |
-          file=$(ls images/Dappnode-ubuntu-*.iso)
-          filename=$(basename "$file")  # Extract only the file name (without path)
-          core_filename="Dappnode-${CORE_VERSION}-ubuntu-${filename#Dappnode-ubuntu-}"  # Modify the filename using CORE_VERSION
-          unattended_filename="${core_filename/%.iso/-unattended.iso}"  # Replace .iso with -unattended.iso
-          sudo cp "$file" "images/$unattended_filename"
-
-      - name: Compress Ubuntu Dappnode unattended ISO
-        run: |
-          file=$(ls images/Dappnode-*-ubuntu-*-unattended.iso)
-          sudo xz -T0 -z -v "$file"
+      # - name: Set Ubuntu Dappnode unattended ISO name
+      #   run: |
+      #     file=$(ls images/Dappnode-ubuntu-*.iso)
+      #     filename=$(basename "$file")  # Extract only the file name (without path)
+      #     core_filename="Dappnode-${CORE_VERSION}-ubuntu-${filename#Dappnode-ubuntu-}"  # Modify the filename using CORE_VERSION
+      #     unattended_filename="${core_filename/%.iso/-unattended.iso}"  # Replace .iso with -unattended.iso
+      #     sudo cp "$file" "images/$unattended_filename"
 
       - name: Create dappnode_profile.sh
         run: |
@@ -145,21 +140,21 @@ jobs:
           SHASUM_DEBIAN_UNATTENDED=$(shasum -a 256 $file)
           echo "::set-output name=SHASUM_DEBIAN_UNATTENDED::$SHASUM_DEBIAN_UNATTENDED"
 
-      - name: Get SHA-256 Ubuntu unattended
-        id: shasum-ubuntu-unattended
-        run: |
-          file=$(find . -type f -name 'Dappnode-ubuntu-*unattended.iso.xz')
-          SHASUM_UBUNTU_UNATTENDED=$(shasum -a 256 $file)
-          echo "::set-output name=SHASUM_UBUNTU_UNATTENDED::$SHASUM_UBUNTU_UNATTENDED"
+      # - name: Get SHA-256 Ubuntu unattended
+      #   id: shasum-ubuntu-unattended
+      #   run: |
+      #     file=$(find . -type f -name 'Dappnode-ubuntu-*unattended.iso')
+      #     SHASUM_UBUNTU_UNATTENDED=$(shasum -a 256 $file)
+      #     echo "::set-output name=SHASUM_UBUNTU_UNATTENDED::$SHASUM_UBUNTU_UNATTENDED"
 
       - name: Write release content
         run: |
-          echo -en "# Versions\n|  Package  | Version  |\n|---|---|\nbind.dnp.dappnode.eth|${BIND_VERSION}|\n|ipfs.dnp.dappnode.eth|${IPFS_VERSION}|\n|vpn.dnp.dappnode.eth |${VPN_VERSION}|\n|dappmanager.dnp.dappnode.eth|${DAPPMANAGER_VERSION}|\n|wifi.dnp.dappnode.eth|${WIFI_VERSION}|\n|https.dnp.dappnode.eth|${HTTPS_VERSION}|\n|wireguard.dnp.dappnode.eth|${WIREGUARD_VERSION}|\n# Changes\nChanges implemented in release ${CORE_VERSION}\n# Debian Attended version\nInstall and customize DAppNode using the attended ISO: **DAppNode-${CORE_VERSION}-debian-bookworm-amd64.iso**\n\n## ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-debian-bookworm-amd64.iso\n${SHASUM_DEBIAN_ATTENDED}\n\`\`\`\n# Debian Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${CORE_VERSION}-debian-bookworm-amd64-unattended.iso**\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install Dappnode automatically, deleting all existing partitions on the disk\n\n## ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-debian-bookworm-amd64-unattended.iso\n${SHASUM_DEBIAN_UNATTENDED}\n\`\`\`\n# Ubuntu Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${CORE_VERSION}-ubuntu-bookworm-amd64-unattended.iso**\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install Dappnode automatically, deleting all existing partitions on the disk\n\n## ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-ubuntu-bookworm-amd64-unattended.iso\n${SHASUM_UBUNTU_UNATTENDED}\n\`\`\`\n# DAppNode for Raspberry Pi 4 64bit\n[Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)\n\ndefault login data:\n - **__user__**: dappnode\n - **__password__**: dappnodepi" > CHANGELOG.md
+          echo -en "# Versions\n|  Package  | Version  |\n|---|---|\nbind.dnp.dappnode.eth|${BIND_VERSION}|\n|ipfs.dnp.dappnode.eth|${IPFS_VERSION}|\n|vpn.dnp.dappnode.eth |${VPN_VERSION}|\n|dappmanager.dnp.dappnode.eth|${DAPPMANAGER_VERSION}|\n|wifi.dnp.dappnode.eth|${WIFI_VERSION}|\n|https.dnp.dappnode.eth|${HTTPS_VERSION}|\n|wireguard.dnp.dappnode.eth|${WIREGUARD_VERSION}|\n# Changes\nChanges implemented in release ${CORE_VERSION}\n# Debian Attended version\nInstall and customize DAppNode using the attended ISO: **DAppNode-${CORE_VERSION}-debian-bookworm-amd64.iso**\n\n## ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-debian-bookworm-amd64.iso\n${SHASUM_DEBIAN_ATTENDED}\n\`\`\`\n# Debian Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${CORE_VERSION}-debian-bookworm-amd64-unattended.iso**\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install Dappnode automatically, deleting all existing partitions on the disk\n\n## ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-debian-bookworm-amd64-unattended.iso\n${SHASUM_DEBIAN_UNATTENDED}\n\`\`\`\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install Dappnode automatically, deleting all existing partitions on the disk\n\n## ISO SHA-256 Checksum\n\`\`\`\n\`\`\`\n# DAppNode for Raspberry Pi 4 64bit\n[Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)\n\ndefault login data:\n - **__user__**: dappnode\n - **__password__**: dappnodepi" > CHANGELOG.md
           cat CHANGELOG.md
         env:
           SHASUM_DEBIAN_ATTENDED: ${{ steps.shasum-debian-attended.outputs.SHASUM_DEBIAN_ATTENDED }}
           SHASUM_DEBIAN_UNATTENDED: ${{ steps.shasum-debian-unattended.outputs.SHASUM_DEBIAN_UNATTENDED }}
-          SHASUM_UBUNTU_UNATTENDED: ${{ steps.shasum-ubuntu-unattended.outputs.SHASUM_UBUNTU_UNATTENDED }}
+          # SHASUM_UBUNTU_UNATTENDED: ${{ steps.shasum-ubuntu-unattended.outputs.SHASUM_UBUNTU_UNATTENDED }}
 
       # print images directory
       - name: Print images directory
@@ -175,7 +170,6 @@ jobs:
           files: |
             ./images/Dappnode-*-debian-*-attended.iso
             ./images/Dappnode-*-debian-*-unattended.iso
-            ./images/Dappnode-*-ubuntu-*-unattended.iso.xz
             ./scripts/dappnode_install*.sh
             ./scripts/dappnode_uninstall*.sh
             dappnode_profile.sh
