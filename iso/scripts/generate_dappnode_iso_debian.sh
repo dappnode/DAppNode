@@ -8,7 +8,7 @@ source ${SCRIPTS_DIR}/common_iso_generation.sh
 # Source = https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.11.0-amd64-netinst.iso
 BASE_ISO_NAME="debian-12.11.0-amd64-netinst.iso"
 BASE_ISO_PATH="/images/${BASE_ISO_NAME}"
-BASE_ISO_URL="https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/${BASE_ISO_NAME}"
+BASE_ISO_URL="https://cdimage.debian.org/mirror/cdimage/archive/12.11.0/amd64/iso-cd/${BASE_ISO_NAME}"
 BASE_ISO_SHASUM="30ca12a15cae6a1033e03ad59eb7f66a6d5a258dcf27acd115c2bd42d22640e8  ${BASE_ISO_PATH}"
 
 DAPPNODE_ISO_NAME="${DAPPNODE_ISO_PREFIX}${BASE_ISO_NAME}"
