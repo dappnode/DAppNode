@@ -54,7 +54,7 @@ jobs:
             [[ $VPN_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $CORE_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "versions introduced in wrong format"; exit 1; }
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       # Edit the profile with the new versions introduced
       - name: Set new versions
