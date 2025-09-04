@@ -143,9 +143,10 @@ jobs:
       - name: Get SHA-256 Ubuntu unattended
         id: shasum-ubuntu-unattended
         run: |
-          file=$(find . -type f -name 'Dappnode-ubuntu-*unattended.iso')
-          SHASUM_UBUNTU_UNATTENDED=$(shasum -a 256 $file)
-          echo "::set-output name=SHASUM_UBUNTU_UNATTENDED::$SHASUM_UBUNTU_UNATTENDED"
+            file=$(find . -type f -name 'Dappnode-ubuntu-*unattended.iso')
+            SHASUM_UBUNTU_UNATTENDED=$(shasum -a 256 $file)
+            echo "$SHASUM_UBUNTU_UNATTENDED" > SHASUM_UBUNTU_UNATTENDED.txt
+            echo "::set-output name=SHASUM_UBUNTU_UNATTENDED::$SHASUM_UBUNTU_UNATTENDED"
 
       - name: Write release content
         run: |
@@ -183,8 +184,6 @@ jobs:
           username: ${{ secrets.ISO_SSH_USER }}
           key: ${{ secrets.ISO_SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          source: "SHASUM_UBUNTU_UNATTENDED|./images/Dappnode-*-ubuntu-*-unattended.iso"
+          source: SHASUM_UBUNTU_UNATTENDED.txt,./images/Dappnode-*-ubuntu-*-unattended.iso
           target: ${{ secrets.ISO_SSH_PATH }}
           overwrite: true
-        env:
-          SHASUM_UBUNTU_UNATTENDED: ${{ steps.shasum-ubuntu-unattended.outputs.SHASUM_UBUNTU_UNATTENDED }}
