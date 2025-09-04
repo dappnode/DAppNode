@@ -266,12 +266,21 @@ dappnode_start() {
 
     # Show credentials to the user on login
     USER=$(grep 1000 /etc/passwd | cut -f 1 -d:)
-    [ -n "$USER" ] && PROFILE=/home/$USER/.profile || PROFILE=/root/.profile
+    [ -n "$USER" ] && USER_HOME=/home/$USER || USER_HOME=/root
 
-    if ! grep -q "${DAPPNODE_PROFILE}" "$PROFILE"; then
-        echo "########          DAPPNODE PROFILE          ########" >>$PROFILE
-        echo -e "source ${DAPPNODE_PROFILE}\n" >>$PROFILE
-    fi
+    # Add profile sourcing to both .profile and .bashrc for maximum compatibility
+    for config_file in .profile .bashrc; do
+        CONFIG_PATH="$USER_HOME/$config_file"
+        
+        # Create config file if it doesn't exist
+        [ ! -f "$CONFIG_PATH" ] && touch "$CONFIG_PATH"
+        
+        # Add profile sourcing if not already present
+        if ! grep -q "${DAPPNODE_PROFILE}" "$CONFIG_PATH"; then
+            echo "########          DAPPNODE PROFILE          ########" >>"$CONFIG_PATH"
+            echo -e "source ${DAPPNODE_PROFILE}\n" >>"$CONFIG_PATH"
+        fi
+    done
 
     # Remove return from profile
     sed -i '/return/d' $DAPPNODE_PROFILE | tee -a $LOGFILE

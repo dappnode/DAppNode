@@ -45,11 +45,17 @@ uninstall() {
     echo -e "\e[32mRemoving DAppNode directory\e[0m"
     rm -rf /usr/src/dappnode
 
-    # Remove profile file
+    # Remove profile file references from shell config files
     USER=$(grep 1000 /etc/passwd | cut -f 1 -d:)
-    [ -n "$USER" ] && PROFILE=/home/$USER/.profile || PROFILE=/root/.profile
-    sed -i '/########          DAPPNODE PROFILE          ########/g' $PROFILE
-    sed -i '/.*dappnode_profile/g' $PROFILE
+    [ -n "$USER" ] && USER_HOME=/home/$USER || USER_HOME=/root
+    
+    for config_file in .profile .bashrc; do
+        CONFIG_PATH="$USER_HOME/$config_file"
+        if [ -f "$CONFIG_PATH" ]; then
+            sed -i '/########          DAPPNODE PROFILE          ########/d' "$CONFIG_PATH"
+            sed -i '/.*dappnode_profile/d' "$CONFIG_PATH"
+        fi
+    done
 
     echo -e "\e[32mDAppNode uninstalled!\e[0m"
 }
