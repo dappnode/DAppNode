@@ -53,14 +53,14 @@ jobs:
           ls -lrt images/Dappnode-debian-*.iso
 
       # Create Ubuntu ISO
-      # - name: create Ubuntu ISO
-      #   run: |
-      #     export BASE_OS=ubuntu
-      #     export UNATTENDED=true
-      #     docker compose up --build
-      #     ls images/
+      - name: create Ubuntu ISO
+        run: |
+          export BASE_OS=ubuntu
+          export UNATTENDED=true
+          docker compose up --build
+          ls images/
 
       # Verify Ubuntu ISO creation
-      # - name: verify Ubuntu ISO
-      #   run: |
-      #     ls -lrt images/Dappnode-ubuntu-*.iso
+      - name: verify Ubuntu ISO
+        run: |
+          ls -lrt images/Dappnode-ubuntu-*.iso
