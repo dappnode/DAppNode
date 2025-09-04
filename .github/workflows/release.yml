@@ -103,23 +103,23 @@ jobs:
           unattended_filename="${core_filename/%.iso/-unattended.iso}"  # Replace .iso with -unattended.iso
           sudo cp "$file" "images/$unattended_filename"
 
-      # - name: Build Ubuntu unattended
-      #   run: |
-      #     export BASE_OS=ubuntu
-      #     export UNATTENDED=true
-      #     docker compose up --build
+      - name: Build Ubuntu unattended
+        run: |
+          export BASE_OS=ubuntu
+          export UNATTENDED=true
+          docker compose up --build
 
-      # - name: Check Ubuntu ISO unattended
-      #   run: |
-      #     ls -lrt images/Dappnode-ubuntu-*.iso
+      - name: Check Ubuntu ISO unattended
+        run: |
+          ls -lrt images/Dappnode-ubuntu-*.iso
 
-      # - name: Set Ubuntu Dappnode unattended ISO name
-      #   run: |
-      #     file=$(ls images/Dappnode-ubuntu-*.iso)
-      #     filename=$(basename "$file")  # Extract only the file name (without path)
-      #     core_filename="Dappnode-${CORE_VERSION}-ubuntu-${filename#Dappnode-ubuntu-}"  # Modify the filename using CORE_VERSION
-      #     unattended_filename="${core_filename/%.iso/-unattended.iso}"  # Replace .iso with -unattended.iso
-      #     sudo cp "$file" "images/$unattended_filename"
+      - name: Set Ubuntu Dappnode unattended ISO name
+        run: |
+          file=$(ls images/Dappnode-ubuntu-*.iso)
+          filename=$(basename "$file")  # Extract only the file name (without path)
+          core_filename="Dappnode-${CORE_VERSION}-ubuntu-${filename#Dappnode-ubuntu-}"  # Modify the filename using CORE_VERSION
+          unattended_filename="${core_filename/%.iso/-unattended.iso}"  # Replace .iso with -unattended.iso
+          sudo cp "$file" "images/$unattended_filename"
 
       - name: Create dappnode_profile.sh
         run: |
@@ -140,12 +140,12 @@ jobs:
           SHASUM_DEBIAN_UNATTENDED=$(shasum -a 256 $file)
           echo "::set-output name=SHASUM_DEBIAN_UNATTENDED::$SHASUM_DEBIAN_UNATTENDED"
 
-      # - name: Get SHA-256 Ubuntu unattended
-      #   id: shasum-ubuntu-unattended
-      #   run: |
-      #     file=$(find . -type f -name 'Dappnode-ubuntu-*unattended.iso')
-      #     SHASUM_UBUNTU_UNATTENDED=$(shasum -a 256 $file)
-      #     echo "::set-output name=SHASUM_UBUNTU_UNATTENDED::$SHASUM_UBUNTU_UNATTENDED"
+      - name: Get SHA-256 Ubuntu unattended
+        id: shasum-ubuntu-unattended
+        run: |
+          file=$(find . -type f -name 'Dappnode-ubuntu-*unattended.iso')
+          SHASUM_UBUNTU_UNATTENDED=$(shasum -a 256 $file)
+          echo "::set-output name=SHASUM_UBUNTU_UNATTENDED::$SHASUM_UBUNTU_UNATTENDED"
 
       - name: Write release content
         run: |
@@ -154,7 +154,6 @@ jobs:
         env:
           SHASUM_DEBIAN_ATTENDED: ${{ steps.shasum-debian-attended.outputs.SHASUM_DEBIAN_ATTENDED }}
           SHASUM_DEBIAN_UNATTENDED: ${{ steps.shasum-debian-unattended.outputs.SHASUM_DEBIAN_UNATTENDED }}
-          # SHASUM_UBUNTU_UNATTENDED: ${{ steps.shasum-ubuntu-unattended.outputs.SHASUM_UBUNTU_UNATTENDED }}
 
       # print images directory
       - name: Print images directory
@@ -176,3 +175,16 @@ jobs:
           body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Ubuntu unattended to SSH server (and shasum)
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.ISO_SSH_HOST }}
+          username: ${{ secrets.ISO_SSH_USER }}
+          key: ${{ secrets.ISO_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: "SHASUM_UBUNTU_UNATTENDED|./images/Dappnode-*-ubuntu-*-unattended.iso"
+          target: ${{ secrets.ISO_SSH_PATH }}
+          overwrite: true
+        env:
+          SHASUM_UBUNTU_UNATTENDED: ${{ steps.shasum-ubuntu-unattended.outputs.SHASUM_UBUNTU_UNATTENDED }}
