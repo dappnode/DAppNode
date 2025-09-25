@@ -25,7 +25,7 @@ jobs:
           sudo /bin/bash ./scripts/dappnode_install.sh
       - name: Show installation logs
         run: |
-          cat /usr/src/dappnode/logs/install.log 
+          cat /usr/src/dappnode/logs/install.log
           cat /usr/src/dappnode/logs/dappnode_install.log
       - name: Uninstall DAppNode
         run: |
@@ -64,3 +64,16 @@ jobs:
       - name: verify Ubuntu ISO
         run: |
           ls -lrt images/Dappnode-ubuntu-*.iso
+
+  telegram:
+    name: test Telegram notification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run Telegram notification tests
+        run: |
+          chmod +x ./test/test_telegram_notify.sh
+          ./test/test_telegram_notify.sh
