@@ -44,3 +44,33 @@ The release action will generate all the assets required as well as the release-
 2. Set inputs for the release
 
    ![](inputs-release.png)
+
+### Telegram Release Notifications
+
+DAppNode can automatically send Telegram notifications when new releases are created. This requires setting up the following repository secrets:
+
+#### Setup Instructions
+
+1. **Create a Telegram Bot**:
+   - Message `@BotFather` on Telegram
+   - Use `/newbot` command and follow the instructions
+   - Save the bot token (format: `123456789:ABCdefGHIjklMNOpqrsTUVwxyz`)
+
+2. **Get the Chat ID**:
+   - Add your bot to the desired chat/channel
+   - Send a message to the chat
+   - Visit `https://api.telegram.org/bot<YourBotToken>/getUpdates`
+   - Find the `chat.id` in the response
+
+3. **Configure Repository Secrets**:
+   - Go to repository Settings → Secrets and variables → Actions
+   - Add the following secrets:
+     - `TELEGRAM_BOT_TOKEN`: Your bot token from BotFather
+     - `TELEGRAM_CHAT_ID`: The chat ID where notifications should be sent
+
+#### Message Format
+
+The notification message includes:
+- Release version
+- Direct link to the GitHub release page
+- Formatted message with emojis and hashtags for easy identification

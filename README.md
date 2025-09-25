@@ -203,6 +203,8 @@ The release will contain:
   - Changes section
   - SHASUMs for unattended and attended ISOs
   - Default credentials
+- Notifications:
+  - Automatic Telegram notification to the configured chat (requires `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` repository secrets)
 
 ## Testing with artifacts
 
