@@ -33,7 +33,8 @@ autoinstall:
   timezone: UTC
 
   late-commands:
-    - "curtin in-target --target=/target -- apt update && apt install -y chrony build-essential iw iwd avahi-utils"
+    - "curtin in-target --target=/target -- apt-get update"
+    - "curtin in-target --target=/target -- apt-get install -y chrony build-essential iw iwd avahi-utils"
     - "mkdir -p /target/usr/src/dappnode"
     - "cp -ar /cdrom/dappnode/* /target/usr/src/dappnode/"
     - "cp -a /cdrom/dappnode/scripts/rc.local /target/etc/rc.local"
