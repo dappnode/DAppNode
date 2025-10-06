@@ -187,3 +187,13 @@ jobs:
           source: SHASUM_UBUNTU_UNATTENDED.txt,./images/Dappnode-*-ubuntu-*-unattended.iso
           target: ${{ secrets.ISO_SSH_PATH }}
           overwrite: true
+
+      - name: Send Telegram notification
+        if: success()
+        run: |
+          chmod +x ./scripts/telegram_notify.sh
+          RELEASE_URL="https://github.com/dappnode/DAppNode/releases/tag/${{ github.event.inputs.core }}"
+          ./scripts/telegram_notify.sh "${{ github.event.inputs.core }}" "${RELEASE_URL}"
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
