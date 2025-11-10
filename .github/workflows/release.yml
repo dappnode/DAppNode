@@ -172,6 +172,7 @@ jobs:
             ./images/Dappnode-*-debian-*-unattended.iso
             ./scripts/dappnode_install*.sh
             ./scripts/dappnode_uninstall*.sh
+            ./scripts/dappnode_access_credentials*.sh
             dappnode_profile.sh
           body_path: CHANGELOG.md
         env:
