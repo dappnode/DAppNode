@@ -38,23 +38,26 @@ env:
   CORE_VERSION: ${{ github.event.inputs.core }}
 
 jobs:
-  pre-release:
-    name: Create pre-release artifacts
+  set-versions:
+    name: Set versions and check regex
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        shell: bash
-
+    outputs:
+      bind: ${{ env.BIND_VERSION }}
+      ipfs: ${{ env.IPFS_VERSION }}
+      dappmanager: ${{ env.DAPPMANAGER_VERSION }}
+      wifi: ${{ env.WIFI_VERSION }}
+      wireguard: ${{ env.WIREGUARD_VERSION }}
+      https: ${{ env.HTTPS_VERSION }}
+      vpn: ${{ env.VPN_VERSION }}
+      core: ${{ env.CORE_VERSION }}
     steps:
       - name: Check versions regex
         run: |
           [[ $BIND_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $IPFS_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $DAPPMANAGER_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
             [[ $WIFI_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $WIREGUARD_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $HTTPS_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
             [[ $VPN_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $CORE_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "versions introduced in wrong format"; exit 1; }
-
       - name: Checkout
         uses: actions/checkout@v4
-
       - name: Set new versions
         run: |
           sed -i -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${BIND_VERSION}"/" .dappnode_profile
@@ -65,107 +68,161 @@ jobs:
           sed -i -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${WIREGUARD_VERSION}"/" .dappnode_profile
           sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${HTTPS_VERSION}"/" .dappnode_profile
           cat .dappnode_profile
+      - name: Create dappnode_profile.sh
+        run: cp .dappnode_profile dappnode_profile.sh
+      - name: Upload dappnode_profile.sh
+        uses: actions/upload-artifact@v4
+        with:
+          name: dappnode_profile
+          path: dappnode_profile.sh
 
+  build-debian-attended:
+    name: Build Debian attended ISO
+    runs-on: ubuntu-latest
+    needs: set-versions
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download dappnode_profile
+        uses: actions/download-artifact@v4
+        with:
+          name: dappnode_profile
       - name: Build Debian attended
         run: |
           export BASE_OS=debian
           export UNATTENDED=false
           docker compose up --build
-
-      - name: Check Debian ISO attended
-        run: |
-          ls -lrt images/Dappnode-debian-*.iso
-
       - name: Set Debian Dappnode attended ISO name
         run: |
           file=$(ls images/Dappnode-debian-*.iso)
-          filename=$(basename "$file")  # Extract only the file name (without path)
-          core_filename="Dappnode-${CORE_VERSION}-debian-${filename#Dappnode-debian-}"  # Modify the filename using CORE_VERSION
-          attended_filename="${core_filename/%.iso/-attended.iso}"  # Replace .iso with -attended.iso
+          filename=$(basename "$file")
+          core_filename="Dappnode-${{ needs.set-versions.outputs.core }}-debian-${filename#Dappnode-debian-}"
+          attended_filename="${core_filename/%.iso/-attended.iso}"
           sudo cp "$file" "images/$attended_filename"
+      - name: Upload Debian attended ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-attended-iso
+          path: images/*-attended.iso
+      - name: Get SHA-256 Debian attended
+        run: |
+          file=$(find images/ -type f -name '*-attended.iso')
+          shasum -a 256 $file > SHASUM_DEBIAN_ATTENDED.txt
+      - name: Upload Debian attended SHA256
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-attended-sha
+          path: SHASUM_DEBIAN_ATTENDED.txt
 
+  build-debian-unattended:
+    name: Build Debian unattended ISO
+    runs-on: ubuntu-latest
+    needs: set-versions
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download dappnode_profile
+        uses: actions/download-artifact@v4
+        with:
+          name: dappnode_profile
       - name: Build Debian unattended
         run: |
           export BASE_OS=debian
           export UNATTENDED=true
           docker compose build
           docker compose up
-
-      - name: Check Debian ISO unattended
-        run: |
-          ls -lrt images/Dappnode-debian-*.iso
-
       - name: Set Debian Dappnode unattended ISO name
         run: |
           file=$(ls images/Dappnode-debian-*.iso)
-          filename=$(basename "$file")  # Extract only the file name (without path)
-          core_filename="Dappnode-${CORE_VERSION}-debian-${filename#Dappnode-debian-}"  # Modify the filename using CORE_VERSION
-          unattended_filename="${core_filename/%.iso/-unattended.iso}"  # Replace .iso with -unattended.iso
+          filename=$(basename "$file")
+          core_filename="Dappnode-${{ needs.set-versions.outputs.core }}-debian-${filename#Dappnode-debian-}"
+          unattended_filename="${core_filename/%.iso/-unattended.iso}"
           sudo cp "$file" "images/$unattended_filename"
+      - name: Upload Debian unattended ISO
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-unattended-iso
+          path: images/*-unattended.iso
+      - name: Get SHA-256 Debian unattended
+        run: |
+          file=$(find images/ -type f -name '*-unattended.iso')
+          shasum -a 256 $file > SHASUM_DEBIAN_UNATTENDED.txt
+      - name: Upload Debian unattended SHA256
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-unattended-sha
+          path: SHASUM_DEBIAN_UNATTENDED.txt
 
+  build-ubuntu-unattended:
+    name: Build Ubuntu unattended ISO
+    runs-on: ubuntu-latest
+    needs: set-versions
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download dappnode_profile
+        uses: actions/download-artifact@v4
+        with:
+          name: dappnode_profile
       - name: Build Ubuntu unattended
         run: |
           export BASE_OS=ubuntu
           export UNATTENDED=true
           docker compose up --build
-
-      - name: Check Ubuntu ISO unattended
-        run: |
-          ls -lrt images/Dappnode-ubuntu-*.iso
-
       - name: Set Ubuntu Dappnode unattended ISO name
         run: |
           file=$(ls images/Dappnode-ubuntu-*.iso)
-          filename=$(basename "$file")  # Extract only the file name (without path)
-          core_filename="Dappnode-${CORE_VERSION}-ubuntu-${filename#Dappnode-ubuntu-}"  # Modify the filename using CORE_VERSION
-          unattended_filename="${core_filename/%.iso/-unattended.iso}"  # Replace .iso with -unattended.iso
+          filename=$(basename "$file")
+          core_filename="Dappnode-${{ needs.set-versions.outputs.core }}-ubuntu-${filename#Dappnode-ubuntu-}"
+          unattended_filename="${core_filename/%.iso/-unattended.iso}"
           sudo cp "$file" "images/$unattended_filename"
-
-      - name: Create dappnode_profile.sh
-        run: |
-          cp .dappnode_profile dappnode_profile.sh
-
-      # SHASUMs
-      - name: Get SHA-256 Debian attended
-        id: shasum-debian-attended
-        run: |
-          file=$(find . -type f -name 'Dappnode-debian-*.iso' ! -name '*unattended*')
-          SHASUM_DEBIAN_ATTENDED=$(shasum -a 256 $file)
-          echo "::set-output name=SHASUM_DEBIAN_ATTENDED::$SHASUM_DEBIAN_ATTENDED"
-
-      - name: Get SHA-256 Debian unattended
-        id: shasum-debian-unattended
-        run: |
-          file=$(find . -type f -name 'Dappnode-debian-*unattended.iso')
-          SHASUM_DEBIAN_UNATTENDED=$(shasum -a 256 $file)
-          echo "::set-output name=SHASUM_DEBIAN_UNATTENDED::$SHASUM_DEBIAN_UNATTENDED"
-
       - name: Get SHA-256 Ubuntu unattended
-        id: shasum-ubuntu-unattended
         run: |
-            file=$(find . -type f -name 'Dappnode-ubuntu-*unattended.iso')
-            SHASUM_UBUNTU_UNATTENDED=$(shasum -a 256 $file)
-            echo "$SHASUM_UBUNTU_UNATTENDED" > SHASUM_UBUNTU_UNATTENDED.txt
-            echo "::set-output name=SHASUM_UBUNTU_UNATTENDED::$SHASUM_UBUNTU_UNATTENDED"
+          file=$(find images/ -type f -name '*-ubuntu-*-unattended.iso')
+          shasum -a 256 $file > SHASUM_UBUNTU_UNATTENDED.txt
+      - name: Upload Ubuntu unattended ISO and SHA256 to SSH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.ISO_SSH_HOST }}
+          username: ${{ secrets.ISO_SSH_USER }}
+          key: ${{ secrets.ISO_SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          source: SHASUM_UBUNTU_UNATTENDED.txt,images/*-ubuntu-*-unattended.iso
+          target: ${{ secrets.ISO_SSH_PATH }}
+          overwrite: true
 
+  release:
+    name: Combine, release, and upload
+    runs-on: ubuntu-latest
+    needs:
+      - build-debian-attended
+      - build-debian-unattended
+      - build-ubuntu-unattended
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+      - name: Move ISOs and SHAs
+        run: |
+          mkdir -p images
+          mv artifacts/debian-attended-iso/* images/
+          mv artifacts/debian-unattended-iso/* images/
+          mv artifacts/debian-attended-sha/* .
+          mv artifacts/debian-unattended-sha/* .
+          mv artifacts/dappnode_profile/* .
       - name: Write release content
         run: |
-          echo -en "# Versions\n|  Package  | Version  |\n|---|---|\nbind.dnp.dappnode.eth|${BIND_VERSION}|\n|ipfs.dnp.dappnode.eth|${IPFS_VERSION}|\n|vpn.dnp.dappnode.eth |${VPN_VERSION}|\n|dappmanager.dnp.dappnode.eth|${DAPPMANAGER_VERSION}|\n|wifi.dnp.dappnode.eth|${WIFI_VERSION}|\n|https.dnp.dappnode.eth|${HTTPS_VERSION}|\n|wireguard.dnp.dappnode.eth|${WIREGUARD_VERSION}|\n# Changes\nChanges implemented in release ${CORE_VERSION}\n# Debian Attended version\nInstall and customize DAppNode using the attended ISO: **DAppNode-${CORE_VERSION}-debian-bookworm-amd64.iso**\n\n## ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-debian-bookworm-amd64.iso\n${SHASUM_DEBIAN_ATTENDED}\n\`\`\`\n# Debian Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${CORE_VERSION}-debian-bookworm-amd64-unattended.iso**\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install Dappnode automatically, deleting all existing partitions on the disk\n\n## ISO SHA-256 Checksum\n\`\`\`\nshasum -a 256 DAppNode-${CORE_VERSION}-debian-bookworm-amd64-unattended.iso\n${SHASUM_DEBIAN_UNATTENDED}\n\`\`\`\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install Dappnode automatically, deleting all existing partitions on the disk\n\n## ISO SHA-256 Checksum\n\`\`\`\n\`\`\`\n# DAppNode for Raspberry Pi 4 64bit\n[Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)\n\ndefault login data:\n - **__user__**: dappnode\n - **__password__**: dappnodepi" > CHANGELOG.md
+          SHASUM_DEBIAN_ATTENDED=$(cat SHASUM_DEBIAN_ATTENDED.txt)
+          SHASUM_DEBIAN_UNATTENDED=$(cat SHASUM_DEBIAN_UNATTENDED.txt)
+          echo -en "# Versions\n|  Package  | Version  |\n|---|---|\nbind.dnp.dappnode.eth|${{ needs.set-versions.outputs.bind }}|\n|ipfs.dnp.dappnode.eth|${{ needs.set-versions.outputs.ipfs }}|\n|vpn.dnp.dappnode.eth |${{ needs.set-versions.outputs.vpn }}|\n|dappmanager.dnp.dappnode.eth|${{ needs.set-versions.outputs.dappmanager }}|\n|wifi.dnp.dappnode.eth|${{ needs.set-versions.outputs.wifi }}|\n|https.dnp.dappnode.eth|${{ needs.set-versions.outputs.https }}|\n|wireguard.dnp.dappnode.eth|${{ needs.set-versions.outputs.wireguard }}|\n# Changes\nChanges implemented in release ${{ needs.set-versions.outputs.core }}\n# Debian Attended version\nInstall and customize DAppNode using the attended ISO: **DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64.iso**\n\n## ISO SHA-256 Checksum\n```\nshasum -a 256 DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64.iso\n$SHASUM_DEBIAN_ATTENDED\n```\n# Debian Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64-unattended.iso**\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install Dappnode automatically, deleting all existing partitions on the disk\n\n## ISO SHA-256 Checksum\n```\nshasum -a 256 DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64-unattended.iso\n$SHASUM_DEBIAN_UNATTENDED\n```\n# Ubuntu Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${{ needs.set-versions.outputs.core }}-ubuntu-bookworm-amd64-unattended.iso**\n\n## ISO SHA-256 Checksum\nUploaded directly to SSH server.\n# DAppNode for Raspberry Pi 4 64bit\n[Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)\n\ndefault login data:\n - **__user__**: dappnode\n - **__password__**: dappnodepi" > CHANGELOG.md
           cat CHANGELOG.md
-        env:
-          SHASUM_DEBIAN_ATTENDED: ${{ steps.shasum-debian-attended.outputs.SHASUM_DEBIAN_ATTENDED }}
-          SHASUM_DEBIAN_UNATTENDED: ${{ steps.shasum-debian-unattended.outputs.SHASUM_DEBIAN_UNATTENDED }}
-
-      # print images directory
       - name: Print images directory
         run: |
           echo "Images directory content:"
           ls -lrt images/
-
       - name: Create pre-release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.event.inputs.core }}
+          tag_name: ${{ needs.set-versions.outputs.core }}
           prerelease: true
           files: |
             ./images/Dappnode-*-debian-*-attended.iso
@@ -177,7 +234,6 @@ jobs:
           body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Upload Ubuntu unattended to SSH server (and shasum)
         uses: appleboy/scp-action@v0.1.7
         with:
