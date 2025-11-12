@@ -27,46 +27,37 @@ on:
         description: "Version of the OpenVPN Package. Only numbers"
         required: true
 
-env:
-  BIND_VERSION: ${{ github.event.inputs.bind }}
-  IPFS_VERSION: ${{ github.event.inputs.ipfs }}
-  DAPPMANAGER_VERSION: ${{ github.event.inputs.dappmanager }}
-  WIFI_VERSION: ${{ github.event.inputs.wifi }}
-  WIREGUARD_VERSION: ${{ github.event.inputs.wireguard }}
-  HTTPS_VERSION: ${{ github.event.inputs.https }}
-  VPN_VERSION: ${{ github.event.inputs.vpn }}
-  CORE_VERSION: ${{ github.event.inputs.core }}
 
 jobs:
   set-versions:
     name: Set versions and check regex
     runs-on: ubuntu-latest
     outputs:
-      bind: ${{ env.BIND_VERSION }}
-      ipfs: ${{ env.IPFS_VERSION }}
-      dappmanager: ${{ env.DAPPMANAGER_VERSION }}
-      wifi: ${{ env.WIFI_VERSION }}
-      wireguard: ${{ env.WIREGUARD_VERSION }}
-      https: ${{ env.HTTPS_VERSION }}
-      vpn: ${{ env.VPN_VERSION }}
-      core: ${{ env.CORE_VERSION }}
+      bind: ${{ steps.set_outputs.outputs.bind }}
+      ipfs: ${{ steps.set_outputs.outputs.ipfs }}
+      dappmanager: ${{ steps.set_outputs.outputs.dappmanager }}
+      wifi: ${{ steps.set_outputs.outputs.wifi }}
+      wireguard: ${{ steps.set_outputs.outputs.wireguard }}
+      https: ${{ steps.set_outputs.outputs.https }}
+      vpn: ${{ steps.set_outputs.outputs.vpn }}
+      core: ${{ steps.set_outputs.outputs.core }}
     steps:
       - name: Check versions regex
         run: |
-          [[ $BIND_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $IPFS_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $DAPPMANAGER_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
-            [[ $WIFI_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $WIREGUARD_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $HTTPS_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
-            [[ $VPN_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ $CORE_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "versions introduced in wrong format"; exit 1; }
+          [[ "${{ github.event.inputs.bind }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "${{ github.event.inputs.ipfs }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "${{ github.event.inputs.dappmanager }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
+            [[ "${{ github.event.inputs.wifi }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "${{ github.event.inputs.wireguard }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "${{ github.event.inputs.https }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
+            [[ "${{ github.event.inputs.vpn }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "${{ github.event.inputs.core }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "versions introduced in wrong format"; exit 1; }
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set new versions
         run: |
-          sed -i -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${BIND_VERSION}"/" .dappnode_profile
-          sed -i -e "/IPFS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${IPFS_VERSION}"/" .dappnode_profile
-          sed -i -e "/VPN_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${VPN_VERSION}"/" .dappnode_profile
-          sed -i -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${DAPPMANAGER_VERSION}"/" .dappnode_profile
-          sed -i -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${WIFI_VERSION}"/" .dappnode_profile
-          sed -i -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${WIREGUARD_VERSION}"/" .dappnode_profile
-          sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${HTTPS_VERSION}"/" .dappnode_profile
+          sed -i -e "/BIND_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.bind }}"/" .dappnode_profile
+          sed -i -e "/IPFS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.ipfs }}"/" .dappnode_profile
+          sed -i -e "/VPN_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.vpn }}"/" .dappnode_profile
+          sed -i -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.dappmanager }}"/" .dappnode_profile
+          sed -i -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.wifi }}"/" .dappnode_profile
+          sed -i -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.wireguard }}"/" .dappnode_profile
+          sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.https }}"/" .dappnode_profile
           cat .dappnode_profile
       - name: Create dappnode_profile.sh
         run: cp .dappnode_profile dappnode_profile.sh
@@ -75,6 +66,17 @@ jobs:
         with:
           name: dappnode_profile
           path: dappnode_profile.sh
+      - name: Set outputs
+        id: set_outputs
+        run: |
+          echo "core=${{ github.event.inputs.core }}" >> $GITHUB_OUTPUT
+          echo "bind=${{ github.event.inputs.bind }}" >> $GITHUB_OUTPUT
+          echo "ipfs=${{ github.event.inputs.ipfs }}" >> $GITHUB_OUTPUT
+          echo "dappmanager=${{ github.event.inputs.dappmanager }}" >> $GITHUB_OUTPUT
+          echo "wifi=${{ github.event.inputs.wifi }}" >> $GITHUB_OUTPUT
+          echo "wireguard=${{ github.event.inputs.wireguard }}" >> $GITHUB_OUTPUT
+          echo "https=${{ github.event.inputs.https }}" >> $GITHUB_OUTPUT
+          echo "vpn=${{ github.event.inputs.vpn }}" >> $GITHUB_OUTPUT
 
   build-debian-attended:
     name: Build Debian attended ISO
@@ -187,6 +189,11 @@ jobs:
           source: SHASUM_UBUNTU_UNATTENDED.txt,images/*-ubuntu-*-unattended.iso
           target: ${{ secrets.ISO_SSH_PATH }}
           overwrite: true
+      - name: Upload Ubuntu unattended SHA256 as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-unattended-sha
+          path: SHASUM_UBUNTU_UNATTENDED.txt
 
   release:
     name: Combine, release, and upload
@@ -208,12 +215,14 @@ jobs:
           mv artifacts/debian-unattended-iso/* images/
           mv artifacts/debian-attended-sha/* .
           mv artifacts/debian-unattended-sha/* .
+          mv artifacts/ubuntu-unattended-sha/* .
           mv artifacts/dappnode_profile/* .
       - name: Write release content
         run: |
           SHASUM_DEBIAN_ATTENDED=$(cat SHASUM_DEBIAN_ATTENDED.txt)
           SHASUM_DEBIAN_UNATTENDED=$(cat SHASUM_DEBIAN_UNATTENDED.txt)
-          echo -en "# Versions\n|  Package  | Version  |\n|---|---|\nbind.dnp.dappnode.eth|${{ needs.set-versions.outputs.bind }}|\n|ipfs.dnp.dappnode.eth|${{ needs.set-versions.outputs.ipfs }}|\n|vpn.dnp.dappnode.eth |${{ needs.set-versions.outputs.vpn }}|\n|dappmanager.dnp.dappnode.eth|${{ needs.set-versions.outputs.dappmanager }}|\n|wifi.dnp.dappnode.eth|${{ needs.set-versions.outputs.wifi }}|\n|https.dnp.dappnode.eth|${{ needs.set-versions.outputs.https }}|\n|wireguard.dnp.dappnode.eth|${{ needs.set-versions.outputs.wireguard }}|\n# Changes\nChanges implemented in release ${{ needs.set-versions.outputs.core }}\n# Debian Attended version\nInstall and customize DAppNode using the attended ISO: **DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64.iso**\n\n## ISO SHA-256 Checksum\n```\nshasum -a 256 DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64.iso\n$SHASUM_DEBIAN_ATTENDED\n```\n# Debian Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64-unattended.iso**\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install Dappnode automatically, deleting all existing partitions on the disk\n\n## ISO SHA-256 Checksum\n```\nshasum -a 256 DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64-unattended.iso\n$SHASUM_DEBIAN_UNATTENDED\n```\n# Ubuntu Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${{ needs.set-versions.outputs.core }}-ubuntu-bookworm-amd64-unattended.iso**\n\n## ISO SHA-256 Checksum\nUploaded directly to SSH server.\n# DAppNode for Raspberry Pi 4 64bit\n[Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)\n\ndefault login data:\n - **__user__**: dappnode\n - **__password__**: dappnodepi" > CHANGELOG.md
+          SHASUM_UBUNTU_UNATTENDED=$(cat SHASUM_UBUNTU_UNATTENDED.txt)
+          echo -en "# Versions\n|  Package  | Version  |\n|---|---|\nbind.dnp.dappnode.eth|${{ needs.set-versions.outputs.bind }}|\n|ipfs.dnp.dappnode.eth|${{ needs.set-versions.outputs.ipfs }}|\n|vpn.dnp.dappnode.eth |${{ needs.set-versions.outputs.vpn }}|\n|dappmanager.dnp.dappnode.eth|${{ needs.set-versions.outputs.dappmanager }}|\n|wifi.dnp.dappnode.eth|${{ needs.set-versions.outputs.wifi }}|\n|https.dnp.dappnode.eth|${{ needs.set-versions.outputs.https }}|\n|wireguard.dnp.dappnode.eth|${{ needs.set-versions.outputs.wireguard }}|\n# Changes\nChanges implemented in release ${{ needs.set-versions.outputs.core }}\n# Debian Attended version\nInstall and customize DAppNode using the attended ISO: **DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64.iso**\n\n## ISO SHA-256 Checksum\n```\nshasum -a 256 DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64.iso\n$SHASUM_DEBIAN_ATTENDED\n```\n# Debian Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64-unattended.iso**\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install Dappnode automatically, deleting all existing partitions on the disk\n\n## ISO SHA-256 Checksum\n```\nshasum -a 256 DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64-unattended.iso\n$SHASUM_DEBIAN_UNATTENDED\n```\n# Ubuntu Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${{ needs.set-versions.outputs.core }}-ubuntu-bookworm-amd64-unattended.iso**\n\n## ISO SHA-256 Checksum\n```\nshasum -a 256 DAppNode-${{ needs.set-versions.outputs.core }}-ubuntu-bookworm-amd64-unattended.iso\n$SHASUM_UBUNTU_UNATTENDED\n```\nUploaded at https://ubuntu.iso.dappnode.io\n# DAppNode for Raspberry Pi 4 64bit\n[Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)\n\ndefault login data:\n - **__user__**: dappnode\n - **__password__**: dappnodepi" > CHANGELOG.md
           cat CHANGELOG.md
       - name: Print images directory
         run: |
@@ -234,13 +243,3 @@ jobs:
           body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload Ubuntu unattended to SSH server (and shasum)
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.ISO_SSH_HOST }}
-          username: ${{ secrets.ISO_SSH_USER }}
-          key: ${{ secrets.ISO_SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SSH_PORT }}
-          source: SHASUM_UBUNTU_UNATTENDED.txt,./images/Dappnode-*-ubuntu-*-unattended.iso
-          target: ${{ secrets.ISO_SSH_PATH }}
-          overwrite: true
