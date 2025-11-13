@@ -45,7 +45,7 @@ DAppNode lowers the barrier of entry for non tech-savvy participants. It allows 
 
 ## Develop with DAppNode
 
-DAppNode modular architecture allows any team to or project to publish a dockerized application to the DAppNode packages eco-system. Benefit from an enthusiastic crypto savvy user based and offer a user interface-only experience to lower onboarding friction.
+DAppNode modular architecture allows any team or project to publish a dockerized application to the DAppNode packages eco-system. Benefit from an enthusiastic crypto savvy user base and offer a user interface-only experience to lower onboarding friction.
 
 Check out the [DAppNodeSDK](https://github.com/dappnode/DAppNodeSDK) to learn how to get started.
 
@@ -53,7 +53,7 @@ _Note: packages are published to Ethereum mainnet and incur costs. Given the cur
 
 ## Packages eco-system
 
-The community and core team members have created many useful packages for users. Checkout the [**package explorer**](https://explorer.dappnode.io) to browse an up-to-date list of all packages and their versions.
+The community and core team members have created many useful packages for users. Check out the [**package explorer**](https://explorer.dappnode.io) to browse an up-to-date list of all packages and their versions.
 
 <p align="center">
   <a href="https://explorer.dappnode.io">
@@ -164,7 +164,7 @@ sudo wget -O - https://prerequisites.dappnode.io | sudo bash
 
 **2. Script installation**
 
-Once you make sure you have the requirements, install DAPpNode with the installation script:
+Once you make sure you have the requirements, install DAppNode with the installation script:
 
 ```bash
 sudo wget -O - https://installer.dappnode.io | sudo bash
@@ -206,7 +206,7 @@ The release will contain:
 
 ## Testing with artifacts
 
-Generate ISOs and test them by running the Github action: **Artifacts**. This action will generate an artifacts with the same assets as the release, useful for testing purposes.
+Generate ISOs and test them by running the Github action: **Artifacts**. This action will generate artifacts with the same assets as the release, useful for testing purposes.
 
 ## Versioning
 
