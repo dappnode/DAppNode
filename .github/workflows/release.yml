@@ -27,7 +27,6 @@ on:
         description: "Version of the OpenVPN Package. Only numbers"
         required: true
 
-
 jobs:
   set-versions:
     name: Set versions and check regex
@@ -88,6 +87,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dappnode_profile
+      - name: Rename dappnode_profile.sh to .dappnode_profile
+        run: mv dappnode_profile.sh .dappnode_profile
       - name: Build Debian attended
         run: |
           export BASE_OS=debian
@@ -125,6 +126,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dappnode_profile
+      - name: Rename dappnode_profile.sh to .dappnode_profile
+        run: mv dappnode_profile.sh .dappnode_profile
       - name: Build Debian unattended
         run: |
           export BASE_OS=debian
@@ -163,6 +166,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: dappnode_profile
+      - name: Rename dappnode_profile.sh to .dappnode_profile
+        run: mv dappnode_profile.sh .dappnode_profile
       - name: Build Ubuntu unattended
         run: |
           export BASE_OS=ubuntu
