@@ -62,21 +62,38 @@ is_port_used() {
     lsof -i -P -n | grep ":80 (LISTEN)" &>/dev/null && IS_PORT_USED=true || IS_PORT_USED=false
 }
 
+# Check if HTTPS container is using port 80
+is_https_container_using_port() {
+    # Check if the HTTPS container is running and using port 80
+    docker ps --filter "name=DAppNodeCore-https.dnp.dappnode.eth" --format "{{.Names}}" 2>/dev/null | grep -q "DAppNodeCore-https.dnp.dappnode.eth" && IS_HTTPS_USING_PORT=true || IS_HTTPS_USING_PORT=false
+}
+
 # Determine packages to be installed
 determine_packages() {
     is_iso_install
     is_port_used
+    is_https_container_using_port
+    
+    # If port is used by HTTPS container itself, we should still install HTTPS
+    INSTALL_HTTPS=false
+    if [ "$IS_PORT_USED" == "false" ]; then
+        INSTALL_HTTPS=true
+    elif [ "$IS_HTTPS_USING_PORT" == "true" ]; then
+        # Port is used, but by HTTPS container - still install HTTPS
+        INSTALL_HTTPS=true
+    fi
+    
     if [ "$IS_ISO_INSTALL" == "false" ]; then
-        if [ "$IS_PORT_USED" == "true" ]; then
-            PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI)
-        else
+        if [ "$INSTALL_HTTPS" == "true" ]; then
             PKGS=(HTTPS BIND IPFS WIREGUARD DAPPMANAGER WIFI)
+        else
+            PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI)
         fi
     else
-        if [ "$IS_PORT_USED" == "true" ]; then
-            PKGS=(BIND IPFS WIREGUARD DAPPMANAGER WIFI)
-        else
+        if [ "$INSTALL_HTTPS" == "true" ]; then
             PKGS=(HTTPS BIND IPFS WIREGUARD DAPPMANAGER WIFI)
+        else
+            PKGS=(BIND IPFS WIREGUARD DAPPMANAGER WIFI)
         fi
     fi
     echo -e "\e[32mPackages to be installed: ${PKGS[*]}\e[0m" 2>&1 | tee -a $LOGFILE
