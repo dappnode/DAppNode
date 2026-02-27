@@ -39,7 +39,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Install Docker
-        uses: docker-practice/actions-setup-docker@master # TODO: use pre-install script instead
+        run: |
+          brew install --cask docker
+          open -a Docker
+          while ! docker info > /dev/null 2>&1; do sleep 2; done # TODO: use pre-install script instead
       - name: Install DAppNode
         run: |
           /bin/bash ./scripts/dappnode_install.sh
