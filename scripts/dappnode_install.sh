@@ -334,7 +334,8 @@ dappnode_core_load() {
     for comp in "${PKGS[@]}"; do
         ver="${comp}_VERSION"
         if [[ ${!ver} != dev:* ]]; then
-            eval "[ ! -z \$(docker images -q ${comp,,}.dnp.dappnode.eth:${!ver##*:}) ] || docker load -i \$${comp}_FILE 2>&1 | tee -a \$LOGFILE"
+            comp_lower=$(echo "$comp" | tr '[:upper:]' '[:lower:]')
+            eval "[ ! -z \$(docker images -q ${comp_lower}.dnp.dappnode.eth:${!ver##*:}) ] || docker load -i \$${comp}_FILE 2>&1 | tee -a \$LOGFILE"
         fi
     done
 }
