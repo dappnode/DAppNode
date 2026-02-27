@@ -31,13 +31,26 @@ jobs:
         run: |
           sudo /bin/bash ./scripts/dappnode_uninstall.sh y
 
+  scripts-macos:
+    name: test scripts (macOS)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install Docker
+        uses: docker-practice/actions-setup-docker@master # TODO: use pre-install script instead
+      - name: Install DAppNode
+        run: |
+          /bin/bash ./scripts/dappnode_install.sh
+
   iso:
     name: test Debian and Ubuntu ISO
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       # Create Debian ISO
       - name: create Debian ISO

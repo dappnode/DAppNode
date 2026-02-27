@@ -122,6 +122,7 @@ patch_compose_paths() {
     sed_inplace "s|/usr/src/dappnode|${DAPPNODE_DIR}|g" "$file"
 }
 
+# TODO: remove once profile macos-compatibility published
 # Patch .dappnode_profile for macOS compatibility
 patch_profile_for_macos() {
     local profile="$1"
@@ -238,6 +239,7 @@ fi
 [ -f "$DAPPNODE_PROFILE" ] || download_file "${DAPPNODE_PROFILE}" "${PROFILE_URL}"
 
 # Patch profile for macOS compatibility (replace GNU-isms and hardcoded Linux paths)
+# TODO: remove once profile macos-compatibility published
 if $IS_MACOS; then
     patch_profile_for_macos "$DAPPNODE_PROFILE"
 fi
@@ -447,17 +449,11 @@ add_profile_to_shell() {
     done
 }
 
-dappnode_start() {
+dappnode_core_start() {
     echo -e "\e[32mDAppNode starting...\e[0m" 2>&1 | tee -a $LOGFILE
-    # shellcheck disable=SC1090
-    source "${DAPPNODE_PROFILE}" >/dev/null 2>&1
 
-    # Execute `compose-up` independently
-    # To execute `compose-up` against more than 1 compose, composes files must share compose file version (e.g 3.5)
-    for comp in "${DNCORE_YMLS_ARRAY[@]}"; do
-        docker compose -f "$comp" up -d 2>&1 | tee -a $LOGFILE
-        echo "${comp} started" 2>&1 | tee -a $LOGFILE
-    done
+    # Use DNCORE_YMLS from the profile (populated after re-sourcing post-download)
+    docker compose $DNCORE_YMLS up -d 2>&1 | tee -a $LOGFILE
     echo -e "\e[32mDAppNode started\e[0m" 2>&1 | tee -a $LOGFILE
 
     # Add profile sourcing to user's shell configuration
@@ -584,6 +580,10 @@ dappnode_core_build
 echo -e "\e[32mDownloading DAppNode Core...\e[0m" 2>&1 | tee -a $LOGFILE
 dappnode_core_download
 
+# Re-source profile now that compose files exist, so DNCORE_YMLS is populated
+# shellcheck disable=SC1090
+source "${DAPPNODE_PROFILE}"
+
 echo -e "\e[32mLoading DAppNode Core...\e[0m" 2>&1 | tee -a $LOGFILE
 dappnode_core_load
 
@@ -591,7 +591,7 @@ dappnode_core_load
 if $IS_LINUX; then
     if [ ! -f "${DAPPNODE_DIR}/.firstboot" ]; then
         echo -e "\e[32mDAppNode installed\e[0m" 2>&1 | tee -a $LOGFILE
-        dappnode_start
+        dappnode_core_start
     fi
 
     # Run test in interactive terminal (first boot only)
@@ -605,7 +605,7 @@ fi
 
 if $IS_MACOS; then
     echo -e "\e[32mDAppNode installed\e[0m" 2>&1 | tee -a $LOGFILE
-    dappnode_start
+    dappnode_core_start
 
     echo -e "\n\e[33mWaiting for VPN initialization...\e[0m"
     sleep 10
