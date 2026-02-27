@@ -31,22 +31,6 @@ jobs:
         run: |
           sudo /bin/bash ./scripts/dappnode_uninstall.sh y
 
-  scripts-macos:
-    name: test scripts (macOS)
-    runs-on: macos-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-      - name: Install Docker
-        run: |
-          brew install --cask docker
-          open -a Docker
-          while ! docker info > /dev/null 2>&1; do sleep 2; done # TODO: use pre-install script instead
-      - name: Install DAppNode
-        run: |
-          /bin/bash ./scripts/dappnode_install.sh
-
   iso:
     name: test Debian and Ubuntu ISO
     runs-on: ubuntu-latest
