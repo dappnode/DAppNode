@@ -258,12 +258,13 @@ for comp in "${PKGS[@]}"; do
     if [[ ${!ver} == /ipfs/* ]]; then
         DOWNLOAD_URL="${IPFS_ENDPOINT}/api/v0/cat?arg=${!ver%:*}"
     fi
-    eval "${comp}_URL=\"${DOWNLOAD_URL}/${comp,,}.dnp.dappnode.eth_${!ver##*:}_linux-${ARCH}.txz\""
+    comp_lower=$(echo "$comp" | tr '[:upper:]' '[:lower:]')
+    eval "${comp}_URL=\"${DOWNLOAD_URL}/${comp_lower}.dnp.dappnode.eth_${!ver##*:}_linux-${ARCH}.txz\""
     eval "${comp}_YML=\"${DOWNLOAD_URL}/docker-compose.yml\""
     eval "${comp}_MANIFEST=\"${DOWNLOAD_URL}/dappnode_package.json\""
-    eval "${comp}_YML_FILE=\"${DAPPNODE_CORE_DIR}/docker-compose-${comp,,}.yml\""
-    eval "${comp}_FILE=\"${DAPPNODE_CORE_DIR}/${comp,,}.dnp.dappnode.eth_${!ver##*:}_linux-${ARCH}.txz\""
-    eval "${comp}_MANIFEST_FILE=\"${DAPPNODE_CORE_DIR}/dappnode_package-${comp,,}.json\""
+    eval "${comp}_YML_FILE=\"${DAPPNODE_CORE_DIR}/docker-compose-${comp_lower}.yml\""
+    eval "${comp}_FILE=\"${DAPPNODE_CORE_DIR}/${comp_lower}.dnp.dappnode.eth_${!ver##*:}_linux-${ARCH}.txz\""
+    eval "${comp}_MANIFEST_FILE=\"${DAPPNODE_CORE_DIR}/dappnode_package-${comp_lower}.json\""
 done
 
 dappnode_core_build() {
