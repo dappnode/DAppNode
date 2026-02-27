@@ -1,18 +1,59 @@
 #!/bin/bash
 
+# This installer is written for bash. It's safe to *run it from zsh* (it will execute via bash
+# thanks to the shebang), but users sometimes invoke it as `zsh ./script.sh` or `source ./script.sh`.
+# - If sourced, bail out (sourcing would pollute the current shell and can break it).
+# - If invoked by a non-bash shell, re-exec with bash before hitting bash-specific builtins.
+if (return 0 2>/dev/null); then
+    echo "This script must be executed, not sourced. Run: bash $0"
+    return 1
+fi
+
+if [ -z "${BASH_VERSION:-}" ]; then
+    exec /usr/bin/env bash "$0" "$@"
+fi
+
+set -eo pipefail
+
+# Enable alias expansion in non-interactive bash scripts.
+# Required so commands like `dappnode_wireguard` (defined as aliases in `.dappnode_profile`) work.
+shopt -s expand_aliases
+
+##################
+# OS DETECTION   #
+##################
+OS_TYPE="$(uname -s)"
+IS_MACOS=false
+IS_LINUX=false
+if [[ "$OS_TYPE" == "Darwin" ]]; then
+    IS_MACOS=true
+elif [[ "$OS_TYPE" == "Linux" ]]; then
+    IS_LINUX=true
+else
+    echo "Unsupported operating system: $OS_TYPE"
+    exit 1
+fi
+
 #############
 # VARIABLES #
 #############
-# Dirs
-DAPPNODE_DIR="/usr/src/dappnode"
+# Dirs - macOS uses $HOME/dappnode, Linux uses /usr/src/dappnode
+if $IS_MACOS; then
+    DAPPNODE_DIR="$HOME/dappnode"
+else
+    DAPPNODE_DIR="/usr/src/dappnode"
+fi
 DAPPNODE_CORE_DIR="${DAPPNODE_DIR}/DNCORE"
 LOGS_DIR="$DAPPNODE_DIR/logs"
 # Files
 CONTENT_HASH_FILE="${DAPPNODE_CORE_DIR}/packages-content-hash.csv"
 LOGFILE="${LOGS_DIR}/dappnode_install.log"
-MOTD_FILE="/etc/motd"
-UPDATE_MOTD_DIR="/etc/update-motd.d"
 DAPPNODE_PROFILE="${DAPPNODE_CORE_DIR}/.dappnode_profile"
+# Linux-only paths
+if $IS_LINUX; then
+    MOTD_FILE="/etc/motd"
+    UPDATE_MOTD_DIR="/etc/update-motd.d"
+fi
 # Get URLs
 PROFILE_BRANCH=${PROFILE_BRANCH:-"master"}
 IPFS_ENDPOINT=${IPFS_ENDPOINT:-"http://ipfs.io"}
@@ -20,12 +61,75 @@ IPFS_ENDPOINT=${IPFS_ENDPOINT:-"http://ipfs.io"}
 PROFILE_URL=${PROFILE_URL:-"https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_profile.sh"}
 DAPPNODE_ACCESS_CREDENTIALS="${DAPPNODE_DIR}/scripts/dappnode_access_credentials.sh"
 DAPPNODE_ACCESS_CREDENTIALS_URL="https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_access_credentials.sh"
-WGET="wget -q --show-progress --progress=bar:force"
-SWGET="wget -q -O-"
 # Other
-CONTENT_HASH_PKGS=(geth besu nethermind erigon prysm teku lighthouse nimbus lodestar)
-ARCH=$(dpkg --print-architecture)
-WELCOME_MESSAGE="\nChoose a way to connect to your DAppNode, then go to \e[1mhttp://my.dappnode\e[0m\n\n\e[1m- Wifi\e[0m\t\tScan and connect to DAppNodeWIFI. Get wifi credentials with \e[32mdappnode_wifi\e[0m\n\n\e[1m- Local Proxy\e[0m\tConnect to the same router as your DAppNode. Then go to \e[1mhttp://dappnode.local\e[0m\n\n\e[1m- Wireguard\e[0m\tDownload Wireguard app on your device. Get your dappnode wireguard credentials with \e[32mdappnode_wireguard\e[0m\n\n\e[1m- Open VPN\e[0m\tDownload OPen VPN app on your device. Get your openVPN creds with \e[32mdappnode_openvpn\e[0m\n\n\nTo see a full list of commands available execute \e[32mdappnode_help\e[0m\n"
+
+# Architecture detection (cross-platform)
+if $IS_MACOS; then
+    ARCH=$(uname -m)
+    [[ "$ARCH" == "x86_64" ]] && ARCH="amd64"
+    # arm64 is already correct for Apple Silicon
+else
+    ARCH=$(dpkg --print-architecture)
+fi
+
+##############################
+# Cross-platform Helpers     #
+##############################
+
+# Download a file: download_file <destination> <url>
+download_file() {
+    local dest="$1"
+    local url="$2"
+    if $IS_MACOS; then
+        curl -sL -o "$dest" "$url"
+    else
+        wget -q --show-progress --progress=bar:force -O "$dest" "$url"
+    fi
+}
+
+# Download content to stdout: download_stdout <url>
+download_stdout() {
+    local url="$1"
+    if $IS_MACOS; then
+        curl -sL "$url"
+    else
+        wget -q -O- "$url"
+    fi
+}
+
+# Cross-platform in-place sed (macOS requires '' after -i)
+sed_inplace() {
+    if $IS_MACOS; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
+##############################
+# Compose Patching Helpers   #
+##############################
+
+# Remove journald logging from compose files (not supported on macOS Docker Desktop)
+remove_logging_section() {
+    local file="$1"
+    sed_inplace '/logging/d;/journald/d' "$file"
+}
+
+# Replace Linux paths with macOS paths in compose files
+patch_compose_paths() {
+    local file="$1"
+    sed_inplace "s|/usr/src/dappnode|${DAPPNODE_DIR}|g" "$file"
+}
+
+# Patch .dappnode_profile for macOS compatibility
+patch_profile_for_macos() {
+    local profile="$1"
+    # Replace GNU find -printf with POSIX-compatible -exec printf
+    sed_inplace 's/-printf "-f %p "/-exec printf -- "-f %s " {} \\;/' "$profile"
+    # Replace hardcoded Linux paths with $HOME-based paths
+    sed_inplace 's|/usr/src/dappnode|\$HOME/dappnode|g' "$profile"
+}
 
 # Clean if update
 if [ "$UPDATE" = true ]; then
@@ -49,6 +153,11 @@ mkdir -p $LOGS_DIR
 
 # TEMPORARY: think a way to integrate flags instead of use files to detect installation type
 is_iso_install() {
+    # ISO installs are Linux-only
+    if $IS_MACOS; then
+        IS_ISO_INSTALL=false
+        return
+    fi
     # Check old and new location of iso_install.log
     if [ -f "${DAPPNODE_DIR}/iso_install.log" ] || [ -f "${DAPPNODE_DIR}/logs/iso_install.log" ]; then
         IS_ISO_INSTALL=true
@@ -126,7 +235,13 @@ if [[ -n "$STATIC_IP" ]]; then
 fi
 
 # Loads profile, if not exists it means it is script install so the versions will be fetched from the latest profile
-[ -f $DAPPNODE_PROFILE ] || ${WGET} -O ${DAPPNODE_PROFILE} ${PROFILE_URL}
+[ -f "$DAPPNODE_PROFILE" ] || download_file "${DAPPNODE_PROFILE}" "${PROFILE_URL}"
+
+# Patch profile for macOS compatibility (replace GNU-isms and hardcoded Linux paths)
+if $IS_MACOS; then
+    patch_profile_for_macos "$DAPPNODE_PROFILE"
+fi
+
 # shellcheck disable=SC1090
 source "${DAPPNODE_PROFILE}"
 
@@ -153,6 +268,10 @@ dappnode_core_build() {
     for comp in "${PKGS[@]}"; do
         ver="${comp}_VERSION"
         if [[ ${!ver} == dev:* ]]; then
+            if $IS_MACOS; then
+                echo "Development builds (dev:*) are not supported on macOS."
+                exit 1
+            fi
             echo "Cloning & building DNP_${comp}..."
             if ! dpkg -s git >/dev/null 2>&1; then
                 apt-get install -y git
@@ -182,15 +301,28 @@ dappnode_core_download() {
     for comp in "${PKGS[@]}"; do
         ver="${comp}_VERSION"
         if [[ ${!ver} != dev:* ]]; then
-            # Download DAppNode Core Images if it's needed
+            local file_var="${comp}_FILE"
+            local url_var="${comp}_URL"
+            local yml_file_var="${comp}_YML_FILE"
+            local yml_var="${comp}_YML"
+            local manifest_file_var="${comp}_MANIFEST_FILE"
+            local manifest_var="${comp}_MANIFEST"
+
+            # Download DAppNode Core Images if needed
             echo "Downloading ${comp} tar..."
-            eval "[ -f \$${comp}_FILE ] || $WGET -O \$${comp}_FILE \$${comp}_URL || exit 1"
-            # Download DAppNode Core docker-compose yml files if it's needed
+            [ -f "${!file_var}" ] || download_file "${!file_var}" "${!url_var}" || exit 1
+            # Download DAppNode Core docker-compose yml files if needed
             echo "Downloading ${comp} yml..."
-            eval "[ -f \$${comp}_YML_FILE ] || $WGET -O \$${comp}_YML_FILE \$${comp}_YML || exit 1"
-            # Download DAppNode Core manifest files if it's needed
+            [ -f "${!yml_file_var}" ] || download_file "${!yml_file_var}" "${!yml_var}" || exit 1
+            # Download DAppNode Core manifest files if needed
             echo "Downloading ${comp} manifest..."
-            eval "[ -f \$${comp}_MANIFEST_FILE ] || $WGET -O \$${comp}_MANIFEST_FILE \$${comp}_MANIFEST || exit 1"
+            [ -f "${!manifest_file_var}" ] || download_file "${!manifest_file_var}" "${!manifest_var}" || exit 1
+
+            # macOS: patch compose files for Docker Desktop compatibility
+            if $IS_MACOS; then
+                remove_logging_section "${!yml_file_var}"
+                patch_compose_paths "${!yml_file_var}"
+            fi
         fi
     done
 }
@@ -205,7 +337,6 @@ dappnode_core_load() {
 }
 
 customMotd() {
-
     generateMotdText
 
     if [ -d "${UPDATE_MOTD_DIR}" ]; then
@@ -216,6 +347,8 @@ customMotd() {
 
 # Debian distros use /etc/motd plain text file
 generateMotdText() {
+    local welcome_message
+
     # Check and create the MOTD file if it does not exist
     if [ ! -f "${MOTD_FILE}" ]; then
         touch "${MOTD_FILE}"
@@ -229,7 +362,8 @@ generateMotdText() {
  |___/\__,_| .__/ .__/_||_\___/\__,_\___|
            |_|  |_|                      
 EOF
-    echo -e "$WELCOME_MESSAGE" >>"${MOTD_FILE}"
+    welcome_message="\nChoose a way to connect to your DAppNode, then go to \e[1mhttp://my.dappnode\e[0m\n\n\e[1m- Wifi\e[0m\t\tScan and connect to DAppNodeWIFI. Get wifi credentials with \e[32mdappnode_wifi\e[0m\n\n\e[1m- Local Proxy\e[0m\tConnect to the same router as your DAppNode. Then go to \e[1mhttp://dappnode.local\e[0m\n\n\e[1m- Wireguard\e[0m\tDownload Wireguard app on your device. Get your dappnode wireguard credentials with \e[32mdappnode_wireguard\e[0m\n\n\e[1m- Open VPN\e[0m\tDownload OPen VPN app on your device. Get your openVPN creds with \e[32mdappnode_openvpn\e[0m\n\n\nTo see a full list of commands available execute \e[32mdappnode_help\e[0m\n"
+    printf "%b" "$welcome_message" >>"${MOTD_FILE}"
 }
 
 # Ubuntu distros use /etc/update-motd.d/ to generate the motd
@@ -269,6 +403,50 @@ addSwap() {
     fi
 }
 
+# Add .dappnode_profile sourcing to the user's default shell configuration
+add_profile_to_shell() {
+    local user_home
+    local shell_configs
+
+    if $IS_MACOS; then
+        user_home="$HOME"
+        # macOS defaults to zsh
+        shell_configs=(".zshrc" ".zprofile")
+    else
+        # Linux: determine user home from /etc/passwd
+        local user_name
+        user_name=$(grep 1000 /etc/passwd | cut -f 1 -d:)
+        if [ -n "$user_name" ]; then
+            user_home="/home/$user_name"
+        else
+            user_home="/root"
+        fi
+        shell_configs=(".profile" ".bashrc")
+    fi
+
+    for config_file in "${shell_configs[@]}"; do
+        local config_path="${user_home}/${config_file}"
+        local source_line
+
+        # .profile may be evaluated by /bin/sh (dash on Debian/Ubuntu) where `source` is not valid.
+        # Use POSIX '.' there; use `source` elsewhere (bash/zsh).
+        if [ "$config_file" = ".profile" ]; then
+            source_line="[ -f \"${DAPPNODE_PROFILE}\" ] && . \"${DAPPNODE_PROFILE}\""
+        else
+            source_line="[ -f \"${DAPPNODE_PROFILE}\" ] && source \"${DAPPNODE_PROFILE}\""
+        fi
+
+        # Create config file if it doesn't exist
+        [ ! -f "$config_path" ] && touch "$config_path"
+        # Add profile sourcing if not already present
+        if ! grep -q "${DAPPNODE_PROFILE}" "$config_path"; then
+            echo "########          DAPPNODE PROFILE          ########" >> "$config_path"
+            echo "$source_line" >> "$config_path"
+            echo "" >> "$config_path"
+        fi
+    done
+}
+
 dappnode_start() {
     echo -e "\e[32mDAppNode starting...\e[0m" 2>&1 | tee -a $LOGFILE
     # shellcheck disable=SC1090
@@ -282,33 +460,20 @@ dappnode_start() {
     done
     echo -e "\e[32mDAppNode started\e[0m" 2>&1 | tee -a $LOGFILE
 
-    # Show credentials to the user on login
-    USER=$(grep 1000 /etc/passwd | cut -f 1 -d:)
-    [ -n "$USER" ] && USER_HOME=/home/$USER || USER_HOME=/root
+    # Add profile sourcing to user's shell configuration
+    add_profile_to_shell
 
-    # Add profile sourcing to both .profile and .bashrc for maximum compatibility
-    for config_file in .profile .bashrc; do
-        CONFIG_PATH="$USER_HOME/$config_file"
-        
-        # Create config file if it doesn't exist
-        [ ! -f "$CONFIG_PATH" ] && touch "$CONFIG_PATH"
-        
-        # Add profile sourcing if not already present
-        if ! grep -q "${DAPPNODE_PROFILE}" "$CONFIG_PATH"; then
-            echo "########          DAPPNODE PROFILE          ########" >>"$CONFIG_PATH"
-            echo -e "source ${DAPPNODE_PROFILE}\n" >>"$CONFIG_PATH"
-        fi
-    done
-
-    # Remove return from profile
-    sed -i '/return/d' $DAPPNODE_PROFILE | tee -a $LOGFILE
+    # Remove return from profile so it can be sourced in login shells
+    sed_inplace '/return/d' "$DAPPNODE_PROFILE"
 
     # Download access_credentials script
-    [ -f $DAPPNODE_ACCESS_CREDENTIALS ] || ${WGET} -O ${DAPPNODE_ACCESS_CREDENTIALS} ${DAPPNODE_ACCESS_CREDENTIALS_URL}
+    [ -f "$DAPPNODE_ACCESS_CREDENTIALS" ] || download_file "${DAPPNODE_ACCESS_CREDENTIALS}" "${DAPPNODE_ACCESS_CREDENTIALS_URL}"
 
-    # Delete dappnode_install.sh execution from rc.local if exists, and is not the unattended firstboot
-    if [ -f "/etc/rc.local" ] && [ ! -f "/usr/src/dappnode/.firstboot" ]; then
-        sed -i '/\/usr\/src\/dappnode\/scripts\/dappnode_install.sh/d' /etc/rc.local 2>&1 | tee -a $LOGFILE
+    # Linux-only: clean up rc.local
+    if $IS_LINUX; then
+        if [ -f "/etc/rc.local" ] && [ ! -f "${DAPPNODE_DIR}/.firstboot" ]; then
+            sed_inplace '/\/usr\/src\/dappnode\/scripts\/dappnode_install.sh/d' /etc/rc.local 2>&1 | tee -a $LOGFILE
+        fi
     fi
 
     # Display help message to the user
@@ -323,8 +488,9 @@ installExtraDpkg() {
 
 grabContentHashes() {
     if [ ! -f "${CONTENT_HASH_FILE}" ]; then
-        for comp in "${CONTENT_HASH_PKGS[@]}"; do
-            CONTENT_HASH=$(eval "${SWGET}" https://github.com/dappnode/DAppNodePackage-"${comp}"/releases/latest/download/content-hash)
+        local content_hash_pkgs=(geth besu nethermind erigon prysm teku lighthouse nimbus lodestar)
+        for comp in "${content_hash_pkgs[@]}"; do
+            CONTENT_HASH=$(download_stdout "https://github.com/dappnode/DAppNodePackage-${comp}/releases/latest/download/content-hash")
             if [ -z "$CONTENT_HASH" ]; then
                 echo "ERROR! Failed to find content hash of ${comp}." 2>&1 | tee -a $LOGFILE
                 exit 1
@@ -382,31 +548,35 @@ echo -e "\e[32m\n##############################################\e[0m" 2>&1 | tee
 echo -e "\e[32m####          DAPPNODE INSTALLER          ####\e[0m" 2>&1 | tee -a $LOGFILE
 echo -e "\e[32m##############################################\e[0m" 2>&1 | tee -a $LOGFILE
 
-echo -e "\e[32mCreating swap memory...\e[0m" 2>&1 | tee -a $LOGFILE
-addSwap
+# --- Linux-only setup steps ---
+if $IS_LINUX; then
+    echo -e "\e[32mCreating swap memory...\e[0m" 2>&1 | tee -a $LOGFILE
+    addSwap
 
-echo -e "\e[32mCustomizing login...\e[0m" 2>&1 | tee -a $LOGFILE
-customMotd
-
-echo -e "\e[32mInstalling extra packages...\e[0m" 2>&1 | tee -a $LOGFILE
-installExtraDpkg
-
-echo -e "\e[32mGrabbing latest content hashes...\e[0m" 2>&1 | tee -a $LOGFILE
-grabContentHashes
-
-if [ "$ARCH" == "amd64" ]; then
-    echo -e "\e[32mInstalling SGX modules...\e[0m" 2>&1 | tee -a $LOGFILE
-    installSgx
+    echo -e "\e[32mCustomizing login...\e[0m" 2>&1 | tee -a $LOGFILE
+    customMotd
 
     echo -e "\e[32mInstalling extra packages...\e[0m" 2>&1 | tee -a $LOGFILE
-    installExtraDpkg # TODO: Why is this being called twice?
+    installExtraDpkg
+
+    echo -e "\e[32mGrabbing latest content hashes...\e[0m" 2>&1 | tee -a $LOGFILE
+    grabContentHashes
+
+    if [ "$ARCH" == "amd64" ]; then
+        echo -e "\e[32mInstalling SGX modules...\e[0m" 2>&1 | tee -a $LOGFILE
+        installSgx
+
+        echo -e "\e[32mInstalling extra packages...\e[0m" 2>&1 | tee -a $LOGFILE
+        installExtraDpkg # TODO: Why is this being called twice?
+    fi
+
+    echo -e "\e[32mAdding user to docker group...\e[0m" 2>&1 | tee -a $LOGFILE
+    addUserToDockerGroup
 fi
 
-echo -e "\e[32mAdding user to docker group...\e[0m" 2>&1 | tee -a $LOGFILE
-addUserToDockerGroup
-
+# --- Common steps (Linux and macOS) ---
 echo -e "\e[32mCreating dncore_network if needed...\e[0m" 2>&1 | tee -a $LOGFILE
-docker network create --driver bridge --subnet 172.33.0.0/16 dncore_network 2>&1 | tee -a $LOGFILE
+docker network create --driver bridge --subnet 172.33.0.0/16 dncore_network 2>&1 | tee -a $LOGFILE || true
 
 echo -e "\e[32mBuilding DAppNode Core if needed...\e[0m" 2>&1 | tee -a $LOGFILE
 dappnode_core_build
@@ -417,18 +587,45 @@ dappnode_core_download
 echo -e "\e[32mLoading DAppNode Core...\e[0m" 2>&1 | tee -a $LOGFILE
 dappnode_core_load
 
-if [ ! -f "/usr/src/dappnode/.firstboot" ]; then
-    echo -e "\e[32mDAppNode installed\e[0m" 2>&1 | tee -a $LOGFILE
-    dappnode_start
+# --- Start DAppNode ---
+if $IS_LINUX; then
+    if [ ! -f "${DAPPNODE_DIR}/.firstboot" ]; then
+        echo -e "\e[32mDAppNode installed\e[0m" 2>&1 | tee -a $LOGFILE
+        dappnode_start
+    fi
+
+    # Run test in interactive terminal (first boot only)
+    if [ -f "${DAPPNODE_DIR}/.firstboot" ]; then
+        apt-get update
+        apt-get install -y kbd
+        openvt -s -w -- sudo -u root "${DAPPNODE_DIR}/scripts/dappnode_test_install.sh"
+        exit 0
+    fi
 fi
 
-# Run test in interactive terminal
-if [ -f "/usr/src/dappnode/.firstboot" ]; then
-    # ensure openvt is installed prior to using it
-    apt-get update
-    apt-get install -y kbd
-    openvt -s -w -- sudo -u root /usr/src/dappnode/scripts/dappnode_test_install.sh
-    exit 0
+if $IS_MACOS; then
+    echo -e "\e[32mDAppNode installed\e[0m" 2>&1 | tee -a $LOGFILE
+    dappnode_start
+
+    echo -e "\n\e[33mWaiting for VPN initialization...\e[0m"
+    sleep 10
+
+    echo -e "\n\e[32m##############################################\e[0m"
+    echo -e "\e[32m#      DAppNode VPN Access Credentials        #\e[0m"
+    echo -e "\e[32m##############################################\e[0m"
+    echo -e "\n\e[1mYour DAppNode is ready! Connect using your preferred VPN client.\e[0m"
+    echo -e "\e[1mChoose either Wireguard (recommended) or OpenVPN and import the\e[0m"
+    echo -e "\e[1mcredentials below into your VPN app to access your DAppNode.\e[0m\n"
+
+    echo -e "\e[1m--- Wireguard ---\e[0m"
+    dappnode_wireguard --localhost 2>&1 || \
+        echo -e "\e[33mWireguard credentials not yet available. Try later with: dappnode_wireguard --localhost\e[0m"
+
+    echo -e "\n\e[1m--- OpenVPN ---\e[0m"
+    dappnode_openvpn_get dappnode_admin --localhost 2>&1 || \
+        echo -e "\e[33mOpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin --localhost\e[0m"
+
+    echo -e "\n\e[32mImport the configuration above into your VPN client of choice to access your DAppNode at http://my.dappnode\e[0m"
 fi
 
 exit 0
