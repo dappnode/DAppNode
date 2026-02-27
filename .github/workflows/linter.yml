@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           # Full git history is needed to get a proper list of changed files within `super-linter`
           fetch-depth: 0
@@ -33,3 +33,33 @@ jobs:
           FILTER_REGEX_EXCLUDE: .github/*
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  shell-compat:
+    name: Shell compatibility (.dappnode_profile)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v6
+
+      - name: Install zsh (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zsh
+
+      - name: Parse check (bash)
+        run: bash -n .dappnode_profile
+
+      - name: Parse check (zsh)
+        run: zsh -n .dappnode_profile
+
+      - name: Source check (bash)
+        run: bash -lc 'set -euo pipefail; source ./.dappnode_profile'
+
+      - name: Source check (zsh)
+        run: zsh -lc 'set -e; source ./.dappnode_profile; alias dappnode_status >/dev/null'
