@@ -1,21 +1,85 @@
 #!/usr/bin/env bash
-DAPPNODE_DIR="/usr/src/dappnode"
+
+# Guard against sourcing
+if (return 0 2>/dev/null); then
+    echo "This script must be executed, not sourced. Run: bash $0"
+    return 1
+fi
+
+# Re-exec under bash if invoked by another shell (e.g. zsh)
+if [ -z "${BASH_VERSION:-}" ]; then
+    exec /usr/bin/env bash "$0" "$@"
+fi
+
+##################
+# OS DETECTION   #
+##################
+OS_TYPE="$(uname -s)"
+IS_MACOS=false
+IS_LINUX=false
+if [[ "$OS_TYPE" == "Darwin" ]]; then
+    IS_MACOS=true
+elif [[ "$OS_TYPE" == "Linux" ]]; then
+    IS_LINUX=true
+else
+    echo "Unsupported operating system: $OS_TYPE"
+    exit 1
+fi
+
+#############
+# VARIABLES #
+#############
+# Dirs — macOS uses $HOME/dappnode, Linux uses /usr/src/dappnode (mirrors install script)
+if $IS_MACOS; then
+    DAPPNODE_DIR="$HOME/dappnode"
+else
+    DAPPNODE_DIR="/usr/src/dappnode"
+fi
 DAPPNODE_CORE_DIR="${DAPPNODE_DIR}/DNCORE"
 PROFILE_FILE="${DAPPNODE_CORE_DIR}/.dappnode_profile"
 input=$1 # Allow to call script with argument (must be Y/N)
 
-[ -f $PROFILE_FILE ] || (
-    echo "Error: DAppNode profile does not exist."
+##############################
+# Cross-platform Helpers     #
+##############################
+
+# Color output helper (no ANSI on macOS to avoid \e issues)
+color_echo() {
+    local color="$1"; shift
+    if $IS_LINUX; then
+        case "$color" in
+            green) code="\e[32m" ;;
+            yellow) code="\e[33m" ;;
+            *) code="" ;;
+        esac
+        echo -e "${code}$*\e[0m"
+    else
+        echo "$*"
+    fi
+}
+
+# Cross-platform in-place sed (macOS requires '' after -i)
+sed_inplace() {
+    if $IS_MACOS; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
+[ -f "$PROFILE_FILE" ] || {
+    echo "Error: DAppNode profile does not exist at ${PROFILE_FILE}."
     exit 1
-)
+}
 
 uninstall() {
-    echo -e "\e[32mUninstalling DAppNode\e[0m"
+    color_echo green "Uninstalling DAppNode"
     # shellcheck disable=SC1090
     source "${PROFILE_FILE}" &>/dev/null
 
     DAPPNODE_CONTAINERS="$(docker ps -a --format '{{.Names}}' | grep DAppNode)"
-    echo -e "\e[32mRemoving DAppNode containers: \e[0m\n${DAPPNODE_CONTAINERS}"
+    color_echo green "Removing DAppNode containers: "
+    echo "${DAPPNODE_CONTAINERS}"
     for container in $DAPPNODE_CONTAINERS; do
         # Stop DAppNode container
         docker stop "$container" &>/dev/null
@@ -24,40 +88,58 @@ uninstall() {
     done
 
     DAPPNODE_IMAGES="$(docker image ls -a | grep "dappnode")"
-    echo -e "\e[32mRemoving DAppNode images: \e[0m\n${DAPPNODE_IMAGES}"
+    color_echo green "Removing DAppNode images: "
+    echo "${DAPPNODE_IMAGES}"
     for image in $DAPPNODE_IMAGES; do
         # Remove DAppNode images
         docker image rm "$image" &>/dev/null
     done
 
     DAPPNODE_VOLUMES="$(docker volume ls | grep "dappnode\|dncore")"
-    echo -e "\e[32mRemoving DAppNode volumes: \e[0m\n${DAPPNODE_VOLUMES}"
+    color_echo green "Removing DAppNode volumes: "
+    echo "${DAPPNODE_VOLUMES}"
     for volume in $DAPPNODE_VOLUMES; do
         # Remove DAppNode volumes
         docker volume rm "$volume" &>/dev/null
     done
 
     # Remove dncore_network
-    echo -e "\e[32mRemoving docker dncore_network\e[0m"
+    color_echo green "Removing docker dncore_network"
     docker network remove dncore_network || echo "dncore_network already removed"
 
-    # Remove dir
-    echo -e "\e[32mRemoving DAppNode directory\e[0m"
-    rm -rf /usr/src/dappnode
+    # Remove DAppNode directory
+    color_echo green "Removing DAppNode directory: ${DAPPNODE_DIR}"
+    rm -rf "${DAPPNODE_DIR}"
 
     # Remove profile file references from shell config files
-    USER=$(grep 1000 /etc/passwd | cut -f 1 -d:)
-    [ -n "$USER" ] && USER_HOME=/home/$USER || USER_HOME=/root
-    
-    for config_file in .profile .bashrc; do
-        CONFIG_PATH="$USER_HOME/$config_file"
-        if [ -f "$CONFIG_PATH" ]; then
-            sed -i '/########          DAPPNODE PROFILE          ########/d' "$CONFIG_PATH"
-            sed -i '/.*dappnode_profile/d' "$CONFIG_PATH"
+    local user_home
+    local shell_configs
+
+    if $IS_MACOS; then
+        user_home="$HOME"
+        # macOS defaults to zsh — matches install script
+        shell_configs=(".zshrc" ".zprofile")
+    else
+        local user_name
+        user_name=$(grep 1000 /etc/passwd | cut -f 1 -d:)
+        if [ -n "$user_name" ]; then
+            user_home="/home/$user_name"
+        else
+            user_home="/root"
+        fi
+        shell_configs=(".profile" ".bashrc")
+    fi
+
+    # Remove Dappnode profile references from shell config files
+    for config_file in "${shell_configs[@]}"; do
+        local config_path="${user_home}/${config_file}"
+        if [ -f "$config_path" ]; then
+            sed_inplace '/########          DAPPNODE PROFILE          ########/d' "$config_path"
+            sed_inplace '/.*dappnode_profile/d' "$config_path"
         fi
     done
 
-    echo -e "\e[32mDAppNode uninstalled!\e[0m"
+    color_echo green "DAppNode uninstalled!"
 }
 
 if [ $# -eq 0 ]; then
