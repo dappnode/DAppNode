@@ -56,7 +56,7 @@ if $IS_LINUX; then
 fi
 # Get URLs
 PROFILE_BRANCH=${PROFILE_BRANCH:-"master"}
-IPFS_ENDPOINT=${IPFS_ENDPOINT:-"http://ipfs.io"}
+IPFS_ENDPOINT=${IPFS_ENDPOINT:-"https://ipfs-gateway-dev.dappnode.net"}
 # PROFILE_URL env is used to fetch the core packages versions that will be used to build the release in script install method
 PROFILE_URL=${PROFILE_URL:-"https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_profile.sh"}
 DAPPNODE_ACCESS_CREDENTIALS="${DAPPNODE_DIR}/scripts/dappnode_access_credentials.sh"
@@ -72,6 +72,21 @@ else
     ARCH=$(dpkg --print-architecture)
 fi
 
+# Color output helpers
+color_echo() {
+    local color="$1"; shift
+    if $IS_LINUX; then
+        case "$color" in
+            green) code="\e[32m" ;;
+            yellow) code="\e[33m" ;;
+            *) code="" ;;
+        esac
+        echo -e "${code}$*\e[0m"
+    else
+        echo "$*"
+    fi
+}
+
 ##############################
 # Cross-platform Helpers     #
 ##############################
@@ -80,6 +95,7 @@ fi
 download_file() {
     local dest="$1"
     local url="$2"
+    echo "[DEBUG] Downloading from $url to $dest" 2>&1 | tee -a $LOGFILE
     if $IS_MACOS; then
         curl -sL -o "$dest" "$url"
     else
@@ -91,10 +107,64 @@ download_file() {
 download_stdout() {
     local url="$1"
     if $IS_MACOS; then
-        curl -sL "$url"
+        curl -fsSL "$url"
     else
         wget -q -O- "$url"
     fi
+}
+
+# Normalize IPFS refs and (if needed) infer the missing :<version> from dappnode_package.json
+# Accepts:
+#   - /ipfs/<cid>:<version>
+#   - /ipfs/<cid>               (version inferred)
+#   - ipfs/<cid>[:<version>]    (leading slash normalized)
+normalize_ipfs_version_ref() {
+    local raw_ref="$1"
+    local comp="$2"
+    local ref="$raw_ref"
+
+    if [[ "$ref" == ipfs/* ]]; then
+        ref="/$ref"
+    fi
+
+    # If it already has :<version>, we're done
+    if [[ "$ref" == /ipfs/*:* ]]; then
+        echo "$ref"
+        return 0
+    fi
+
+    # If it's an IPFS ref without a :<version>, infer it from the manifest in the CID
+    if [[ "$ref" == /ipfs/* ]]; then
+        local cid_path="$ref"
+        local manifest_url="${IPFS_ENDPOINT%/}${cid_path}/dappnode_package.json"
+        local manifest
+        manifest="$(download_stdout "$manifest_url" 2>/dev/null || true)"
+        if [[ -z "$manifest" ]]; then
+            echo "[ERROR] Could not fetch IPFS manifest for ${comp} from: $manifest_url" 1>&2
+            echo "[ERROR] Provide ${comp}_VERSION as /ipfs/<cid>:<version> (example: /ipfs/Qm...:0.2.11)" 1>&2
+            return 1
+        fi
+
+        local inferred_version
+        inferred_version="$(
+            echo "$manifest" |
+                tr -d '\r' |
+                grep -m1 '"version"' |
+                sed -E 's/.*"version"[[:space:]]*:[[:space:]]*"([^\"]+)".*/\1/'
+        )"
+
+        if [[ -z "$inferred_version" || "$inferred_version" == "$manifest" ]]; then
+            echo "[ERROR] Could not infer version for ${comp} from IPFS manifest: $manifest_url" 1>&2
+            echo "[ERROR] Provide ${comp}_VERSION as /ipfs/<cid>:<version>" 1>&2
+            return 1
+        fi
+
+        echo "${cid_path}:${inferred_version}"
+        return 0
+    fi
+
+    # Not an IPFS ref; return as-is
+    echo "$raw_ref"
 }
 
 # Cross-platform in-place sed (macOS requires '' after -i)
@@ -196,18 +266,25 @@ determine_packages() {
     is_port_used
     if [ "$IS_ISO_INSTALL" == "false" ]; then
         if [ "$IS_PORT_USED" == "true" ]; then
-            PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI)
+            PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER)
         else
-            PKGS=(HTTPS BIND IPFS WIREGUARD DAPPMANAGER WIFI)
+            PKGS=(HTTPS BIND IPFS VPN WIREGUARD DAPPMANAGER)
         fi
     else
         if [ "$IS_PORT_USED" == "true" ]; then
-            PKGS=(BIND IPFS WIREGUARD DAPPMANAGER WIFI)
+            PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER)
         else
-            PKGS=(HTTPS BIND IPFS WIREGUARD DAPPMANAGER WIFI)
+            PKGS=(HTTPS BIND IPFS VPN WIREGUARD DAPPMANAGER)
         fi
     fi
-    echo -e "\e[32mPackages to be installed: ${PKGS[*]}\e[0m" 2>&1 | tee -a $LOGFILE
+    color_echo green "Packages to be installed: ${PKGS[*]}" 2>&1 | tee -a $LOGFILE
+
+    # Debug: print all PKGS and their version variables
+    echo "[DEBUG] PKGS: ${PKGS[*]}" 2>&1 | tee -a $LOGFILE
+    for comp in "${PKGS[@]}"; do
+        ver_var="${comp}_VERSION"
+        echo "[DEBUG] $ver_var = ${!ver_var}" 2>&1 | tee -a $LOGFILE
+    done
 }
 
 function valid_ip() {
@@ -235,8 +312,14 @@ if [[ -n "$STATIC_IP" ]]; then
     fi
 fi
 
-# Loads profile, if not exists it means it is script install so the versions will be fetched from the latest profile
-[ -f "$DAPPNODE_PROFILE" ] || download_file "${DAPPNODE_PROFILE}" "${PROFILE_URL}"
+
+# If LOCAL_PROFILE_PATH is set, use it as the profile source instead of downloading
+if [ -n "$LOCAL_PROFILE_PATH" ]; then
+    echo "Using local profile: $LOCAL_PROFILE_PATH" | tee -a $LOGFILE
+    cp "$LOCAL_PROFILE_PATH" "$DAPPNODE_PROFILE"
+elif [ ! -f "$DAPPNODE_PROFILE" ]; then
+    download_file "${DAPPNODE_PROFILE}" "${PROFILE_URL}"
+fi
 
 # Patch profile for macOS compatibility (replace GNU-isms and hardcoded Linux paths)
 # TODO: remove once profile macos-compatibility published
@@ -254,16 +337,26 @@ source "${DAPPNODE_PROFILE}"
 determine_packages
 for comp in "${PKGS[@]}"; do
     ver="${comp}_VERSION"
-    DOWNLOAD_URL="https://github.com/dappnode/DNP_${comp}/releases/download/v${!ver}"
-    if [[ ${!ver} == /ipfs/* ]]; then
-        DOWNLOAD_URL="${IPFS_ENDPOINT}/api/v0/cat?arg=${!ver%:*}"
+    echo "[DEBUG] Processing $comp: ${!ver}" 2>&1 | tee -a $LOGFILE
+
+    raw_version_ref="${!ver}"
+    if [[ "$raw_version_ref" == /ipfs/* || "$raw_version_ref" == ipfs/* ]]; then
+        resolved_ref="$(normalize_ipfs_version_ref "$raw_version_ref" "$comp")" || exit 1
+        eval "${comp}_VERSION=\"${resolved_ref}\""
+        raw_version_ref="$resolved_ref"
+        echo "[DEBUG] Using IPFS for ${comp}: ${raw_version_ref%:*} (version ${raw_version_ref##*:})" 2>&1 | tee -a $LOGFILE
+        DOWNLOAD_URL="${IPFS_ENDPOINT%/}${raw_version_ref%:*}"
+        version_for_filenames="${raw_version_ref##*:}"
+    else
+        version_for_filenames="${raw_version_ref##*:}"
+        DOWNLOAD_URL="https://github.com/dappnode/DNP_${comp}/releases/download/v${version_for_filenames}"
     fi
     comp_lower=$(echo "$comp" | tr '[:upper:]' '[:lower:]')
-    eval "${comp}_URL=\"${DOWNLOAD_URL}/${comp_lower}.dnp.dappnode.eth_${!ver##*:}_linux-${ARCH}.txz\""
+    eval "${comp}_URL=\"${DOWNLOAD_URL}/${comp_lower}.dnp.dappnode.eth_${version_for_filenames}_linux-${ARCH}.txz\""
     eval "${comp}_YML=\"${DOWNLOAD_URL}/docker-compose.yml\""
     eval "${comp}_MANIFEST=\"${DOWNLOAD_URL}/dappnode_package.json\""
     eval "${comp}_YML_FILE=\"${DAPPNODE_CORE_DIR}/docker-compose-${comp_lower}.yml\""
-    eval "${comp}_FILE=\"${DAPPNODE_CORE_DIR}/${comp_lower}.dnp.dappnode.eth_${!ver##*:}_linux-${ARCH}.txz\""
+    eval "${comp}_FILE=\"${DAPPNODE_CORE_DIR}/${comp_lower}.dnp.dappnode.eth_${version_for_filenames}_linux-${ARCH}.txz\""
     eval "${comp}_MANIFEST_FILE=\"${DAPPNODE_CORE_DIR}/dappnode_package-${comp_lower}.json\""
 done
 
@@ -542,57 +635,57 @@ addUserToDockerGroup() {
 ####             SCRIPT START             ####
 ##############################################
 
-echo -e "\e[32m\n##############################################\e[0m" 2>&1 | tee -a $LOGFILE
-echo -e "\e[32m####          DAPPNODE INSTALLER          ####\e[0m" 2>&1 | tee -a $LOGFILE
-echo -e "\e[32m##############################################\e[0m" 2>&1 | tee -a $LOGFILE
+color_echo green "\n##############################################" 2>&1 | tee -a $LOGFILE
+color_echo green "####          DAPPNODE INSTALLER          ####" 2>&1 | tee -a $LOGFILE
+color_echo green "##############################################" 2>&1 | tee -a $LOGFILE
 
 # --- Linux-only setup steps ---
 if $IS_LINUX; then
-    echo -e "\e[32mCreating swap memory...\e[0m" 2>&1 | tee -a $LOGFILE
+    color_echo green "Creating swap memory..." 2>&1 | tee -a $LOGFILE
     addSwap
 
-    echo -e "\e[32mCustomizing login...\e[0m" 2>&1 | tee -a $LOGFILE
+    color_echo green "Customizing login..." 2>&1 | tee -a $LOGFILE
     customMotd
 
-    echo -e "\e[32mInstalling extra packages...\e[0m" 2>&1 | tee -a $LOGFILE
+    color_echo green "Installing extra packages..." 2>&1 | tee -a $LOGFILE
     installExtraDpkg
 
-    echo -e "\e[32mGrabbing latest content hashes...\e[0m" 2>&1 | tee -a $LOGFILE
+    color_echo green "Grabbing latest content hashes..." 2>&1 | tee -a $LOGFILE
     grabContentHashes
 
     if [ "$ARCH" == "amd64" ]; then
-        echo -e "\e[32mInstalling SGX modules...\e[0m" 2>&1 | tee -a $LOGFILE
+        color_echo green "Installing SGX modules..." 2>&1 | tee -a $LOGFILE
         installSgx
 
-        echo -e "\e[32mInstalling extra packages...\e[0m" 2>&1 | tee -a $LOGFILE
+        color_echo green "Installing extra packages..." 2>&1 | tee -a $LOGFILE
         installExtraDpkg # TODO: Why is this being called twice?
     fi
 
-    echo -e "\e[32mAdding user to docker group...\e[0m" 2>&1 | tee -a $LOGFILE
+    color_echo green "Adding user to docker group..." 2>&1 | tee -a $LOGFILE
     addUserToDockerGroup
 fi
 
 # --- Common steps (Linux and macOS) ---
-echo -e "\e[32mCreating dncore_network if needed...\e[0m" 2>&1 | tee -a $LOGFILE
+color_echo green "Creating dncore_network if needed..." 2>&1 | tee -a $LOGFILE
 docker network create --driver bridge --subnet 172.33.0.0/16 dncore_network 2>&1 | tee -a $LOGFILE || true
 
-echo -e "\e[32mBuilding DAppNode Core if needed...\e[0m" 2>&1 | tee -a $LOGFILE
+color_echo green "Building DAppNode Core if needed..." 2>&1 | tee -a $LOGFILE
 dappnode_core_build
 
-echo -e "\e[32mDownloading DAppNode Core...\e[0m" 2>&1 | tee -a $LOGFILE
+color_echo green "Downloading DAppNode Core..." 2>&1 | tee -a $LOGFILE
 dappnode_core_download
 
 # Re-source profile now that compose files exist, so DNCORE_YMLS is populated
 # shellcheck disable=SC1090
 source "${DAPPNODE_PROFILE}"
 
-echo -e "\e[32mLoading DAppNode Core...\e[0m" 2>&1 | tee -a $LOGFILE
+color_echo green "Loading DAppNode Core..." 2>&1 | tee -a $LOGFILE
 dappnode_core_load
 
 # --- Start DAppNode ---
 if $IS_LINUX; then
     if [ ! -f "${DAPPNODE_DIR}/.firstboot" ]; then
-        echo -e "\e[32mDAppNode installed\e[0m" 2>&1 | tee -a $LOGFILE
+        color_echo green "DAppNode installed" 2>&1 | tee -a $LOGFILE
         dappnode_core_start
     fi
 
@@ -606,28 +699,28 @@ if $IS_LINUX; then
 fi
 
 if $IS_MACOS; then
-    echo -e "\e[32mDAppNode installed\e[0m" 2>&1 | tee -a $LOGFILE
+    color_echo green "DAppNode installed" 2>&1 | tee -a $LOGFILE
     dappnode_core_start
 
-    echo -e "\n\e[33mWaiting for VPN initialization...\e[0m"
+    color_echo yellow "\nWaiting for VPN initialization..."
     sleep 10
 
-    echo -e "\n\e[32m##############################################\e[0m"
-    echo -e "\e[32m#      DAppNode VPN Access Credentials        #\e[0m"
-    echo -e "\e[32m##############################################\e[0m"
-    echo -e "\n\e[1mYour DAppNode is ready! Connect using your preferred VPN client.\e[0m"
-    echo -e "\e[1mChoose either Wireguard (recommended) or OpenVPN and import the\e[0m"
-    echo -e "\e[1mcredentials below into your VPN app to access your DAppNode.\e[0m\n"
+    color_echo green "\n##############################################"
+    color_echo green "#      DAppNode VPN Access Credentials        #"
+    color_echo green "##############################################"
+    echo -e "\nYour DAppNode is ready! Connect using your preferred VPN client."
+    echo -e "Choose either Wireguard (recommended) or OpenVPN and import the"
+    echo -e "credentials below into your VPN app to access your DAppNode.\n"
 
-    echo -e "\e[1m--- Wireguard ---\e[0m"
+    echo -e "--- Wireguard ---"
     dappnode_wireguard --localhost 2>&1 || \
-        echo -e "\e[33mWireguard credentials not yet available. Try later with: dappnode_wireguard --localhost\e[0m"
+        color_echo yellow "Wireguard credentials not yet available. Try later with: dappnode_wireguard --localhost"
 
-    echo -e "\n\e[1m--- OpenVPN ---\e[0m"
+    echo -e "\n--- OpenVPN ---"
     dappnode_openvpn_get dappnode_admin --localhost 2>&1 || \
-        echo -e "\e[33mOpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin --localhost\e[0m"
+        color_echo yellow "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin --localhost"
 
-    echo -e "\n\e[32mImport the configuration above into your VPN client of choice to access your DAppNode at http://my.dappnode\e[0m"
+    echo -e "\nImport the configuration above into your VPN client of choice to access your DAppNode at http://my.dappnode"
 fi
 
 exit 0
