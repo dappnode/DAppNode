@@ -13,11 +13,94 @@ if [ -z "${BASH_VERSION:-}" ]; then
     exec /usr/bin/env bash "$0" "$@"
 fi
 
-set -eo pipefail
+set -Eeuo pipefail
+
+# Optional env inputs (avoid unbound-variable errors under `set -u`)
+: "${UPDATE:=false}"
+: "${STATIC_IP:=}"
+: "${LOCAL_PROFILE_PATH:=}"
 
 # Enable alias expansion in non-interactive bash scripts.
 # Required so commands like `dappnode_wireguard` (defined as aliases in `.dappnode_profile`) work.
 shopt -s expand_aliases
+
+##############################
+# Core CLI wrappers (script) #
+##############################
+
+# Note: aliases sourced from `.dappnode_profile` are not reliably usable inside this installer.
+# Bash parses scripts before those aliases are defined, so later calls can become "command not found".
+# Provide function wrappers so the installer can always run these commands.
+
+dappnode_wireguard() {
+    docker exec -i DAppNodeCore-api.wireguard.dnp.dappnode.eth getWireguardCredentials "$@"
+}
+
+dappnode_openvpn_get() {
+    docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth vpncli get "$@"
+}
+
+dappnode_openvpn() {
+    docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth getAdminCredentials "$@"
+}
+
+##############################
+# Logging / Errors            #
+##############################
+
+log() {
+    # LOGFILE is created after dir bootstrap; until then we just print to stdout.
+    if [[ -n "${LOGFILE:-}" && -d "${LOGS_DIR:-}" ]]; then
+        printf '%s\n' "$*" | tee -a "$LOGFILE"
+    else
+        printf '%s\n' "$*"
+    fi
+}
+
+warn() {
+    log "[WARN] $*"
+}
+
+die() {
+    log "[ERROR] $*"
+    exit 1
+}
+
+require_cmd() {
+    local cmd="$1"
+    command -v "$cmd" >/dev/null 2>&1 || die "Missing required command: $cmd"
+}
+
+require_downloader() {
+    if command -v curl >/dev/null 2>&1; then
+        return 0
+    fi
+    if command -v wget >/dev/null 2>&1; then
+        return 0
+    fi
+    die "Missing required downloader: install curl or wget"
+}
+
+check_prereqs() {
+    require_cmd docker
+    require_downloader
+
+    # Ensure compose is available (Docker Desktop / modern docker engine)
+    if ! docker compose version >/dev/null 2>&1; then
+        die "Docker Compose not available (expected: 'docker compose'). Update Docker or install the compose plugin."
+    fi
+}
+
+# Build docker compose "-f <file>" args from downloaded compose files.
+# This avoids depending on alias expansion or profile-generated strings.
+build_dncore_compose_args() {
+    DNCORE_COMPOSE_ARGS=()
+    local file
+    while IFS= read -r file; do
+        [[ -n "$file" ]] || continue
+        DNCORE_COMPOSE_ARGS+=( -f "$file" )
+    done < <(find "${DAPPNODE_CORE_DIR}" -name 'docker-compose-*.yml' -print 2>/dev/null | sort)
+}
 
 ##################
 # OS DETECTION   #
@@ -30,8 +113,7 @@ if [[ "$OS_TYPE" == "Darwin" ]]; then
 elif [[ "$OS_TYPE" == "Linux" ]]; then
     IS_LINUX=true
 else
-    echo "Unsupported operating system: $OS_TYPE"
-    exit 1
+    die "Unsupported operating system: $OS_TYPE"
 fi
 
 #############
@@ -65,11 +147,11 @@ DAPPNODE_ACCESS_CREDENTIALS_URL="https://github.com/dappnode/DAppNode/releases/l
 
 # Architecture detection (cross-platform)
 if $IS_MACOS; then
-    ARCH=$(uname -m)
+    ARCH="$(uname -m)"
     [[ "$ARCH" == "x86_64" ]] && ARCH="amd64"
     # arm64 is already correct for Apple Silicon
 else
-    ARCH=$(dpkg --print-architecture)
+    ARCH="$(dpkg --print-architecture)"
 fi
 
 
@@ -82,22 +164,23 @@ fi
 download_file() {
     local dest="$1"
     local url="$2"
-    echo "Downloading from $url to $dest" 2>&1 | tee -a "$LOGFILE"
-    if $IS_MACOS; then
-        curl -sL -o "$dest" "$url"
-    else
-        wget -q --show-progress --progress=bar:force -O "$dest" "$url"
+    log "Downloading from $url to $dest"
+    mkdir -p "$(dirname "$dest")"
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL -o "$dest" "$url"
+        return
     fi
+    wget -q --show-progress --progress=bar:force -O "$dest" "$url"
 }
 
 # Download content to stdout: download_stdout <url>
 download_stdout() {
     local url="$1"
-    if $IS_MACOS; then
+    if command -v curl >/dev/null 2>&1; then
         curl -fsSL "$url"
-    else
-        wget -q -O- "$url"
+        return
     fi
+    wget -q -O- "$url"
 }
 
 # Normalize IPFS refs and (if needed) infer the missing :<version> from dappnode_package.json
@@ -189,25 +272,30 @@ patch_profile_for_macos() {
     sed_inplace 's|/usr/src/dappnode|\$HOME/dappnode|g' "$profile"
 }
 
-# Clean if update
-if [ "$UPDATE" = true ]; then
-    echo "Cleaning for update..."
-    rm -rf $LOGFILE
-    rm -rf ${DAPPNODE_CORE_DIR}/docker-compose-*.yml
-    rm -rf ${DAPPNODE_CORE_DIR}/dappnode_package-*.json
-    rm -rf ${DAPPNODE_CORE_DIR}/*.tar.xz
-    rm -rf ${DAPPNODE_CORE_DIR}/*.txz
-    rm -rf ${DAPPNODE_CORE_DIR}/.dappnode_profile
-    rm -rf ${CONTENT_HASH_FILE}
-fi
+bootstrap_filesystem() {
+    # Clean if update
+    if [[ "${UPDATE}" == "true" ]]; then
+        echo "Cleaning for update..."
+        rm -f "${LOGFILE}" || true
+        rm -f "${DAPPNODE_CORE_DIR}"/docker-compose-*.yml || true
+        rm -f "${DAPPNODE_CORE_DIR}"/dappnode_package-*.json || true
+        rm -f "${DAPPNODE_CORE_DIR}"/*.tar.xz || true
+        rm -f "${DAPPNODE_CORE_DIR}"/*.txz || true
+        rm -f "${DAPPNODE_CORE_DIR}/.dappnode_profile" || true
+        rm -f "${CONTENT_HASH_FILE}" || true
+    fi
 
-# Create necessary directories
-mkdir -p $DAPPNODE_DIR
-mkdir -p $DAPPNODE_CORE_DIR
-mkdir -p "${DAPPNODE_DIR}/scripts"
-mkdir -p "${DAPPNODE_CORE_DIR}/scripts"
-mkdir -p "${DAPPNODE_DIR}/config"
-mkdir -p $LOGS_DIR
+    # Create necessary directories
+    mkdir -p "${DAPPNODE_DIR}"
+    mkdir -p "${DAPPNODE_CORE_DIR}"
+    mkdir -p "${DAPPNODE_DIR}/scripts"
+    mkdir -p "${DAPPNODE_CORE_DIR}/scripts"
+    mkdir -p "${DAPPNODE_DIR}/config"
+    mkdir -p "${LOGS_DIR}"
+
+    # Ensure the log file path exists before first use by helpers.
+    touch "${LOGFILE}" || true
+}
 
 # TEMPORARY: think a way to integrate flags instead of use files to detect installation type
 is_iso_install() {
@@ -229,8 +317,14 @@ is_iso_install() {
 is_port_used() {
     # Check if port 80 or 443 is in use at all
     local port80_used port443_used
-    lsof -i -P -n | grep ":80 (LISTEN)" &>/dev/null && port80_used=true || port80_used=false
-    lsof -i -P -n | grep ":443 (LISTEN)" &>/dev/null && port443_used=true || port443_used=false
+    if command -v lsof >/dev/null 2>&1; then
+        lsof -i -P -n | grep ":80 (LISTEN)" &>/dev/null && port80_used=true || port80_used=false
+        lsof -i -P -n | grep ":443 (LISTEN)" &>/dev/null && port443_used=true || port443_used=false
+    else
+        warn "lsof not found; assuming ports 80/443 are in use (HTTPS will be skipped)"
+        IS_PORT_USED=true
+        return
+    fi
 
     if [ "$port80_used" = false ] && [ "$port443_used" = false ]; then
         IS_PORT_USED=false
@@ -264,88 +358,93 @@ determine_packages() {
             PKGS=(HTTPS BIND IPFS VPN WIREGUARD DAPPMANAGER)
         fi
     fi
-    echo "Packages to be installed: ${PKGS[*]}" 2>&1 | tee -a "$LOGFILE"
+    log "Packages to be installed: ${PKGS[*]}"
 
     # Debug: print all PKGS and their version variables
-    echo "PKGS: ${PKGS[*]}" 2>&1 | tee -a "$LOGFILE"
+    log "PKGS: ${PKGS[*]}"
     for comp in "${PKGS[@]}"; do
+        local ver_var
         ver_var="${comp}_VERSION"
-        echo "$ver_var = ${!ver_var}" 2>&1 | tee -a "$LOGFILE"
+        log "$ver_var = ${!ver_var-}"
     done
 }
 
-function valid_ip() {
-    local ip=$1
-    local stat=1
-
-    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
-        OIFS=$IFS
-        IFS='.'
-        ip=("$ip")
-        IFS=$OIFS
-        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 &&
-            ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
-        stat=$?
+valid_ip() {
+    local ip="$1"
+    if [[ ! "$ip" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
+        return 1
     fi
-    return $stat
+
+    local IFS='.'
+    # shellcheck disable=SC2206
+    local octets=( $ip )
+    [[ ${#octets[@]} -eq 4 ]] || return 1
+    [[ ${octets[0]} -le 255 && ${octets[1]} -le 255 && ${octets[2]} -le 255 && ${octets[3]} -le 255 ]]
 }
 
-if [[ -n "$STATIC_IP" ]]; then
+configure_static_ip() {
+    if [[ -z "${STATIC_IP}" ]]; then
+        return 0
+    fi
+
     if valid_ip "$STATIC_IP"; then
-        echo "$STATIC_IP" >${DAPPNODE_DIR}/config/static_ip
+        echo "$STATIC_IP" >"${DAPPNODE_DIR}/config/static_ip"
     else
-        echo "The static IP provided: ${STATIC_IP} is not valid."
-        exit 1
+        die "The static IP provided (${STATIC_IP}) is not valid."
     fi
-fi
+}
 
-
-# If LOCAL_PROFILE_PATH is set, use it as the profile source instead of downloading
-if [ -n "$LOCAL_PROFILE_PATH" ]; then
-    echo "Using local profile: $LOCAL_PROFILE_PATH" | tee -a "$LOGFILE"
-    cp "$LOCAL_PROFILE_PATH" "$DAPPNODE_PROFILE"
-elif [ ! -f "$DAPPNODE_PROFILE" ]; then
-    download_file "${DAPPNODE_PROFILE}" "${PROFILE_URL}"
-fi
-
-# Patch profile for macOS compatibility (replace GNU-isms and hardcoded Linux paths)
-# TODO: remove once profile macos-compatibility published
-if $IS_MACOS; then
-    patch_profile_for_macos "$DAPPNODE_PROFILE"
-fi
-
-# shellcheck disable=SC1090
-source "${DAPPNODE_PROFILE}"
-
-# The indirect variable expansion used in ${!ver##*:} allows us to use versions like 'dev:development'
-# If such variable with 'dev:'' suffix is used, then the component is built from specified branch or commit.
-# you can also specify an IPFS version like /ipfs/QmWg8P2b9JKQ8thAVz49J8SbJbCoi2MwkHnUqMtpzDTtxR:0.2.7, it's important
-# to include the exact version also in the IPFS hash format since it's needed to be able to download it
-determine_packages
-for comp in "${PKGS[@]}"; do
-    ver="${comp}_VERSION"
-    echo "Processing $comp: ${!ver}" 2>&1 | tee -a "$LOGFILE"
-
-    raw_version_ref="${!ver}"
-    if [[ "$raw_version_ref" == /ipfs/* || "$raw_version_ref" == ipfs/* ]]; then
-        resolved_ref="$(normalize_ipfs_version_ref "$raw_version_ref" "$comp")" || exit 1
-        eval "${comp}_VERSION=\"${resolved_ref}\""
-        raw_version_ref="$resolved_ref"
-        echo "Using IPFS for ${comp}: ${raw_version_ref%:*} (version ${raw_version_ref##*:})" 2>&1 | tee -a "$LOGFILE"
-        DOWNLOAD_URL="${IPFS_ENDPOINT%/}${raw_version_ref%:*}"
-        version_for_filenames="${raw_version_ref##*:}"
-    else
-        version_for_filenames="${raw_version_ref##*:}"
-        DOWNLOAD_URL="https://github.com/dappnode/DNP_${comp}/releases/download/v${version_for_filenames}"
+ensure_profile_loaded() {
+    # If LOCAL_PROFILE_PATH is set, use it as the profile source instead of downloading
+    if [[ -n "${LOCAL_PROFILE_PATH}" ]]; then
+        log "Using local profile: ${LOCAL_PROFILE_PATH}"
+        cp "$LOCAL_PROFILE_PATH" "$DAPPNODE_PROFILE"
+    elif [[ ! -f "$DAPPNODE_PROFILE" ]]; then
+        download_file "${DAPPNODE_PROFILE}" "${PROFILE_URL}"
     fi
-    comp_lower=$(echo "$comp" | tr '[:upper:]' '[:lower:]')
-    eval "${comp}_URL=\"${DOWNLOAD_URL}/${comp_lower}.dnp.dappnode.eth_${version_for_filenames}_linux-${ARCH}.txz\""
-    eval "${comp}_YML=\"${DOWNLOAD_URL}/docker-compose.yml\""
-    eval "${comp}_MANIFEST=\"${DOWNLOAD_URL}/dappnode_package.json\""
-    eval "${comp}_YML_FILE=\"${DAPPNODE_CORE_DIR}/docker-compose-${comp_lower}.yml\""
-    eval "${comp}_FILE=\"${DAPPNODE_CORE_DIR}/${comp_lower}.dnp.dappnode.eth_${version_for_filenames}_linux-${ARCH}.txz\""
-    eval "${comp}_MANIFEST_FILE=\"${DAPPNODE_CORE_DIR}/dappnode_package-${comp_lower}.json\""
-done
+
+    # Patch profile for macOS compatibility (replace GNU-isms and hardcoded Linux paths)
+    # TODO: remove once profile macos-compatibility published
+    if $IS_MACOS; then
+        patch_profile_for_macos "$DAPPNODE_PROFILE"
+    fi
+
+    # shellcheck disable=SC1090
+    source "${DAPPNODE_PROFILE}"
+}
+
+
+
+resolve_packages() {
+    # The indirect variable expansion used in ${!ver##*:} allows us to use versions like 'dev:development'
+    # If such variable with 'dev:'' suffix is used, then the component is built from specified branch or commit.
+    # you can also specify an IPFS version like /ipfs/<cid>:<version> (the exact version is required).
+    determine_packages
+    for comp in "${PKGS[@]}"; do
+        ver="${comp}_VERSION"
+        log "Processing $comp: ${!ver-}"
+
+        raw_version_ref="${!ver-}"
+        if [[ "$raw_version_ref" == /ipfs/* || "$raw_version_ref" == ipfs/* ]]; then
+            resolved_ref="$(normalize_ipfs_version_ref "$raw_version_ref" "$comp")" || exit 1
+            printf -v "${comp}_VERSION" '%s' "$resolved_ref"
+            raw_version_ref="$resolved_ref"
+            log "Using IPFS for ${comp}: ${raw_version_ref%:*} (version ${raw_version_ref##*:})"
+            DOWNLOAD_URL="${IPFS_ENDPOINT%/}${raw_version_ref%:*}"
+            version_for_filenames="${raw_version_ref##*:}"
+        else
+            version_for_filenames="${raw_version_ref##*:}"
+            DOWNLOAD_URL="https://github.com/dappnode/DNP_${comp}/releases/download/v${version_for_filenames}"
+        fi
+        comp_lower="$(echo "$comp" | tr '[:upper:]' '[:lower:]')"
+        printf -v "${comp}_URL" '%s' "${DOWNLOAD_URL}/${comp_lower}.dnp.dappnode.eth_${version_for_filenames}_linux-${ARCH}.txz"
+        printf -v "${comp}_YML" '%s' "${DOWNLOAD_URL}/docker-compose.yml"
+        printf -v "${comp}_MANIFEST" '%s' "${DOWNLOAD_URL}/dappnode_package.json"
+        printf -v "${comp}_YML_FILE" '%s' "${DAPPNODE_CORE_DIR}/docker-compose-${comp_lower}.yml"
+        printf -v "${comp}_FILE" '%s' "${DAPPNODE_CORE_DIR}/${comp_lower}.dnp.dappnode.eth_${version_for_filenames}_linux-${ARCH}.txz"
+        printf -v "${comp}_MANIFEST_FILE" '%s' "${DAPPNODE_CORE_DIR}/dappnode_package-${comp_lower}.json"
+    done
+}
 
 dappnode_core_build() {
     for comp in "${PKGS[@]}"; do
@@ -359,23 +458,27 @@ dappnode_core_build() {
             if ! dpkg -s git >/dev/null 2>&1; then
                 apt-get install -y git
             fi
-            TMPDIR=$(mktemp -d)
-            pushd "$TMPDIR" || {
+            local tmpdir
+            tmpdir="$(mktemp -d)"
+            pushd "$tmpdir" >/dev/null || {
                 echo "Error on pushd"
                 exit 1
             }
             git clone -b "${!ver##*:}" https://github.com/dappnode/DNP_"${comp}"
             # Change version in YAML to the custom one
-            DOCKER_VER=$(echo "${!ver##*:}" | sed 's/\//_/g')
-            sed -i "s~^\(\s*image\s*:\s*\).*~\1${comp,,}.dnp.dappnode.eth:${DOCKER_VER}~" DNP_"${comp}"/docker-compose.yml
+            local docker_ver comp_lower
+            docker_ver="$(echo "${!ver##*:}" | sed 's/\//_/g')"
+            comp_lower="$(echo "$comp" | tr '[:upper:]' '[:lower:]')"
+            sed_inplace "s~^\(\s*image\s*:\s*\).*~\1${comp_lower}.dnp.dappnode.eth:${docker_ver}~" "DNP_${comp}/docker-compose.yml"
             docker compose -f ./DNP_"${comp}"/docker-compose.yml build
-            cp ./DNP_"${comp}"/docker-compose.yml "${DAPPNODE_CORE_DIR}"/docker-compose-"${comp,,}".yml
-            cp ./DNP_"${comp}"/dappnode_package.json "${DAPPNODE_CORE_DIR}"/dappnode_package-"${comp,,}".json
-            rm -r ./DNP_"${comp}"
-            popd || {
+            cp "./DNP_${comp}/docker-compose.yml" "${DAPPNODE_CORE_DIR}/docker-compose-${comp_lower}.yml"
+            cp "./DNP_${comp}/dappnode_package.json" "${DAPPNODE_CORE_DIR}/dappnode_package-${comp_lower}.json"
+            rm -rf "./DNP_${comp}"
+            popd >/dev/null || {
                 echo "Error on popd"
                 exit 1
             }
+            rm -rf "$tmpdir"
         fi
     done
 }
@@ -414,8 +517,13 @@ dappnode_core_load() {
     for comp in "${PKGS[@]}"; do
         ver="${comp}_VERSION"
         if [[ ${!ver} != dev:* ]]; then
-            comp_lower=$(echo "$comp" | tr '[:upper:]' '[:lower:]')
-            eval "[ ! -z \$(docker images -q ${comp_lower}.dnp.dappnode.eth:${!ver##*:}) ] || docker load -i \$${comp}_FILE 2>&1 | tee -a \"\$LOGFILE\""
+            local comp_lower image file_var
+            comp_lower="$(echo "$comp" | tr '[:upper:]' '[:lower:]')"
+            image="${comp_lower}.dnp.dappnode.eth:${!ver##*:}"
+            file_var="${comp}_FILE"
+            if [[ -z "$(docker images -q "$image" 2>/dev/null)" ]]; then
+                docker load -i "${!file_var}" 2>&1 | tee -a "$LOGFILE"
+            fi
         fi
     done
 }
@@ -452,6 +560,7 @@ EOF
 
 # Ubuntu distros use /etc/update-motd.d/ to generate the motd
 modifyMotdGeneration() {
+    local disabled_motd_dir
     disabled_motd_dir="${UPDATE_MOTD_DIR}/disabled"
 
     mkdir -p "${disabled_motd_dir}"
@@ -459,8 +568,9 @@ modifyMotdGeneration() {
     # Move all the files in /etc/update-motd.d/ to /etc/update-motd.d/disabled/
     # Except for the files listed in "files_to_keep"
     files_to_keep="00-header 50-landscape-sysinfo 98-reboot-required"
-    for file in ${UPDATE_MOTD_DIR}/*; do
-        base_file=$(basename "${file}")
+    local file base_file
+    for file in "${UPDATE_MOTD_DIR}"/*; do
+        base_file="$(basename "${file}")"
         if [ -f "${file}" ] && ! echo "${files_to_keep}" | grep -qw "${base_file}"; then
             mv "${file}" "${disabled_motd_dir}/"
         fi
@@ -477,7 +587,7 @@ addSwap() {
         #RAM=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
         #SWAP=$(($RAM * 2))
         SWAP=8388608
-        fallocate -l ${SWAP}k /swapfile
+        fallocate -l "${SWAP}k" /swapfile
         chmod 600 /swapfile
         mkswap /swapfile
         swapon /swapfile
@@ -494,8 +604,8 @@ add_profile_to_shell() {
 
     if $IS_MACOS; then
         user_home="$HOME"
-        # macOS defaults to zsh
-        shell_configs=(".zshrc" ".zprofile")
+        # macOS defaults to zsh, but some users still run bash.
+        shell_configs=(".zshrc" ".zprofile" ".bashrc" ".bash_profile")
     else
         # Linux: determine user home from /etc/passwd
         local user_name
@@ -534,8 +644,12 @@ add_profile_to_shell() {
 dappnode_core_start() {
     echo "DAppNode starting..." 2>&1 | tee -a "$LOGFILE"
 
-    # Use DNCORE_YMLS from the profile (populated after re-sourcing post-download)
-    docker compose $DNCORE_YMLS up -d 2>&1 | tee -a "$LOGFILE"
+    if [[ ${#DNCORE_COMPOSE_ARGS[@]:-0} -eq 0 ]]; then
+        build_dncore_compose_args
+    fi
+    [[ ${#DNCORE_COMPOSE_ARGS[@]} -gt 0 ]] || die "No docker-compose-*.yml files found in ${DAPPNODE_CORE_DIR}"
+
+    docker compose "${DNCORE_COMPOSE_ARGS[@]}" up -d 2>&1 | tee -a "$LOGFILE"
     echo "DAppNode started" 2>&1 | tee -a "$LOGFILE"
 
     # Add profile sourcing to user's shell configuration
@@ -558,12 +672,6 @@ dappnode_core_start() {
     echo "Execute dappnode_help to see a full list with commands available"
 }
 
-installExtraDpkg() {
-    if [ -d "/usr/src/dappnode/extra_dpkg" ]; then
-        dpkg -i /usr/src/dappnode/iso/extra_dpkg/*.deb 2>&1 | tee -a "$LOGFILE"
-    fi
-}
-
 grabContentHashes() {
     if [ ! -f "${CONTENT_HASH_FILE}" ]; then
         local content_hash_pkgs=(geth besu nethermind erigon prysm teku lighthouse nimbus lodestar)
@@ -573,7 +681,7 @@ grabContentHashes() {
                 echo "ERROR! Failed to find content hash of ${comp}." 2>&1 | tee -a "$LOGFILE"
                 exit 1
             fi
-            echo "${comp}.dnp.dappnode.eth,${CONTENT_HASH}" >>${CONTENT_HASH_FILE}
+            echo "${comp}.dnp.dappnode.eth,${CONTENT_HASH}" >>"${CONTENT_HASH_FILE}"
         done
     fi
 }
@@ -590,7 +698,7 @@ installSgx() {
 # /extra_dpkg will only be installed on ISO's dappnode not on standalone script
 installExtraDpkg() {
     if [ -d "/usr/src/dappnode/iso/extra_dpkg" ]; then
-        dpkg -i /usr/src/dappnode/extra_dpkg/*.deb 2>&1 | tee -a "$LOGFILE"
+        dpkg -i /usr/src/dappnode/iso/extra_dpkg/*.deb 2>&1 | tee -a "$LOGFILE"
     fi
 }
 
@@ -598,123 +706,131 @@ installExtraDpkg() {
 # Explained in: https://docs.docker.com/engine/install/linux-postinstall/
 addUserToDockerGroup() {
     # UID is provided to the first regular user created in the system
-    USER=$(grep 1000 "/etc/passwd" | cut -f 1 -d:)
+    local user
+    user=$(grep 1000 "/etc/passwd" | cut -f 1 -d:)
 
     # If USER is not found, warn the user and return
-    if [ -z "$USER" ]; then
+    if [ -z "$user" ]; then
         echo "WARN: Default user not found. Could not add it to the docker group." 2>&1 | tee -a "$LOGFILE"
         return
     fi
 
-    if groups "$USER" | grep &>/dev/null '\bdocker\b'; then
-        echo "User $USER is already in the docker group" 2>&1 | tee -a "$LOGFILE"
+    if groups "$user" | grep &>/dev/null '\bdocker\b'; then
+        echo "User $user is already in the docker group" 2>&1 | tee -a "$LOGFILE"
         return
     fi
 
     # This step is already done in the dappnode_install_pre.sh script,
     # but it's not working in the Ubuntu ISO because the late-commands in the autoinstall.yaml
     # file are executed before the user is created.
-    usermod -aG docker "$USER"
-    echo "User $USER added to the docker group" 2>&1 | tee -a "$LOGFILE"
+    usermod -aG docker "$user"
+    echo "User $user added to the docker group" 2>&1 | tee -a "$LOGFILE"
 }
 
 ##############################################
 ####             SCRIPT START             ####
 ##############################################
 
-echo "" 2>&1 | tee -a "$LOGFILE"
-echo "##############################################" 2>&1 | tee -a "$LOGFILE"
-echo "####          DAPPNODE INSTALLER          ####" 2>&1 | tee -a "$LOGFILE"
-echo "##############################################" 2>&1 | tee -a "$LOGFILE"
+main() {
+    bootstrap_filesystem
+    check_prereqs
+    configure_static_ip
+    ensure_profile_loaded
+    resolve_packages
 
-# --- Linux-only setup steps ---
-if $IS_LINUX; then
-    echo "Creating swap memory..." 2>&1 | tee -a "$LOGFILE"
-    addSwap
+    echo "" 2>&1 | tee -a "$LOGFILE"
+    echo "##############################################" 2>&1 | tee -a "$LOGFILE"
+    echo "####          DAPPNODE INSTALLER          ####" 2>&1 | tee -a "$LOGFILE"
+    echo "##############################################" 2>&1 | tee -a "$LOGFILE"
 
-    echo "Customizing login..." 2>&1 | tee -a "$LOGFILE"
-    customMotd
+    # --- Linux-only setup steps ---
+    if $IS_LINUX; then
+        echo "Creating swap memory..." 2>&1 | tee -a "$LOGFILE"
+        addSwap
 
-    echo "Installing extra packages..." 2>&1 | tee -a "$LOGFILE"
-    installExtraDpkg
-
-    echo "Grabbing latest content hashes..." 2>&1 | tee -a "$LOGFILE"
-    grabContentHashes
-
-    if [ "$ARCH" == "amd64" ]; then
-        echo "Installing SGX modules..." 2>&1 | tee -a "$LOGFILE"
-        installSgx
+        echo "Customizing login..." 2>&1 | tee -a "$LOGFILE"
+        customMotd
 
         echo "Installing extra packages..." 2>&1 | tee -a "$LOGFILE"
-        installExtraDpkg # TODO: Why is this being called twice?
+        installExtraDpkg
+
+        echo "Grabbing latest content hashes..." 2>&1 | tee -a "$LOGFILE"
+        grabContentHashes
+
+        if [ "$ARCH" == "amd64" ]; then
+            echo "Installing SGX modules..." 2>&1 | tee -a "$LOGFILE"
+            installSgx
+
+            echo "Installing extra packages..." 2>&1 | tee -a "$LOGFILE"
+            installExtraDpkg # TODO: Why is this being called twice?
+        fi
+
+        echo "Adding user to docker group..." 2>&1 | tee -a "$LOGFILE"
+        addUserToDockerGroup
     fi
 
-    echo "Adding user to docker group..." 2>&1 | tee -a "$LOGFILE"
-    addUserToDockerGroup
-fi
+    # --- Common steps (Linux and macOS) ---
+    echo "Creating dncore_network if needed..." 2>&1 | tee -a "$LOGFILE"
+    docker network create --driver bridge --subnet 172.33.0.0/16 dncore_network 2>&1 | tee -a "$LOGFILE" || true
 
-# --- Common steps (Linux and macOS) ---
-echo "Creating dncore_network if needed..." 2>&1 | tee -a "$LOGFILE"
-docker network create --driver bridge --subnet 172.33.0.0/16 dncore_network 2>&1 | tee -a "$LOGFILE" || true
+    echo "Building DAppNode Core if needed..." 2>&1 | tee -a "$LOGFILE"
+    dappnode_core_build
 
-echo "Building DAppNode Core if needed..." 2>&1 | tee -a "$LOGFILE"
-dappnode_core_build
+    echo "Downloading DAppNode Core..." 2>&1 | tee -a "$LOGFILE"
+    dappnode_core_download
 
-echo "Downloading DAppNode Core..." 2>&1 | tee -a "$LOGFILE"
-dappnode_core_download
+    # Build compose args now that compose files exist
+    build_dncore_compose_args
 
-# Re-source profile now that compose files exist, so DNCORE_YMLS is populated
-# shellcheck disable=SC1090
-source "${DAPPNODE_PROFILE}"
+    echo "Loading DAppNode Core..." 2>&1 | tee -a "$LOGFILE"
+    dappnode_core_load
 
-echo "Loading DAppNode Core..." 2>&1 | tee -a "$LOGFILE"
-dappnode_core_load
+    # --- Start DAppNode ---
+    if $IS_LINUX; then
+        if [ ! -f "${DAPPNODE_DIR}/.firstboot" ]; then
+            echo "DAppNode installed" 2>&1 | tee -a "$LOGFILE"
+            dappnode_core_start
+        fi
 
-# --- Start DAppNode ---
-if $IS_LINUX; then
-    if [ ! -f "${DAPPNODE_DIR}/.firstboot" ]; then
+        # Run test in interactive terminal (first boot only)
+        if [ -f "${DAPPNODE_DIR}/.firstboot" ]; then
+            apt-get update
+            apt-get install -y kbd
+            openvt -s -w -- sudo -u root "${DAPPNODE_DIR}/scripts/dappnode_test_install.sh"
+            exit 0
+        fi
+    fi
+
+    if $IS_MACOS; then
         echo "DAppNode installed" 2>&1 | tee -a "$LOGFILE"
         dappnode_core_start
+
+        echo ""
+        echo "Waiting for VPN initialization..."
+        sleep 20
+
+        echo ""
+        echo "##############################################"
+        echo "#      DAppNode VPN Access Credentials        #"
+        echo "##############################################"
+        echo ""
+        echo "Your DAppNode is ready! Connect using your preferred VPN client."
+        echo "Choose either Wireguard (recommended) or OpenVPN and import the"
+        echo "credentials below into your VPN app to access your DAppNode."
+        echo ""
+
+        echo "--- Wireguard ---"
+        dappnode_wireguard --localhost 2>&1 || \
+            echo "Wireguard credentials not yet available. Try later with: dappnode_wireguard --localhost"
+
+        echo ""
+        echo "--- OpenVPN ---"
+        dappnode_openvpn_get dappnode_admin --localhost 2>&1 || \
+            echo "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin --localhost"
+
+        echo ""
+        echo "Import the configuration above into your VPN client of choice to access your DAppNode at http://my.dappnode"
     fi
+}
 
-    # Run test in interactive terminal (first boot only)
-    if [ -f "${DAPPNODE_DIR}/.firstboot" ]; then
-        apt-get update
-        apt-get install -y kbd
-        openvt -s -w -- sudo -u root "${DAPPNODE_DIR}/scripts/dappnode_test_install.sh"
-        exit 0
-    fi
-fi
-
-if $IS_MACOS; then
-    echo "DAppNode installed" 2>&1 | tee -a "$LOGFILE"
-    dappnode_core_start
-
-    echo ""
-    echo "Waiting for VPN initialization..."
-    sleep 20
-
-    echo ""
-    echo "##############################################"
-    echo "#      DAppNode VPN Access Credentials        #"
-    echo "##############################################"
-    echo ""
-    echo "Your DAppNode is ready! Connect using your preferred VPN client."
-    echo "Choose either Wireguard (recommended) or OpenVPN and import the"
-    echo "credentials below into your VPN app to access your DAppNode."
-    echo ""
-
-    echo "--- Wireguard ---"
-    dappnode_wireguard --localhost 2>&1 || \
-        echo "Wireguard credentials not yet available. Try later with: dappnode_wireguard --localhost"
-
-    echo ""
-    echo "--- OpenVPN ---"
-    dappnode_openvpn_get dappnode_admin --localhost 2>&1 || \
-        echo "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin --localhost"
-
-    echo ""
-    echo "Import the configuration above into your VPN client of choice to access your DAppNode at http://my.dappnode"
-fi
-
-exit 0
+main "$@"
