@@ -72,20 +72,7 @@ else
     ARCH=$(dpkg --print-architecture)
 fi
 
-# Color output helpers
-color_echo() {
-    local color="$1"; shift
-    if $IS_LINUX; then
-        case "$color" in
-            green) code="\e[32m" ;;
-            yellow) code="\e[33m" ;;
-            *) code="" ;;
-        esac
-        echo -e "${code}$*\e[0m"
-    else
-        echo "$*"
-    fi
-}
+
 
 ##############################
 # Cross-platform Helpers     #
@@ -95,7 +82,7 @@ color_echo() {
 download_file() {
     local dest="$1"
     local url="$2"
-    echo "[DEBUG] Downloading from $url to $dest" 2>&1 | tee -a $LOGFILE
+    echo "Downloading from $url to $dest" 2>&1 | tee -a "$LOGFILE"
     if $IS_MACOS; then
         curl -sL -o "$dest" "$url"
     else
@@ -277,13 +264,13 @@ determine_packages() {
             PKGS=(HTTPS BIND IPFS VPN WIREGUARD DAPPMANAGER)
         fi
     fi
-    color_echo green "Packages to be installed: ${PKGS[*]}" 2>&1 | tee -a $LOGFILE
+    echo "Packages to be installed: ${PKGS[*]}" 2>&1 | tee -a "$LOGFILE"
 
     # Debug: print all PKGS and their version variables
-    echo "[DEBUG] PKGS: ${PKGS[*]}" 2>&1 | tee -a $LOGFILE
+    echo "PKGS: ${PKGS[*]}" 2>&1 | tee -a "$LOGFILE"
     for comp in "${PKGS[@]}"; do
         ver_var="${comp}_VERSION"
-        echo "[DEBUG] $ver_var = ${!ver_var}" 2>&1 | tee -a $LOGFILE
+        echo "$ver_var = ${!ver_var}" 2>&1 | tee -a "$LOGFILE"
     done
 }
 
@@ -315,7 +302,7 @@ fi
 
 # If LOCAL_PROFILE_PATH is set, use it as the profile source instead of downloading
 if [ -n "$LOCAL_PROFILE_PATH" ]; then
-    echo "Using local profile: $LOCAL_PROFILE_PATH" | tee -a $LOGFILE
+    echo "Using local profile: $LOCAL_PROFILE_PATH" | tee -a "$LOGFILE"
     cp "$LOCAL_PROFILE_PATH" "$DAPPNODE_PROFILE"
 elif [ ! -f "$DAPPNODE_PROFILE" ]; then
     download_file "${DAPPNODE_PROFILE}" "${PROFILE_URL}"
@@ -337,14 +324,14 @@ source "${DAPPNODE_PROFILE}"
 determine_packages
 for comp in "${PKGS[@]}"; do
     ver="${comp}_VERSION"
-    echo "[DEBUG] Processing $comp: ${!ver}" 2>&1 | tee -a $LOGFILE
+    echo "Processing $comp: ${!ver}" 2>&1 | tee -a "$LOGFILE"
 
     raw_version_ref="${!ver}"
     if [[ "$raw_version_ref" == /ipfs/* || "$raw_version_ref" == ipfs/* ]]; then
         resolved_ref="$(normalize_ipfs_version_ref "$raw_version_ref" "$comp")" || exit 1
         eval "${comp}_VERSION=\"${resolved_ref}\""
         raw_version_ref="$resolved_ref"
-        echo "[DEBUG] Using IPFS for ${comp}: ${raw_version_ref%:*} (version ${raw_version_ref##*:})" 2>&1 | tee -a $LOGFILE
+        echo "Using IPFS for ${comp}: ${raw_version_ref%:*} (version ${raw_version_ref##*:})" 2>&1 | tee -a "$LOGFILE"
         DOWNLOAD_URL="${IPFS_ENDPOINT%/}${raw_version_ref%:*}"
         version_for_filenames="${raw_version_ref##*:}"
     else
@@ -428,7 +415,7 @@ dappnode_core_load() {
         ver="${comp}_VERSION"
         if [[ ${!ver} != dev:* ]]; then
             comp_lower=$(echo "$comp" | tr '[:upper:]' '[:lower:]')
-            eval "[ ! -z \$(docker images -q ${comp_lower}.dnp.dappnode.eth:${!ver##*:}) ] || docker load -i \$${comp}_FILE 2>&1 | tee -a \$LOGFILE"
+            eval "[ ! -z \$(docker images -q ${comp_lower}.dnp.dappnode.eth:${!ver##*:}) ] || docker load -i \$${comp}_FILE 2>&1 | tee -a \"\$LOGFILE\""
         fi
     done
 }
@@ -459,7 +446,7 @@ generateMotdText() {
  |___/\__,_| .__/ .__/_||_\___/\__,_\___|
            |_|  |_|                      
 EOF
-    welcome_message="\nChoose a way to connect to your DAppNode, then go to \e[1mhttp://my.dappnode\e[0m\n\n\e[1m- Wifi\e[0m\t\tScan and connect to DAppNodeWIFI. Get wifi credentials with \e[32mdappnode_wifi\e[0m\n\n\e[1m- Local Proxy\e[0m\tConnect to the same router as your DAppNode. Then go to \e[1mhttp://dappnode.local\e[0m\n\n\e[1m- Wireguard\e[0m\tDownload Wireguard app on your device. Get your dappnode wireguard credentials with \e[32mdappnode_wireguard\e[0m\n\n\e[1m- Open VPN\e[0m\tDownload OPen VPN app on your device. Get your openVPN creds with \e[32mdappnode_openvpn\e[0m\n\n\nTo see a full list of commands available execute \e[32mdappnode_help\e[0m\n"
+    welcome_message="\nChoose a way to connect to your DAppNode, then go to http://my.dappnode\n\n- Wifi\t\tScan and connect to DAppNodeWIFI. Get wifi credentials with dappnode_wifi\n\n- Local Proxy\tConnect to the same router as your DAppNode. Then go to http://dappnode.local\n\n- Wireguard\tDownload Wireguard app on your device. Get your dappnode wireguard credentials with dappnode_wireguard\n\n- Open VPN\tDownload Open VPN app on your device. Get your openVPN creds with dappnode_openvpn\n\n\nTo see a full list of commands available execute dappnode_help\n"
     printf "%b" "$welcome_message" >>"${MOTD_FILE}"
 }
 
@@ -486,7 +473,7 @@ addSwap() {
 
     # if not then create it
     if [ "$IS_SWAP" -eq 0 ]; then
-        echo -e '\e[32mSwap not found. Adding swapfile.\e[0m'
+        echo 'Swap not found. Adding swapfile.'
         #RAM=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
         #SWAP=$(($RAM * 2))
         SWAP=8388608
@@ -496,7 +483,7 @@ addSwap() {
         swapon /swapfile
         echo '/swapfile none swap defaults 0 0' >>/etc/fstab
     else
-        echo -e '\e[32mSwap found. No changes made.\e[0m'
+        echo 'Swap found. No changes made.'
     fi
 }
 
@@ -545,11 +532,11 @@ add_profile_to_shell() {
 }
 
 dappnode_core_start() {
-    echo -e "\e[32mDAppNode starting...\e[0m" 2>&1 | tee -a $LOGFILE
+    echo "DAppNode starting..." 2>&1 | tee -a "$LOGFILE"
 
     # Use DNCORE_YMLS from the profile (populated after re-sourcing post-download)
-    docker compose $DNCORE_YMLS up -d 2>&1 | tee -a $LOGFILE
-    echo -e "\e[32mDAppNode started\e[0m" 2>&1 | tee -a $LOGFILE
+    docker compose $DNCORE_YMLS up -d 2>&1 | tee -a "$LOGFILE"
+    echo "DAppNode started" 2>&1 | tee -a "$LOGFILE"
 
     # Add profile sourcing to user's shell configuration
     add_profile_to_shell
@@ -563,17 +550,17 @@ dappnode_core_start() {
     # Linux-only: clean up rc.local
     if $IS_LINUX; then
         if [ -f "/etc/rc.local" ] && [ ! -f "${DAPPNODE_DIR}/.firstboot" ]; then
-            sed_inplace '/\/usr\/src\/dappnode\/scripts\/dappnode_install.sh/d' /etc/rc.local 2>&1 | tee -a $LOGFILE
+            sed_inplace '/\/usr\/src\/dappnode\/scripts\/dappnode_install.sh/d' /etc/rc.local 2>&1 | tee -a "$LOGFILE"
         fi
     fi
 
     # Display help message to the user
-    echo -e "Execute \e[32mdappnode_help\e[0m to see a full list with commands available"
+    echo "Execute dappnode_help to see a full list with commands available"
 }
 
 installExtraDpkg() {
     if [ -d "/usr/src/dappnode/extra_dpkg" ]; then
-        dpkg -i /usr/src/dappnode/iso/extra_dpkg/*.deb 2>&1 | tee -a $LOGFILE
+        dpkg -i /usr/src/dappnode/iso/extra_dpkg/*.deb 2>&1 | tee -a "$LOGFILE"
     fi
 }
 
@@ -583,7 +570,7 @@ grabContentHashes() {
         for comp in "${content_hash_pkgs[@]}"; do
             CONTENT_HASH=$(download_stdout "https://github.com/dappnode/DAppNodePackage-${comp}/releases/latest/download/content-hash")
             if [ -z "$CONTENT_HASH" ]; then
-                echo "ERROR! Failed to find content hash of ${comp}." 2>&1 | tee -a $LOGFILE
+                echo "ERROR! Failed to find content hash of ${comp}." 2>&1 | tee -a "$LOGFILE"
                 exit 1
             fi
             echo "${comp}.dnp.dappnode.eth,${CONTENT_HASH}" >>${CONTENT_HASH_FILE}
@@ -595,15 +582,15 @@ grabContentHashes() {
 installSgx() {
     if [ -d "/usr/src/dappnode/iso/sgx" ]; then
         # from sgx_linux_x64_driver_2.5.0_2605efa.bin
-        /usr/src/dappnode/iso/sgx/sgx_linux_x64_driver.bin 2>&1 | tee -a $LOGFILE
-        /usr/src/dappnode/iso/sgx/enable_sgx 2>&1 | tee -a $LOGFILE
+        /usr/src/dappnode/iso/sgx/sgx_linux_x64_driver.bin 2>&1 | tee -a "$LOGFILE"
+        /usr/src/dappnode/iso/sgx/enable_sgx 2>&1 | tee -a "$LOGFILE"
     fi
 }
 
 # /extra_dpkg will only be installed on ISO's dappnode not on standalone script
 installExtraDpkg() {
     if [ -d "/usr/src/dappnode/iso/extra_dpkg" ]; then
-        dpkg -i /usr/src/dappnode/extra_dpkg/*.deb 2>&1 | tee -a $LOGFILE
+        dpkg -i /usr/src/dappnode/extra_dpkg/*.deb 2>&1 | tee -a "$LOGFILE"
     fi
 }
 
@@ -615,12 +602,12 @@ addUserToDockerGroup() {
 
     # If USER is not found, warn the user and return
     if [ -z "$USER" ]; then
-        echo -e "\e[33mWARN: Default user not found. Could not add it to the docker group.\e[0m" 2>&1 | tee -a $LOGFILE
+        echo "WARN: Default user not found. Could not add it to the docker group." 2>&1 | tee -a "$LOGFILE"
         return
     fi
 
     if groups "$USER" | grep &>/dev/null '\bdocker\b'; then
-        echo -e "\e[32mUser $USER is already in the docker group\e[0m" 2>&1 | tee -a $LOGFILE
+        echo "User $USER is already in the docker group" 2>&1 | tee -a "$LOGFILE"
         return
     fi
 
@@ -628,64 +615,65 @@ addUserToDockerGroup() {
     # but it's not working in the Ubuntu ISO because the late-commands in the autoinstall.yaml
     # file are executed before the user is created.
     usermod -aG docker "$USER"
-    echo -e "\e[32mUser $USER added to the docker group\e[0m" 2>&1 | tee -a $LOGFILE
+    echo "User $USER added to the docker group" 2>&1 | tee -a "$LOGFILE"
 }
 
 ##############################################
 ####             SCRIPT START             ####
 ##############################################
 
-color_echo green "\n##############################################" 2>&1 | tee -a $LOGFILE
-color_echo green "####          DAPPNODE INSTALLER          ####" 2>&1 | tee -a $LOGFILE
-color_echo green "##############################################" 2>&1 | tee -a $LOGFILE
+echo "" 2>&1 | tee -a "$LOGFILE"
+echo "##############################################" 2>&1 | tee -a "$LOGFILE"
+echo "####          DAPPNODE INSTALLER          ####" 2>&1 | tee -a "$LOGFILE"
+echo "##############################################" 2>&1 | tee -a "$LOGFILE"
 
 # --- Linux-only setup steps ---
 if $IS_LINUX; then
-    color_echo green "Creating swap memory..." 2>&1 | tee -a $LOGFILE
+    echo "Creating swap memory..." 2>&1 | tee -a "$LOGFILE"
     addSwap
 
-    color_echo green "Customizing login..." 2>&1 | tee -a $LOGFILE
+    echo "Customizing login..." 2>&1 | tee -a "$LOGFILE"
     customMotd
 
-    color_echo green "Installing extra packages..." 2>&1 | tee -a $LOGFILE
+    echo "Installing extra packages..." 2>&1 | tee -a "$LOGFILE"
     installExtraDpkg
 
-    color_echo green "Grabbing latest content hashes..." 2>&1 | tee -a $LOGFILE
+    echo "Grabbing latest content hashes..." 2>&1 | tee -a "$LOGFILE"
     grabContentHashes
 
     if [ "$ARCH" == "amd64" ]; then
-        color_echo green "Installing SGX modules..." 2>&1 | tee -a $LOGFILE
+        echo "Installing SGX modules..." 2>&1 | tee -a "$LOGFILE"
         installSgx
 
-        color_echo green "Installing extra packages..." 2>&1 | tee -a $LOGFILE
+        echo "Installing extra packages..." 2>&1 | tee -a "$LOGFILE"
         installExtraDpkg # TODO: Why is this being called twice?
     fi
 
-    color_echo green "Adding user to docker group..." 2>&1 | tee -a $LOGFILE
+    echo "Adding user to docker group..." 2>&1 | tee -a "$LOGFILE"
     addUserToDockerGroup
 fi
 
 # --- Common steps (Linux and macOS) ---
-color_echo green "Creating dncore_network if needed..." 2>&1 | tee -a $LOGFILE
-docker network create --driver bridge --subnet 172.33.0.0/16 dncore_network 2>&1 | tee -a $LOGFILE || true
+echo "Creating dncore_network if needed..." 2>&1 | tee -a "$LOGFILE"
+docker network create --driver bridge --subnet 172.33.0.0/16 dncore_network 2>&1 | tee -a "$LOGFILE" || true
 
-color_echo green "Building DAppNode Core if needed..." 2>&1 | tee -a $LOGFILE
+echo "Building DAppNode Core if needed..." 2>&1 | tee -a "$LOGFILE"
 dappnode_core_build
 
-color_echo green "Downloading DAppNode Core..." 2>&1 | tee -a $LOGFILE
+echo "Downloading DAppNode Core..." 2>&1 | tee -a "$LOGFILE"
 dappnode_core_download
 
 # Re-source profile now that compose files exist, so DNCORE_YMLS is populated
 # shellcheck disable=SC1090
 source "${DAPPNODE_PROFILE}"
 
-color_echo green "Loading DAppNode Core..." 2>&1 | tee -a $LOGFILE
+echo "Loading DAppNode Core..." 2>&1 | tee -a "$LOGFILE"
 dappnode_core_load
 
 # --- Start DAppNode ---
 if $IS_LINUX; then
     if [ ! -f "${DAPPNODE_DIR}/.firstboot" ]; then
-        color_echo green "DAppNode installed" 2>&1 | tee -a $LOGFILE
+        echo "DAppNode installed" 2>&1 | tee -a "$LOGFILE"
         dappnode_core_start
     fi
 
@@ -699,28 +687,34 @@ if $IS_LINUX; then
 fi
 
 if $IS_MACOS; then
-    color_echo green "DAppNode installed" 2>&1 | tee -a $LOGFILE
+    echo "DAppNode installed" 2>&1 | tee -a "$LOGFILE"
     dappnode_core_start
 
-    color_echo yellow "\nWaiting for VPN initialization..."
-    sleep 10
+    echo ""
+    echo "Waiting for VPN initialization..."
+    sleep 20
 
-    color_echo green "\n##############################################"
-    color_echo green "#      DAppNode VPN Access Credentials        #"
-    color_echo green "##############################################"
-    echo -e "\nYour DAppNode is ready! Connect using your preferred VPN client."
-    echo -e "Choose either Wireguard (recommended) or OpenVPN and import the"
-    echo -e "credentials below into your VPN app to access your DAppNode.\n"
+    echo ""
+    echo "##############################################"
+    echo "#      DAppNode VPN Access Credentials        #"
+    echo "##############################################"
+    echo ""
+    echo "Your DAppNode is ready! Connect using your preferred VPN client."
+    echo "Choose either Wireguard (recommended) or OpenVPN and import the"
+    echo "credentials below into your VPN app to access your DAppNode."
+    echo ""
 
-    echo -e "--- Wireguard ---"
+    echo "--- Wireguard ---"
     dappnode_wireguard --localhost 2>&1 || \
-        color_echo yellow "Wireguard credentials not yet available. Try later with: dappnode_wireguard --localhost"
+        echo "Wireguard credentials not yet available. Try later with: dappnode_wireguard --localhost"
 
-    echo -e "\n--- OpenVPN ---"
+    echo ""
+    echo "--- OpenVPN ---"
     dappnode_openvpn_get dappnode_admin --localhost 2>&1 || \
-        color_echo yellow "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin --localhost"
+        echo "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin --localhost"
 
-    echo -e "\nImport the configuration above into your VPN client of choice to access your DAppNode at http://my.dappnode"
+    echo ""
+    echo "Import the configuration above into your VPN client of choice to access your DAppNode at http://my.dappnode"
 fi
 
 exit 0
