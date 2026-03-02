@@ -25,26 +25,6 @@ set -Eeuo pipefail
 shopt -s expand_aliases
 
 ##############################
-# Core CLI wrappers (script) #
-##############################
-
-# Note: aliases sourced from `.dappnode_profile` are not reliably usable inside this installer.
-# Bash parses scripts before those aliases are defined, so later calls can become "command not found".
-# Provide function wrappers so the installer can always run these commands.
-
-dappnode_wireguard() {
-    docker exec -i DAppNodeCore-api.wireguard.dnp.dappnode.eth getWireguardCredentials "$@"
-}
-
-dappnode_openvpn_get() {
-    docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth vpncli get "$@"
-}
-
-dappnode_openvpn() {
-    docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth getAdminCredentials "$@"
-}
-
-##############################
 # Logging / Errors            #
 ##############################
 
@@ -153,8 +133,6 @@ if $IS_MACOS; then
 else
     ARCH="$(dpkg --print-architecture)"
 fi
-
-
 
 ##############################
 # Cross-platform Helpers     #
