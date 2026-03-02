@@ -6,7 +6,10 @@ if (return 0 2>/dev/null); then
     return 1
 fi
 
-# Re-exec under bash if invoked by another shell (e.g. zsh)
+# This uninstaller is written for bash. It's safe to *run it from zsh* (it will execute via bash
+# thanks to the shebang), but users sometimes invoke it as `zsh ./script.sh` or `source ./script.sh`.
+# - If sourced, bail out (sourcing would pollute the current shell and can break it).
+# - If invoked by a non-bash shell, re-exec with bash before hitting bash-specific builtins.
 if [ -z "${BASH_VERSION:-}" ]; then
     exec /usr/bin/env bash "$0" "$@"
 fi
