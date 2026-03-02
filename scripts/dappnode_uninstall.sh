@@ -1,15 +1,14 @@
 #!/usr/bin/env bash
 
-# Guard against sourcing
+# This uninstaller is written for bash. It's safe to *run it from zsh* (it will execute via bash
+# thanks to the shebang), but users sometimes invoke it as `zsh ./script.sh` or `source ./script.sh`.
+# - If sourced, bail out (sourcing would pollute the current shell and can break it).
+# - If invoked by a non-bash shell, re-exec with bash before hitting bash-specific builtins.
 if (return 0 2>/dev/null); then
     echo "This script must be executed, not sourced. Run: bash $0"
     return 1
 fi
 
-# This uninstaller is written for bash. It's safe to *run it from zsh* (it will execute via bash
-# thanks to the shebang), but users sometimes invoke it as `zsh ./script.sh` or `source ./script.sh`.
-# - If sourced, bail out (sourcing would pollute the current shell and can break it).
-# - If invoked by a non-bash shell, re-exec with bash before hitting bash-specific builtins.
 if [ -z "${BASH_VERSION:-}" ]; then
     exec /usr/bin/env bash "$0" "$@"
 fi
