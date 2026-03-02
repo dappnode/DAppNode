@@ -45,21 +45,6 @@ input=$1 # Allow to call script with argument (must be Y/N)
 # Cross-platform Helpers     #
 ##############################
 
-# Color output helper (no ANSI on macOS to avoid \e issues)
-color_echo() {
-    local color="$1"; shift
-    if $IS_LINUX; then
-        case "$color" in
-            green) code="\e[32m" ;;
-            yellow) code="\e[33m" ;;
-            *) code="" ;;
-        esac
-        echo -e "${code}$*\e[0m"
-    else
-        echo "$*"
-    fi
-}
-
 # Cross-platform in-place sed (macOS requires '' after -i)
 sed_inplace() {
     if $IS_MACOS; then
@@ -75,12 +60,12 @@ sed_inplace() {
 }
 
 uninstall() {
-    color_echo green "Uninstalling DAppNode"
+    echo "Uninstalling DAppNode"
     # shellcheck disable=SC1090
     source "${PROFILE_FILE}" &>/dev/null
 
     DAPPNODE_CONTAINERS="$(docker ps -a --format '{{.Names}}' | grep DAppNode)"
-    color_echo green "Removing DAppNode containers: "
+    echo "Removing DAppNode containers: "
     echo "${DAPPNODE_CONTAINERS}"
     for container in $DAPPNODE_CONTAINERS; do
         # Stop DAppNode container
@@ -90,7 +75,7 @@ uninstall() {
     done
 
     DAPPNODE_IMAGES="$(docker image ls -a | grep "dappnode")"
-    color_echo green "Removing DAppNode images: "
+    echo "Removing DAppNode images: "
     echo "${DAPPNODE_IMAGES}"
     for image in $DAPPNODE_IMAGES; do
         # Remove DAppNode images
@@ -98,7 +83,7 @@ uninstall() {
     done
 
     DAPPNODE_VOLUMES="$(docker volume ls | grep "dappnode\|dncore")"
-    color_echo green "Removing DAppNode volumes: "
+    echo "Removing DAppNode volumes: "
     echo "${DAPPNODE_VOLUMES}"
     for volume in $DAPPNODE_VOLUMES; do
         # Remove DAppNode volumes
@@ -106,11 +91,11 @@ uninstall() {
     done
 
     # Remove dncore_network
-    color_echo green "Removing docker dncore_network"
+    echo "Removing docker dncore_network"
     docker network remove dncore_network || echo "dncore_network already removed"
 
     # Remove DAppNode directory
-    color_echo green "Removing DAppNode directory: ${DAPPNODE_DIR}"
+    echo "Removing DAppNode directory: ${DAPPNODE_DIR}"
     rm -rf "${DAPPNODE_DIR}"
 
     # Remove profile file references from shell config files
@@ -141,7 +126,7 @@ uninstall() {
         fi
     done
 
-    color_echo green "DAppNode uninstalled!"
+    echo "DAppNode uninstalled!"
 }
 
 if [ $# -eq 0 ]; then
