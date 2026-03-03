@@ -24,6 +24,9 @@ set -Eeuo pipefail
 # Required so commands like `dappnode_wireguard` (defined as aliases in `.dappnode_profile`) work.
 shopt -s expand_aliases
 
+# Ensure array is always defined (avoid `set -u` edge cases)
+DNCORE_COMPOSE_ARGS=()
+
 ##############################
 # Logging / Errors            #
 ##############################
@@ -657,7 +660,7 @@ add_profile_to_shell() {
 dappnode_core_start() {
     echo "DAppNode starting..." 2>&1 | tee -a "$LOGFILE"
 
-    if [[ ${#DNCORE_COMPOSE_ARGS[@]:-0} -eq 0 ]]; then
+    if [[ ${#DNCORE_COMPOSE_ARGS[@]} -eq 0 ]]; then
         build_dncore_compose_args
     fi
     [[ ${#DNCORE_COMPOSE_ARGS[@]} -gt 0 ]] || die "No docker-compose-*.yml files found in ${DAPPNODE_CORE_DIR}"
