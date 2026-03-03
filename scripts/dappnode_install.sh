@@ -268,10 +268,23 @@ patch_dappmanager_compose_for_macos() {
     [[ ${#envs_to_add[@]} -gt 0 ]] || return 0
 
     local tmp="${file}.tmp"
-    local insert_text
-    insert_text=$(printf '%s\n' "${envs_to_add[@]}")
+    local insert_file="${file}.envinsert"
 
-    awk -v ins="$insert_text" '/DISABLE_UPNP/ { print; print ins; next } { print }' "$file" > "$tmp" && mv "$tmp" "$file"
+    # macOS ships BSD awk, which can error with "newline in string" if a -v argument contains
+    # literal newlines. Write the insertion block to a temp file and have awk read it.
+    printf '%s\n' "${envs_to_add[@]}" >"$insert_file"
+
+    awk -v insfile="$insert_file" '
+        /^[[:space:]]*environment:[[:space:]]*$/ {
+            print
+            while ((getline line < insfile) > 0) print line
+            close(insfile)
+            next
+        }
+        { print }
+    ' "$file" >"$tmp" && mv "$tmp" "$file"
+
+    rm -f "$insert_file" || true
 }
 
 # TODO: remove once profile macos-compatibility published
@@ -836,12 +849,12 @@ main() {
         echo ""
 
         echo "--- Wireguard ---"
-        dappnode_wireguard --localhost 2>&1 || \
+        docker exec -i DAppNodeCore-api.wireguard.dnp.dappnode.eth getWireguardCredentials --localhost 2>&1 || \
             echo "Wireguard credentials not yet available. Try later with: dappnode_wireguard --localhost"
 
         echo ""
         echo "--- OpenVPN ---"
-        dappnode_openvpn_get dappnode_admin --localhost 2>&1 || \
+        docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth vpncli get dappnode_admin --localhost 2>&1 || \
             echo "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin --localhost"
 
         echo ""
