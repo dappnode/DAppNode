@@ -836,7 +836,7 @@ main() {
 
         echo ""
         echo "Waiting for VPN initialization..."
-        sleep 20
+        sleep 30
 
         echo ""
         echo "##############################################"
