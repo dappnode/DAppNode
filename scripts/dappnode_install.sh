@@ -259,7 +259,7 @@ patch_dappmanager_compose_for_macos() {
 
     # DISABLE_HOST_SCRIPTS: tells the container to skip host-only scripts
     if ! grep -q "DISABLE_HOST_SCRIPTS" "$file"; then
-        envs_to_add+=("      - DISABLE_HOST_SCRIPTS=${DISABLE_HOST_SCRIPTS:-true}")
+        envs_to_add+=("      - DISABLE_HOST_SCRIPTS=${DISABLE_HOST_SCRIPTS}")
     fi
 
     [[ ${#envs_to_add[@]} -gt 0 ]] || return 0
