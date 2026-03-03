@@ -240,6 +240,37 @@ patch_compose_paths() {
     sed_inplace "s|/usr/src/dappnode|${DAPPNODE_DIR}|g" "$file"
 }
 
+# Patch dappmanager compose for macOS: inject env vars the container needs
+# to know the host core-dir path and to skip host-only operations,
+# and fix the DNCORE volume mount to use the macOS host path.
+patch_dappmanager_compose_for_macos() {
+    local file="$1"
+
+    # Replace the host side of the DNCORE volume mount with the actual DAPPNODE_CORE_DIR value
+    # e.g. /usr/src/dappnode/DNCORE/:/usr/src/app/DNCORE/ -> $HOME/dappnode/DNCORE/:/usr/src/app/DNCORE/
+    sed_inplace "s|[^[:space:]]*:/usr/src/app/DNCORE/|${DAPPNODE_CORE_DIR}/:/usr/src/app/DNCORE/|" "$file"
+
+    local envs_to_add=()
+
+    # DAPPNODE_CORE_DIR: lets the container know the host's DNCORE path
+    if ! grep -q "DAPPNODE_CORE_DIR" "$file"; then
+        envs_to_add+=("      - DAPPNODE_CORE_DIR=${DAPPNODE_CORE_DIR}")
+    fi
+
+    # DISABLE_HOST_SCRIPTS: tells the container to skip host-only scripts
+    if ! grep -q "DISABLE_HOST_SCRIPTS" "$file"; then
+        envs_to_add+=("      - DISABLE_HOST_SCRIPTS=${DISABLE_HOST_SCRIPTS:-true}")
+    fi
+
+    [[ ${#envs_to_add[@]} -gt 0 ]] || return 0
+
+    local tmp="${file}.tmp"
+    local insert_text
+    insert_text=$(printf '%s\n' "${envs_to_add[@]}")
+
+    awk -v ins="$insert_text" '/DISABLE_UPNP/ { print; print ins; next } { print }' "$file" > "$tmp" && mv "$tmp" "$file"
+}
+
 # TODO: remove once profile macos-compatibility published
 # Patch .dappnode_profile for macOS compatibility
 patch_profile_for_macos() {
@@ -486,6 +517,10 @@ dappnode_core_download() {
             if $IS_MACOS; then
                 remove_logging_section "${!yml_file_var}"
                 patch_compose_paths "${!yml_file_var}"
+                # Inject macOS-specific env vars into the dappmanager compose
+                if [[ "$comp" == "DAPPMANAGER" ]]; then
+                    patch_dappmanager_compose_for_macos "${!yml_file_var}"
+                fi
             fi
         fi
     done
