@@ -74,6 +74,50 @@ check_prereqs() {
     fi
 }
 
+# Wait until dappmanager publishes INTERNAL_IP via its local HTTP endpoint.
+# Runs the curl inside the provided container and exits with error on timeout.
+# Usage: wait_for_internal_ip <container_name> [timeout_seconds] [initial_sleep_seconds]
+wait_for_internal_ip() {
+    local container_name="$1"
+    local timeout_seconds="${2:-120}"
+    local initial_sleep_seconds="${3:-10}"
+    local url="http://127.0.0.1/global-envs/INTERNAL_IP"
+
+    echo "Waiting for dappmanager to publish INTERNAL_IP..."
+    sleep "$initial_sleep_seconds"
+
+    local start_seconds http_code value result
+    start_seconds=$SECONDS
+    http_code=""
+    value=""
+
+    while true; do
+        if (( SECONDS - start_seconds >= timeout_seconds )); then
+            die "Timed out after ${timeout_seconds}s waiting for INTERNAL_IP from dappmanager (expected HTTP 200 with a non-empty value). Last seen: code=${http_code:-?}, value=${value:-<empty>}"
+        fi
+
+        # Must be executed inside the dappmanager container
+        # Wait until we get HTTP 200 and a non-empty value back.
+        # Return format is:
+        #   <body>\n<http_code>
+        # Parse in bash (not inside container sh) to avoid shell portability issues.
+        result="$(
+            docker exec -i "$container_name" sh -lc "curl -sS -w '\n%{http_code}' '$url' 2>/dev/null || true" 2>/dev/null || true
+        )"
+
+        http_code="$(printf '%s\n' "$result" | tail -n 1 | tr -d '\r')"
+        value="$(printf '%s\n' "$result" | head -n 1 | tr -d '\r' | xargs)"
+
+        if [[ "$http_code" == "200" && -n "$value" && "$value" != "null" ]]; then
+            echo "INTERNAL_IP is ready: $value"
+            return 0
+        fi
+
+        echo "INTERNAL_IP not ready yet (code=${http_code:-?}). Retrying..."
+        sleep 2
+    done
+}
+
 # Build docker compose "-f <file>" args from downloaded compose files.
 # This avoids depending on alias expansion or profile-generated strings.
 build_dncore_compose_args() {
@@ -836,7 +880,7 @@ main() {
 
         echo ""
         echo "Waiting for VPN initialization..."
-        sleep 30
+        wait_for_internal_ip "DAppNodeCore-dappmanager.dnp.dappnode.eth" 120 10
 
         echo ""
         echo "##############################################"
