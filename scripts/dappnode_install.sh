@@ -971,25 +971,27 @@ main() {
 
     # --- Linux-only setup steps ---
     if $IS_LINUX; then
-        echo "Creating swap memory..." 2>&1 | tee -a "$LOGFILE"
-        addSwap
+        if [[ "${MINIMAL}" != "true" ]]; then
+            echo "Creating swap memory..." 2>&1 | tee -a "$LOGFILE"
+            addSwap
 
-        echo "Customizing login..." 2>&1 | tee -a "$LOGFILE"
-        customMotd
+            echo "Customizing login..." 2>&1 | tee -a "$LOGFILE"
+            customMotd
 
-        echo "Installing extra packages..." 2>&1 | tee -a "$LOGFILE"
-        installExtraDpkg
+            echo "Installing extra packages..." 2>&1 | tee -a "$LOGFILE"
+            installExtraDpkg
 
-        echo "Grabbing latest content hashes..." 2>&1 | tee -a "$LOGFILE"
-        grabContentHashes
+            echo "Grabbing latest content hashes..." 2>&1 | tee -a "$LOGFILE"
+            grabContentHashes
 
-        if [ "$ARCH" == "amd64" ]; then
+            if [ "$ARCH" == "amd64" ]; then
             echo "Installing SGX modules..." 2>&1 | tee -a "$LOGFILE"
             installSgx
 
             echo "Installing extra packages..." 2>&1 | tee -a "$LOGFILE"
             installExtraDpkg # TODO: Why is this being called twice?
         fi
+    fi
 
         echo "Adding user to docker group..." 2>&1 | tee -a "$LOGFILE"
         addUserToDockerGroup
