@@ -81,39 +81,49 @@ wait_for_internal_ip() {
     local container_name="$1"
     local timeout_seconds="${2:-120}"
     local initial_sleep_seconds="${3:-10}"
-    local url="http://127.0.0.1/global-envs/INTERNAL_IP"
+    local internal_ip_url="http://127.0.0.1/global-envs/INTERNAL_IP"
+    local hostname_url="http://127.0.0.1/global-envs/HOSTNAME"
 
-    echo "Waiting for dappmanager to publish INTERNAL_IP..."
+    echo "Waiting for dappmanager to publish INTERNAL_IP and HOSTNAME..."
     sleep "$initial_sleep_seconds"
 
-    local start_seconds http_code value result
+    local start_seconds internal_http_code internal_value internal_result
+    local hostname_http_code hostname_value hostname_result
     start_seconds=$SECONDS
-    http_code=""
-    value=""
+    internal_http_code=""
+    internal_value=""
+    hostname_http_code=""
+    hostname_value=""
 
     while true; do
         if (( SECONDS - start_seconds >= timeout_seconds )); then
-            die "Timed out after ${timeout_seconds}s waiting for INTERNAL_IP from dappmanager (expected HTTP 200 with a non-empty value). Last seen: code=${http_code:-?}, value=${value:-<empty>}"
+            die "Timed out after ${timeout_seconds}s waiting for INTERNAL_IP and HOSTNAME from dappmanager (expected HTTP 200 with non-empty values). Last seen: INTERNAL_IP code=${internal_http_code:-?} value=${internal_value:-<empty>}; HOSTNAME code=${hostname_http_code:-?} value=${hostname_value:-<empty>}"
         fi
 
-        # Must be executed inside the dappmanager container
-        # Wait until we get HTTP 200 and a non-empty value back.
+        # Must be executed inside the dappmanager container.
         # Return format is:
         #   <body>\n<http_code>
         # Parse in bash (not inside container sh) to avoid shell portability issues.
-        result="$(
-            docker exec -i "$container_name" sh -lc "curl -sS -w '\n%{http_code}' '$url' 2>/dev/null || true" 2>/dev/null || true
+
+        internal_result="$(
+            docker exec -i "$container_name" sh -lc "curl -sS -w '\n%{http_code}' '$internal_ip_url' 2>/dev/null || true" 2>/dev/null || true
         )"
+        internal_http_code="$(printf '%s\n' "$internal_result" | tail -n 1 | tr -d '\r')"
+        internal_value="$(printf '%s\n' "$internal_result" | head -n 1 | tr -d '\r' | xargs)"
 
-        http_code="$(printf '%s\n' "$result" | tail -n 1 | tr -d '\r')"
-        value="$(printf '%s\n' "$result" | head -n 1 | tr -d '\r' | xargs)"
+        hostname_result="$(
+            docker exec -i "$container_name" sh -lc "curl -sS -w '\n%{http_code}' '$hostname_url' 2>/dev/null || true" 2>/dev/null || true
+        )"
+        hostname_http_code="$(printf '%s\n' "$hostname_result" | tail -n 1 | tr -d '\r')"
+        hostname_value="$(printf '%s\n' "$hostname_result" | head -n 1 | tr -d '\r' | xargs)"
 
-        if [[ "$http_code" == "200" && -n "$value" && "$value" != "null" ]]; then
-            echo "INTERNAL_IP is ready: $value"
+        if [[ "$internal_http_code" == "200" && -n "$internal_value" && "$internal_value" != "null" && "$hostname_http_code" == "200" && -n "$hostname_value" && "$hostname_value" != "null" ]]; then
+            echo "INTERNAL_IP is ready: $internal_value"
+            echo "HOSTNAME is ready: $hostname_value"
             return 0
         fi
 
-        echo "INTERNAL_IP not ready yet (code=${http_code:-?}). Retrying..."
+        echo "INTERNAL_IP/HOSTNAME not ready yet (INTERNAL_IP code=${internal_http_code:-?}, HOSTNAME code=${hostname_http_code:-?}). Retrying..."
         sleep 2
     done
 }
@@ -373,10 +383,16 @@ patch_maindb_for_macos_nonserver() {
     fi
 
     local maindb_file="${DAPPNODE_CORE_DIR}/maindb.json"
-    if [[ ! -f "$maindb_file" ]]; then
-        warn "macOS non-server: maindb.json not found at ${maindb_file}; skipping"
-        return 0
-    fi
+    # Wait (up to 2 minutes) for maindb.json to exist.
+    local start_seconds
+    start_seconds=$SECONDS
+    while [[ ! -f "$maindb_file" ]]; do
+        if (( SECONDS - start_seconds >= 120 )); then
+            warn "macOS non-server: maindb.json not found at ${maindb_file} after 120s; skipping"
+            return 0
+        fi
+        sleep 2
+    done
 
     log "macOS non-server: patching maindb.json to use remote IPFS"
 
