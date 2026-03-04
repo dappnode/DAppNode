@@ -185,6 +185,28 @@ fi
 # Cross-platform Helpers     #
 ##############################
 
+# macOS: determine whether we're running on a server-suitable always-on Mac.
+# Heuristic: treat Mac mini / Mac Studio / Mac Pro as always-on capable.
+# Returns 0 (true) if server-class, 1 otherwise.
+is_always_on_mac() {
+    # Non-macOS hosts are not considered always-on Macs
+    if ! $IS_MACOS; then
+        return 1
+    fi
+
+    local model
+    model="$(sysctl -n hw.model 2>/dev/null)" || return 1
+
+    case "$model" in
+        Macmini*|MacStudio*|MacPro*)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
 # Download a file: download_file <destination> <url>
 download_file() {
     local dest="$1"
@@ -412,19 +434,30 @@ is_port_used() {
 
 # Determine packages to be installed
 determine_packages() {
-    is_iso_install
-    is_port_used
-    if [ "$IS_ISO_INSTALL" == "false" ]; then
-        if [ "$IS_PORT_USED" == "true" ]; then
-            PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER)
+    # macOS: package selection depends on whether the Mac is suitable to run always-on.
+    # - non-server mac: BIND VPN WIREGUARD DAPPMANAGER
+    # - server mac:     BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI HTTPS
+    # NOTE: HTTPS may be skipped if ports 80/443 are already in use.
+    if $IS_MACOS; then
+        is_port_used
+
+        if is_always_on_mac; then
+            if [ "$IS_PORT_USED" == "true" ]; then
+                PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI)
+            else
+                PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI HTTPS)
+            fi
         else
-            PKGS=(HTTPS BIND IPFS VPN WIREGUARD DAPPMANAGER)
+            PKGS=(BIND VPN WIREGUARD DAPPMANAGER)
         fi
     else
+        # Linux / ISO logic
+        is_iso_install
+        is_port_used
         if [ "$IS_PORT_USED" == "true" ]; then
-            PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER)
+            PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI)
         else
-            PKGS=(HTTPS BIND IPFS VPN WIREGUARD DAPPMANAGER)
+            PKGS=(HTTPS BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI)
         fi
     fi
     log "Packages to be installed: ${PKGS[*]}"
