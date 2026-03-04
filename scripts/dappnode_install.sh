@@ -540,7 +540,7 @@ is_port_used() {
 determine_packages() {
     # Global override: minimal install, regardless of OS.
     if [[ "${MINIMAL}" == "true" ]]; then
-        PKGS=(BIND VPN WIREGUARD DAPPMANAGER)
+        PKGS=(BIND VPN WIREGUARD DAPPMANAGER NOTIFICATIONS PREMIUM)
         log "Minimal mode enabled; overriding packages"
         log "Packages to be installed: ${PKGS[*]}"
         log "PKGS: ${PKGS[*]}"
@@ -561,23 +561,24 @@ determine_packages() {
 
         if is_always_on_mac; then
             if [ "$IS_PORT_USED" == "true" ]; then
-                PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI)
+                PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI NOTIFICATIONS PREMIUM)
             else
-                PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI HTTPS)
+                PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI HTTPS NOTIFICATIONS PREMIUM)
             fi
         else
-            PKGS=(BIND VPN WIREGUARD DAPPMANAGER)
+            PKGS=(BIND VPN WIREGUARD DAPPMANAGER NOTIFICATIONS PREMIUM)
         fi
     else
         # Linux / ISO logic
         is_iso_install
         is_port_used
         if [ "$IS_PORT_USED" == "true" ]; then
-            PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI)
+            PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI NOTIFICATIONS PREMIUM)
         else
-            PKGS=(HTTPS BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI)
+            PKGS=(HTTPS BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI NOTIFICATIONS PREMIUM)
         fi
     fi
+
     log "Packages to be installed: ${PKGS[*]}"
 
     # Debug: print all PKGS and their version variables

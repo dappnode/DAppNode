@@ -26,6 +26,12 @@ on:
       vpn:
         description: "Version of the OpenVPN Package. Only numbers"
         required: true
+      notifications:
+        description: "IPFS hash of the Notifications Package. Must start with /ipfs/"
+        required: true
+      premium:
+        description: "IPFS hash of the Premium Package. Must start with /ipfs/"
+        required: true
 
 jobs:
   set-versions:
@@ -39,13 +45,16 @@ jobs:
       wireguard: ${{ steps.set_outputs.outputs.wireguard }}
       https: ${{ steps.set_outputs.outputs.https }}
       vpn: ${{ steps.set_outputs.outputs.vpn }}
+      notifications: ${{ steps.set_outputs.outputs.notifications }}
+      premium: ${{ steps.set_outputs.outputs.premium }}
       core: ${{ steps.set_outputs.outputs.core }}
     steps:
       - name: Check versions regex
         run: |
           [[ "${{ github.event.inputs.bind }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "${{ github.event.inputs.ipfs }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "${{ github.event.inputs.dappmanager }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
             [[ "${{ github.event.inputs.wifi }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "${{ github.event.inputs.wireguard }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "${{ github.event.inputs.https }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
-            [[ "${{ github.event.inputs.vpn }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "${{ github.event.inputs.core }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "versions introduced in wrong format"; exit 1; }
+            [[ "${{ github.event.inputs.vpn }}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [[ "${{ github.event.inputs.core }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] && \
+            [[ "${{ github.event.inputs.notifications }}" =~ ^/ipfs/.+$ ]] && [[ "${{ github.event.inputs.premium }}" =~ ^/ipfs/.+$ ]] || { echo "versions introduced in wrong format"; exit 1; }
       - name: Checkout
         uses: actions/checkout@v4
       - name: Set new versions
@@ -56,7 +65,9 @@ jobs:
           sed -i -e "/DAPPMANAGER_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.dappmanager }}"/" .dappnode_profile
           sed -i -e "/WIFI_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.wifi }}"/" .dappnode_profile
           sed -i -e "/WIREGUARD_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.wireguard }}"/" .dappnode_profile
-          sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/"${{ github.event.inputs.https }}"/" .dappnode_profile
+          sed -i -e "/HTTPS_VERSION/s/[0-9]*\.[0-9]*\.[0-9]*/${{ github.event.inputs.https }}/" .dappnode_profile
+          sed -i -e "s|^export NOTIFICATIONS_VERSION=.*|export NOTIFICATIONS_VERSION=\"${{ github.event.inputs.notifications }}\"|" .dappnode_profile
+          sed -i -e "s|^export PREMIUM_VERSION=.*|export PREMIUM_VERSION=\"${{ github.event.inputs.premium }}\"|" .dappnode_profile
           cat .dappnode_profile
       - name: Create dappnode_profile.sh
         run: cp .dappnode_profile dappnode_profile.sh
@@ -76,6 +87,8 @@ jobs:
           echo "wireguard=${{ github.event.inputs.wireguard }}" >> $GITHUB_OUTPUT
           echo "https=${{ github.event.inputs.https }}" >> $GITHUB_OUTPUT
           echo "vpn=${{ github.event.inputs.vpn }}" >> $GITHUB_OUTPUT
+          echo "notifications=${{ github.event.inputs.notifications }}" >> $GITHUB_OUTPUT
+          echo "premium=${{ github.event.inputs.premium }}" >> $GITHUB_OUTPUT
 
   build-debian-attended:
     name: Build Debian attended ISO
