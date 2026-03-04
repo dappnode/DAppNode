@@ -373,61 +373,6 @@ patch_profile_for_macos() {
     sed_inplace 's|/usr/src/dappnode|\$HOME/dappnode|g' "$profile"
 }
 
-# macOS (non-server): ensure dappmanager uses remote IPFS services.
-# This updates ${DAPPNODE_CORE_DIR}/maindb.json with:
-#   "ipfs-gateway": "https://ipfs-gateway.dappnode.net"
-#   "ipfs-client-target": "remote"
-patch_maindb_for_macos_nonserver() {
-    if ! $IS_MACOS; then
-        return 0
-    fi
-
-    local maindb_file="${DAPPNODE_CORE_DIR}/maindb.json"
-    # Wait (up to 2 minutes) for maindb.json to exist.
-    local start_seconds
-    start_seconds=$SECONDS
-    while [[ ! -f "$maindb_file" ]]; do
-        if (( SECONDS - start_seconds >= 120 )); then
-            warn "macOS non-server: maindb.json not found at ${maindb_file} after 120s; skipping"
-            return 0
-        fi
-        sleep 2
-    done
-
-    log "macOS non-server: patching maindb.json to use remote IPFS"
-
-    if ! command -v osascript >/dev/null 2>&1; then
-        die "macOS non-server: cannot patch maindb.json (missing 'osascript')"
-    fi
-
-    osascript -l JavaScript - "$maindb_file" <<'JXA'
-ObjC.import('Foundation');
-
-function run(argv) {
-  var path = argv[0];
-  if (!path) throw new Error('Missing maindb.json path');
-
-  var data = $.NSData.dataWithContentsOfFile(path);
-  if (!data) throw new Error('Unable to read file: ' + path);
-
-  var content = ObjC.unwrap($.NSString.alloc.initWithDataEncoding(data, $.NSUTF8StringEncoding));
-  var obj = JSON.parse(content);
-  if (Object.prototype.toString.call(obj) !== '[object Object]') {
-    throw new Error('maindb.json is not a JSON object: ' + path);
-  }
-
-  obj['ipfs-gateway'] = 'https://ipfs-gateway.dappnode.net';
-  obj['ipfs-client-target'] = 'remote';
-
-  var out = JSON.stringify(obj, null, 2) + '\n';
-  var outStr = $.NSString.stringWithString(out);
-  var ok = outStr.writeToFileAtomicallyEncodingError(path, true, $.NSUTF8StringEncoding, null);
-  if (!ok) throw new Error('Unable to write file: ' + path);
-}
-JXA
-    return 0
-}
-
 bootstrap_filesystem() {
     # Clean if update
     if [[ "${UPDATE}" == "true" ]]; then
@@ -975,11 +920,6 @@ main() {
     if $IS_MACOS; then
         echo "DAppNode installed" 2>&1 | tee -a "$LOGFILE"
         dappnode_core_start
-
-        # macOS non-server machines should not try to use local IPFS.
-        if ! is_always_on_mac; then
-            patch_maindb_for_macos_nonserver
-        fi
 
         echo ""
         echo "Waiting for VPN initialization..."
