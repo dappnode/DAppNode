@@ -193,6 +193,36 @@ wait_for_internal_ip() {
     done
 }
 
+# Print VPN access credentials (Wireguard + OpenVPN) after core has started.
+# Works on both Linux and macOS as long as the relevant containers are running.
+print_vpn_access_credentials() {
+    echo ""
+    echo "Waiting for VPN initialization..."
+    wait_for_internal_ip "DAppNodeCore-dappmanager.dnp.dappnode.eth" 120 20
+
+    echo ""
+    echo "##############################################"
+    echo "#      DAppNode VPN Access Credentials        #"
+    echo "##############################################"
+    echo ""
+    echo "Your DAppNode is ready! Connect using your preferred VPN client."
+    echo "Choose either Wireguard (recommended) or OpenVPN and import the"
+    echo "credentials below into your VPN app to access your DAppNode."
+    echo ""
+
+    echo "--- Wireguard ---"
+    docker exec -i DAppNodeCore-api.wireguard.dnp.dappnode.eth getWireguardCredentials --localhost 2>&1 || \
+        echo "Wireguard credentials not yet available. Try later with: dappnode_wireguard --localhost"
+
+    echo ""
+    echo "--- OpenVPN ---"
+    docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth vpncli get dappnode_admin --localhost 2>&1 || \
+        echo "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin --localhost"
+
+    echo ""
+    echo "Import the configuration above into your VPN client of choice to access your DAppNode at http://my.dappnode"
+}
+
 # Build docker compose "-f <file>" args from downloaded compose files.
 # This avoids depending on alias expansion or profile-generated strings.
 build_dncore_compose_args() {
@@ -986,6 +1016,7 @@ main() {
         if [ ! -f "${DAPPNODE_DIR}/.firstboot" ]; then
             echo "DAppNode installed" 2>&1 | tee -a "$LOGFILE"
             dappnode_core_start
+            print_vpn_access_credentials
         fi
 
         # Run test in interactive terminal (first boot only)
@@ -1000,32 +1031,7 @@ main() {
     if $IS_MACOS; then
         echo "DAppNode installed" 2>&1 | tee -a "$LOGFILE"
         dappnode_core_start
-
-        echo ""
-        echo "Waiting for VPN initialization..."
-        wait_for_internal_ip "DAppNodeCore-dappmanager.dnp.dappnode.eth" 120 20
-
-        echo ""
-        echo "##############################################"
-        echo "#      DAppNode VPN Access Credentials        #"
-        echo "##############################################"
-        echo ""
-        echo "Your DAppNode is ready! Connect using your preferred VPN client."
-        echo "Choose either Wireguard (recommended) or OpenVPN and import the"
-        echo "credentials below into your VPN app to access your DAppNode."
-        echo ""
-
-        echo "--- Wireguard ---"
-        docker exec -i DAppNodeCore-api.wireguard.dnp.dappnode.eth getWireguardCredentials --localhost 2>&1 || \
-            echo "Wireguard credentials not yet available. Try later with: dappnode_wireguard --localhost"
-
-        echo ""
-        echo "--- OpenVPN ---"
-        docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth vpncli get dappnode_admin --localhost 2>&1 || \
-            echo "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin --localhost"
-
-        echo ""
-        echo "Import the configuration above into your VPN client of choice to access your DAppNode at http://my.dappnode"
+        print_vpn_access_credentials
     fi
 }
 
