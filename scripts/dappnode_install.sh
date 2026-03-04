@@ -19,6 +19,7 @@ set -Eeuo pipefail
 : "${UPDATE:=false}"
 : "${STATIC_IP:=}"
 : "${LOCAL_PROFILE_PATH:=}"
+: "${MINIMAL:=false}"
 
 # Enable alias expansion in non-interactive bash scripts.
 # Required so commands like `dappnode_wireguard` (defined as aliases in `.dappnode_profile`) work.
@@ -47,6 +48,70 @@ warn() {
 die() {
     log "[ERROR] $*"
     exit 1
+}
+
+usage() {
+    cat <<'EOF'
+Usage: dappnode_install.sh [options]
+
+Options:
+  --update                      Clean existing downloaded artifacts before installing (equivalent: UPDATE=true)
+  --static-ip <ipv4>            Set a static IP (equivalent: STATIC_IP=...)
+  --local-profile-path <path>   Use a local .dappnode_profile instead of downloading (equivalent: LOCAL_PROFILE_PATH=...)
+  --ipfs-endpoint <url>         Override IPFS gateway endpoint (equivalent: IPFS_ENDPOINT=...)
+  --profile-url <url>           Override profile download URL (equivalent: PROFILE_URL=...)
+  --minimal                     Force minimal package set: BIND VPN WIREGUARD DAPPMANAGER (equivalent: MINIMAL=true)
+  -h, --help                    Show this help
+
+Environment variables (also supported):
+  UPDATE, STATIC_IP, LOCAL_PROFILE_PATH, IPFS_ENDPOINT, PROFILE_URL, MINIMAL
+EOF
+}
+
+parse_args() {
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --update)
+                UPDATE=true
+                shift
+                ;;
+            --static-ip)
+                [[ $# -ge 2 ]] || die "--static-ip requires an IPv4 argument"
+                STATIC_IP="$2"
+                shift 2
+                ;;
+            --local-profile-path)
+                [[ $# -ge 2 ]] || die "--local-profile-path requires a path argument"
+                LOCAL_PROFILE_PATH="$2"
+                shift 2
+                ;;
+            --ipfs-endpoint)
+                [[ $# -ge 2 ]] || die "--ipfs-endpoint requires a URL argument"
+                IPFS_ENDPOINT="$2"
+                shift 2
+                ;;
+            --profile-url)
+                [[ $# -ge 2 ]] || die "--profile-url requires a URL argument"
+                PROFILE_URL="$2"
+                shift 2
+                ;;
+            --minimal)
+                MINIMAL=true
+                shift
+                ;;
+            -h|--help)
+                usage
+                exit 0
+                ;;
+            --)
+                shift
+                break
+                ;;
+            *)
+                die "Unknown option: $1 (use --help)"
+                ;;
+        esac
+    done
 }
 
 require_cmd() {
@@ -443,6 +508,20 @@ is_port_used() {
 
 # Determine packages to be installed
 determine_packages() {
+    # Global override: minimal install, regardless of OS.
+    if [[ "${MINIMAL}" == "true" ]]; then
+        PKGS=(BIND VPN WIREGUARD DAPPMANAGER)
+        log "Minimal mode enabled; overriding packages"
+        log "Packages to be installed: ${PKGS[*]}"
+        log "PKGS: ${PKGS[*]}"
+        for comp in "${PKGS[@]}"; do
+            local ver_var
+            ver_var="${comp}_VERSION"
+            log "$ver_var = ${!ver_var-}"
+        done
+        return 0
+    fi
+
     # macOS: package selection depends on whether the Mac is suitable to run always-on.
     # - non-server mac: BIND VPN WIREGUARD DAPPMANAGER
     # - server mac:     BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI HTTPS
@@ -847,6 +926,8 @@ addUserToDockerGroup() {
 ##############################################
 
 main() {
+    parse_args "$@"
+
     bootstrap_filesystem
     check_prereqs
     configure_static_ip
