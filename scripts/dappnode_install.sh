@@ -1003,7 +1003,7 @@ main() {
 
         echo ""
         echo "Waiting for VPN initialization..."
-        wait_for_internal_ip "DAppNodeCore-dappmanager.dnp.dappnode.eth" 120 10
+        wait_for_internal_ip "DAppNodeCore-dappmanager.dnp.dappnode.eth" 120 20
 
         echo ""
         echo "##############################################"
