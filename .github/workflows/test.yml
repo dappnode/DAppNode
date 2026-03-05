@@ -22,7 +22,7 @@ jobs:
           sudo /bin/bash ./scripts/dappnode_install_pre.sh UPDATE
       - name: Install DAppNode
         run: |
-          sudo /bin/bash ./scripts/dappnode_install.sh
+          sudo /bin/bash ./scripts/dappnode_install.sh --local-profile-path "$PWD/.dappnode_profile"
       - name: Show installation logs
         run: |
           cat /usr/src/dappnode/logs/install.log 
