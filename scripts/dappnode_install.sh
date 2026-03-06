@@ -21,16 +21,6 @@ set -Eeuo pipefail
 : "${LOCAL_PROFILE_PATH:=}"
 : "${MINIMAL:=false}"
 : "${PACKAGES:=}"
-: "${INTERACTIVE:=false}"
-
-# Track CLI-provided values so interactive mode does not override explicit flags.
-CLI_SET_UPDATE=false
-CLI_SET_STATIC_IP=false
-CLI_SET_LOCAL_PROFILE_PATH=false
-CLI_SET_MINIMAL=false
-CLI_SET_PACKAGES=false
-CLI_SET_IPFS_ENDPOINT=false
-CLI_SET_PROFILE_URL=false
 
 # Enable alias expansion in non-interactive bash scripts.
 # Required so commands like `dappnode_wireguard` (defined as aliases in `.dappnode_profile`) work.
@@ -73,11 +63,10 @@ Options:
   --profile-url <url>           Override profile download URL (equivalent: PROFILE_URL=...)
   --minimal                     Force minimal package set: BIND VPN WIREGUARD DAPPMANAGER (equivalent: MINIMAL=true)
   --packages <list>             Override package selection (comma or space separated), e.g. BIND,IPFS,VPN
-    --interactive                 Run an interactive setup wizard (equivalent: INTERACTIVE=true)
   -h, --help                    Show this help
 
 Environment variables (also supported):
-        UPDATE, STATIC_IP, LOCAL_PROFILE_PATH, IPFS_ENDPOINT, PROFILE_URL, MINIMAL, PACKAGES, INTERACTIVE
+        UPDATE, STATIC_IP, LOCAL_PROFILE_PATH, IPFS_ENDPOINT, PROFILE_URL, MINIMAL, PACKAGES
 EOF
 }
 
@@ -86,51 +75,39 @@ parse_args() {
         case "$1" in
             --update)
                 UPDATE=true
-                CLI_SET_UPDATE=true
                 shift
                 ;;
             --static-ip)
                 [[ $# -ge 2 ]] || die "--static-ip requires an IPv4 argument"
                 STATIC_IP="$2"
-                CLI_SET_STATIC_IP=true
                 shift 2
                 ;;
             --local-profile-path)
                 [[ $# -ge 2 ]] || die "--local-profile-path requires a path argument"
                 LOCAL_PROFILE_PATH="$2"
-                CLI_SET_LOCAL_PROFILE_PATH=true
                 shift 2
                 ;;
             --ipfs-endpoint)
                 [[ $# -ge 2 ]] || die "--ipfs-endpoint requires a URL argument"
                 IPFS_ENDPOINT="$2"
-                CLI_SET_IPFS_ENDPOINT=true
                 shift 2
                 ;;
             --profile-url)
                 [[ $# -ge 2 ]] || die "--profile-url requires a URL argument"
                 PROFILE_URL="$2"
-                CLI_SET_PROFILE_URL=true
                 shift 2
                 ;;
             --minimal)
                 MINIMAL=true
-                CLI_SET_MINIMAL=true
                 shift
                 ;;
             --packages)
                 [[ $# -ge 2 ]] || die "--packages requires a package list argument"
                 PACKAGES="$2"
-                CLI_SET_PACKAGES=true
                 shift 2
                 ;;
             --packages=*)
                 PACKAGES="${1#*=}"
-                CLI_SET_PACKAGES=true
-                shift
-                ;;
-            --interactive)
-                INTERACTIVE=true
                 shift
                 ;;
             -h|--help)
@@ -732,224 +709,6 @@ valid_ip() {
     [[ ${octets[0]} -le 255 && ${octets[1]} -le 255 && ${octets[2]} -le 255 && ${octets[3]} -le 255 ]]
 }
 
-is_interactive_tty() {
-    [[ -t 0 && -t 1 ]]
-}
-
-prompt_yes_no() {
-    local question="$1"
-    local default_answer="$2"
-    local answer normalized
-
-    while true; do
-        if [[ "$default_answer" == "y" ]]; then
-            read -r -p "$question [Y/n]: " answer
-            answer="${answer:-y}"
-        else
-            read -r -p "$question [y/N]: " answer
-            answer="${answer:-n}"
-        fi
-
-        normalized="$(printf '%s' "$answer" | tr '[:upper:]' '[:lower:]')"
-
-        case "$normalized" in
-            y|yes)
-                return 0
-                ;;
-            n|no)
-                return 1
-                ;;
-            *)
-                echo "Please answer 'y' or 'n'."
-                ;;
-        esac
-    done
-}
-
-print_package_descriptions() {
-    echo ""
-    echo "Package quick guide:"
-    echo "  HTTPS         Reverse proxy + HTTPS entrypoint for web access"
-    echo "  BIND          DNS resolver used by DAppNode services"
-    echo "  IPFS          Distributed storage and content fetch layer"
-    echo "  VPN           OpenVPN access to your DAppNode"
-    echo "  WIREGUARD     WireGuard access to your DAppNode"
-    echo "  DAPPMANAGER   Core DAppNode management service (required)"
-    echo "  WIFI          Wi-Fi access point support"
-    echo "  NOTIFICATIONS Notification service package"
-    echo "  PREMIUM       Premium features package"
-}
-
-interactive_configure_install() {
-    if [[ "${INTERACTIVE}" != "true" ]]; then
-        return 0
-    fi
-
-    if ! is_interactive_tty; then
-        warn "--interactive requested but no TTY detected; continuing in non-interactive mode"
-        INTERACTIVE=false
-        return 0
-    fi
-
-    echo ""
-    echo "##############################################"
-    echo "####      DAPPNODE INTERACTIVE SETUP      ####"
-    echo "##############################################"
-
-    # --update
-    if [[ "$CLI_SET_UPDATE" == "false" ]]; then
-        echo ""
-        echo "Update mode:"
-        echo "  - Yes: removes previously downloaded installer artifacts before running"
-        echo "  - No : keeps existing artifacts and reuses what is already present"
-        if [[ "$UPDATE" == "true" ]]; then
-            prompt_yes_no "Clean existing artifacts before installing?" "y" && UPDATE=true || UPDATE=false
-        else
-            prompt_yes_no "Clean existing artifacts before installing?" "n" && UPDATE=true || UPDATE=false
-        fi
-    else
-        log "Skipping update prompt: value set via CLI flag"
-    fi
-
-    # Package mode
-    if [[ "$CLI_SET_PACKAGES" == "true" ]]; then
-        log "Skipping package selection prompts: --packages was provided"
-        print_package_descriptions
-    elif [[ "$CLI_SET_MINIMAL" == "true" ]]; then
-        log "Skipping package mode prompt: --minimal was provided"
-        print_package_descriptions
-    else
-        local package_mode
-        while true; do
-            print_package_descriptions
-            echo ""
-            echo "Package selection mode:"
-            echo "  1) Automatic (recommended)"
-            echo "     Installer chooses packages based on OS/machine and open ports"
-            echo "  2) Minimal"
-            echo "     Installs: BIND VPN WIREGUARD DAPPMANAGER NOTIFICATIONS PREMIUM"
-            echo "  3) Custom package list"
-            echo "     Enter only the packages you want (DAPPMANAGER is auto-added if missing)"
-            read -r -p "Choose package mode [1/2/3] (default 1): " package_mode
-            package_mode="${package_mode:-1}"
-
-            case "$package_mode" in
-                1)
-                    MINIMAL=false
-                    PACKAGES=""
-                    break
-                    ;;
-                2)
-                    MINIMAL=true
-                    PACKAGES=""
-                    break
-                    ;;
-                3)
-                    MINIMAL=false
-                    while true; do
-                        echo "Example: BIND,IPFS,VPN,WIREGUARD,DAPPMANAGER"
-                        read -r -p "Enter packages (comma or space separated): " PACKAGES
-                        if [[ -n "${PACKAGES//[[:space:],]/}" ]]; then
-                            break
-                        fi
-                        echo "Package list cannot be empty."
-                    done
-                    break
-                    ;;
-                *)
-                    echo "Please choose 1, 2, or 3."
-                    ;;
-            esac
-        done
-    fi
-
-    # Static IP
-    if [[ "$CLI_SET_STATIC_IP" == "false" ]]; then
-        local STATIC_IP_INPUT
-        echo ""
-        echo "Static IP option:"
-        echo "  - Use this only if you need a fixed LAN IP for your DAppNode"
-        echo "  - If unsure, skip and use automatic DHCP"
-        if [[ -n "$STATIC_IP" ]]; then
-            if prompt_yes_no "Use static IP ($STATIC_IP)?" "y"; then
-                while true; do
-                    read -r -p "Static IP [${STATIC_IP}]: " STATIC_IP_INPUT
-                    STATIC_IP_INPUT="${STATIC_IP_INPUT:-$STATIC_IP}"
-                    if valid_ip "$STATIC_IP_INPUT"; then
-                        STATIC_IP="$STATIC_IP_INPUT"
-                        break
-                    fi
-                    echo "Invalid IPv4 address."
-                done
-            else
-                STATIC_IP=""
-            fi
-        else
-            if prompt_yes_no "Configure a static IP?" "n"; then
-                while true; do
-                    read -r -p "Static IP (IPv4): " STATIC_IP_INPUT
-                    if valid_ip "$STATIC_IP_INPUT"; then
-                        STATIC_IP="$STATIC_IP_INPUT"
-                        break
-                    fi
-                    echo "Invalid IPv4 address."
-                done
-            fi
-        fi
-    else
-        log "Skipping static IP prompt: value set via CLI flag"
-    fi
-
-    # Optional URL/path overrides
-    if [[ "$CLI_SET_LOCAL_PROFILE_PATH" == "false" ]]; then
-        local LOCAL_PROFILE_PATH_INPUT
-        echo ""
-        echo "Optional overrides:"
-        echo "  - Leave empty to use default values"
-        read -r -p "Local profile path override (leave empty to keep current): " LOCAL_PROFILE_PATH_INPUT
-        if [[ -n "$LOCAL_PROFILE_PATH_INPUT" ]]; then
-            LOCAL_PROFILE_PATH="$LOCAL_PROFILE_PATH_INPUT"
-        fi
-    else
-        log "Skipping local profile path prompt: value set via CLI flag"
-    fi
-
-    if [[ "$CLI_SET_IPFS_ENDPOINT" == "false" ]]; then
-        local IPFS_ENDPOINT_INPUT
-        read -r -p "IPFS endpoint override (leave empty to keep current): " IPFS_ENDPOINT_INPUT
-        if [[ -n "$IPFS_ENDPOINT_INPUT" ]]; then
-            IPFS_ENDPOINT="$IPFS_ENDPOINT_INPUT"
-        fi
-    else
-        log "Skipping IPFS endpoint prompt: value set via CLI flag"
-    fi
-
-    if [[ "$CLI_SET_PROFILE_URL" == "false" ]]; then
-        local PROFILE_URL_INPUT
-        read -r -p "Profile URL override (leave empty to keep current): " PROFILE_URL_INPUT
-        if [[ -n "$PROFILE_URL_INPUT" ]]; then
-            PROFILE_URL="$PROFILE_URL_INPUT"
-        fi
-    else
-        log "Skipping profile URL prompt: value set via CLI flag"
-    fi
-
-    # Summary + confirmation before any heavy operations
-    echo ""
-    echo "Interactive configuration summary:"
-    echo "  UPDATE=${UPDATE}"
-    echo "  MINIMAL=${MINIMAL}"
-    echo "  PACKAGES=${PACKAGES:-<auto>}"
-    echo "  STATIC_IP=${STATIC_IP:-<none>}"
-    echo "  LOCAL_PROFILE_PATH=${LOCAL_PROFILE_PATH:-<default>}"
-    echo "  IPFS_ENDPOINT=${IPFS_ENDPOINT}"
-    echo "  PROFILE_URL=${PROFILE_URL}"
-
-    if ! prompt_yes_no "Continue with this configuration?" "y"; then
-        die "Installation cancelled by user"
-    fi
-}
-
 configure_static_ip() {
     if [[ -z "${STATIC_IP}" ]]; then
         return 0
@@ -1305,7 +1064,6 @@ addUserToDockerGroup() {
 
 main() {
     parse_args "$@"
-    interactive_configure_install
 
     bootstrap_filesystem
     check_prereqs
