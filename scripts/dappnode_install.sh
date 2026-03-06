@@ -153,7 +153,15 @@ require_downloader() {
 }
 
 check_prereqs() {
-    require_cmd docker
+    if ! command -v docker >/dev/null 2>&1; then
+        die "Docker is not installed. Install Docker first, then re-run this installer."
+    fi
+
+    # Docker CLI may exist while the daemon is stopped/unreachable.
+    if ! docker info >/dev/null 2>&1; then
+        die "Docker is installed but not running (or not reachable). Start Docker and try again."
+    fi
+
     require_downloader
 
     # Ensure compose is available (Docker Desktop / modern docker engine)
