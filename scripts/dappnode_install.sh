@@ -20,6 +20,7 @@ set -Eeuo pipefail
 : "${STATIC_IP:=}"
 : "${LOCAL_PROFILE_PATH:=}"
 : "${MINIMAL:=false}"
+: "${PACKAGES:=}"
 
 # Enable alias expansion in non-interactive bash scripts.
 # Required so commands like `dappnode_wireguard` (defined as aliases in `.dappnode_profile`) work.
@@ -61,10 +62,11 @@ Options:
   --ipfs-endpoint <url>         Override IPFS gateway endpoint (equivalent: IPFS_ENDPOINT=...)
   --profile-url <url>           Override profile download URL (equivalent: PROFILE_URL=...)
   --minimal                     Force minimal package set: BIND VPN WIREGUARD DAPPMANAGER (equivalent: MINIMAL=true)
+  --packages <list>             Override package selection (comma or space separated), e.g. BIND,IPFS,VPN
   -h, --help                    Show this help
 
 Environment variables (also supported):
-  UPDATE, STATIC_IP, LOCAL_PROFILE_PATH, IPFS_ENDPOINT, PROFILE_URL, MINIMAL
+    UPDATE, STATIC_IP, LOCAL_PROFILE_PATH, IPFS_ENDPOINT, PROFILE_URL, MINIMAL, PACKAGES
 EOF
 }
 
@@ -97,6 +99,15 @@ parse_args() {
                 ;;
             --minimal)
                 MINIMAL=true
+                shift
+                ;;
+            --packages)
+                [[ $# -ge 2 ]] || die "--packages requires a package list argument"
+                PACKAGES="$2"
+                shift 2
+                ;;
+            --packages=*)
+                PACKAGES="${1#*=}"
                 shift
                 ;;
             -h|--help)
@@ -543,6 +554,70 @@ is_port_used() {
 
 # Determine packages to be installed
 determine_packages() {
+    # Explicit package list override from flag/env always has top priority.
+    # It supersedes MINIMAL and any OS/port-based package determination.
+    if [[ -n "${PACKAGES//[[:space:],]/}" ]]; then
+        local raw token normalized
+        local custom_pkgs=()
+
+        raw="${PACKAGES//,/ }"
+        for token in $raw; do
+            normalized="$(echo "$token" | tr '[:lower:]' '[:upper:]')"
+            case "$normalized" in
+                HTTPS|BIND|IPFS|VPN|WIREGUARD|DAPPMANAGER|WIFI|NOTIFICATIONS|PREMIUM)
+                    ;;
+                *)
+                    die "Unknown package in --packages/PACKAGES: '$token'. Allowed: HTTPS,BIND,IPFS,VPN,WIREGUARD,DAPPMANAGER,WIFI,NOTIFICATIONS,PREMIUM"
+                    ;;
+            esac
+
+            local exists=false
+            local pkg
+            for pkg in "${custom_pkgs[@]}"; do
+                if [[ "$pkg" == "$normalized" ]]; then
+                    exists=true
+                    break
+                fi
+            done
+
+            if [[ "$exists" == "false" ]]; then
+                custom_pkgs+=("$normalized")
+            fi
+        done
+
+        [[ ${#custom_pkgs[@]} -gt 0 ]] || die "--packages/PACKAGES was provided but no valid packages were found"
+
+        # DAPPMANAGER is required for a functional install; ensure it's present on explicit overrides.
+        local has_dappmanager=false
+        local pkg
+        for pkg in "${custom_pkgs[@]}"; do
+            if [[ "$pkg" == "DAPPMANAGER" ]]; then
+                has_dappmanager=true
+                break
+            fi
+        done
+        if [[ "$has_dappmanager" == "false" ]]; then
+            custom_pkgs+=("DAPPMANAGER")
+            log "--packages/PACKAGES did not include DAPPMANAGER; appending it automatically"
+        fi
+
+        if [[ "${MINIMAL}" == "true" ]]; then
+            log "Custom packages provided; overriding --minimal/MINIMAL"
+        fi
+        MINIMAL=false
+        PKGS=("${custom_pkgs[@]}")
+
+        log "Packages override enabled via --packages/PACKAGES"
+        log "Packages to be installed: ${PKGS[*]}"
+        log "PKGS: ${PKGS[*]}"
+        for comp in "${PKGS[@]}"; do
+            local ver_var
+            ver_var="${comp}_VERSION"
+            log "$ver_var = ${!ver_var-}"
+        done
+        return 0
+    fi
+
     # Global override: minimal install, regardless of OS.
     if [[ "${MINIMAL}" == "true" ]]; then
         PKGS=(BIND VPN WIREGUARD DAPPMANAGER NOTIFICATIONS PREMIUM)
