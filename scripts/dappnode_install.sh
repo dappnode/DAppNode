@@ -232,8 +232,26 @@ wait_for_internal_ip() {
 # Works on both Linux and macOS as long as the relevant containers are running.
 print_vpn_access_credentials() {
     local localhost_flag=()
+    local has_wireguard=false
+    local has_vpn=false
+    local pkg
+
     if $IS_MACOS; then
         localhost_flag=(--localhost)
+    fi
+
+    for pkg in "${PKGS[@]}"; do
+        if [[ "$pkg" == "WIREGUARD" ]]; then
+            has_wireguard=true
+        elif [[ "$pkg" == "VPN" ]]; then
+            has_vpn=true
+        fi
+    done
+
+    if [[ "$has_wireguard" != "true" && "$has_vpn" != "true" ]]; then
+        echo ""
+        echo "No VPN package selected (VPN/WIREGUARD). Skipping credentials output."
+        return 0
     fi
 
     echo ""
@@ -250,14 +268,21 @@ print_vpn_access_credentials() {
     echo "credentials below into your VPN app to access your DAppNode."
     echo ""
 
-    echo "--- Wireguard ---"
-    docker exec -i DAppNodeCore-api.wireguard.dnp.dappnode.eth getWireguardCredentials "${localhost_flag[@]}" 2>&1 || \
-        echo "Wireguard credentials not yet available. Try later with: dappnode_wireguard${localhost_flag:+ ${localhost_flag[*]}}"
+    if [[ "$has_wireguard" == "true" ]]; then
+        echo "--- Wireguard ---"
+        docker exec -i DAppNodeCore-api.wireguard.dnp.dappnode.eth getWireguardCredentials "${localhost_flag[@]}" 2>&1 || \
+            echo "Wireguard credentials not yet available. Try later with: dappnode_wireguard${localhost_flag:+ ${localhost_flag[*]}}"
+    fi
 
-    echo ""
-    echo "--- OpenVPN ---"
-    docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth vpncli get dappnode_admin "${localhost_flag[@]}" 2>&1 || \
-        echo "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin${localhost_flag:+ ${localhost_flag[*]}}"
+    if [[ "$has_wireguard" == "true" && "$has_vpn" == "true" ]]; then
+        echo ""
+    fi
+
+    if [[ "$has_vpn" == "true" ]]; then
+        echo "--- OpenVPN ---"
+        docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth vpncli get dappnode_admin "${localhost_flag[@]}" 2>&1 || \
+            echo "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin${localhost_flag:+ ${localhost_flag[*]}}"
+    fi
 
     echo ""
     echo "Import the configuration above into your VPN client of choice to access your DAppNode at http://my.dappnode"
