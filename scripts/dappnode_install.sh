@@ -343,28 +343,6 @@ fi
 # Cross-platform Helpers     #
 ##############################
 
-# macOS: determine whether we're running on a server-suitable always-on Mac.
-# Heuristic: treat Mac mini / Mac Studio / Mac Pro as always-on capable.
-# Returns 0 (true) if server-class, 1 otherwise.
-is_always_on_mac() {
-    # Non-macOS hosts are not considered always-on Macs
-    if ! $IS_MACOS; then
-        return 1
-    fi
-
-    local model
-    model="$(sysctl -n hw.model 2>/dev/null)" || return 1
-
-    case "$model" in
-        Macmini*|MacStudio*|MacPro*)
-            return 0
-            ;;
-        *)
-            return 1
-            ;;
-    esac
-}
-
 # Download a file: download_file <destination> <url>
 download_file() {
     local dest="$1"
@@ -461,6 +439,7 @@ remove_logging_section() {
     sed_inplace '/logging/d;/journald/d' "$file"
 }
 
+# TODO: review difference between this and patch_compose_paths
 # Replace Linux paths with macOS paths in compose files
 patch_compose_paths() {
     local file="$1"
@@ -511,16 +490,6 @@ patch_dappmanager_compose_for_macos() {
     rm -f "$insert_file" || true
 }
 
-# TODO: remove once profile macos-compatibility published
-# Patch .dappnode_profile for macOS compatibility
-patch_profile_for_macos() {
-    local profile="$1"
-    # Replace GNU find -printf with POSIX-compatible -exec printf
-    sed_inplace 's/-printf "-f %p "/-exec printf -- "-f %s " {} \\;/' "$profile"
-    # Replace hardcoded Linux paths with $HOME-based paths
-    sed_inplace 's|/usr/src/dappnode|\$HOME/dappnode|g' "$profile"
-}
-
 bootstrap_filesystem() {
     # Clean if update
     if [[ "${UPDATE}" == "true" ]]; then
@@ -544,21 +513,6 @@ bootstrap_filesystem() {
 
     # Ensure the log file path exists before first use by helpers.
     touch "${LOGFILE}" || true
-}
-
-# TEMPORARY: think a way to integrate flags instead of use files to detect installation type
-is_iso_install() {
-    # ISO installs are Linux-only
-    if $IS_MACOS; then
-        IS_ISO_INSTALL=false
-        return
-    fi
-    # Check old and new location of iso_install.log
-    if [ -f "${DAPPNODE_DIR}/iso_install.log" ] || [ -f "${DAPPNODE_DIR}/logs/iso_install.log" ]; then
-        IS_ISO_INSTALL=true
-    else
-        IS_ISO_INSTALL=false
-    fi
 }
 
 # Check if port 80 is in use (necessary for HTTPS)
@@ -685,31 +639,13 @@ determine_packages() {
         return 0
     fi
 
-    # macOS: package selection depends on whether the Mac is suitable to run always-on.
-    # - non-server mac: BIND VPN WIREGUARD DAPPMANAGER
-    # - server mac:     BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI HTTPS
-    # NOTE: HTTPS may be skipped if ports 80/443 are already in use.
-    if $IS_MACOS; then
-        is_port_used
-
-        if is_always_on_mac; then
-            if [ "$IS_PORT_USED" == "true" ]; then
-                PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI NOTIFICATIONS PREMIUM)
-            else
-                PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI HTTPS NOTIFICATIONS PREMIUM)
-            fi
-        else
-            PKGS=(BIND VPN WIREGUARD DAPPMANAGER NOTIFICATIONS PREMIUM)
-        fi
+    # Default mode (no --packages/--minimal/--lite): install full package set.
+    # HTTPS is included only when ports 80/443 are available.
+    is_port_used
+    if [ "$IS_PORT_USED" == "true" ]; then
+        PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI NOTIFICATIONS PREMIUM)
     else
-        # Linux / ISO logic
-        is_iso_install
-        is_port_used
-        if [ "$IS_PORT_USED" == "true" ]; then
-            PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI NOTIFICATIONS PREMIUM)
-        else
-            PKGS=(HTTPS BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI NOTIFICATIONS PREMIUM)
-        fi
+        PKGS=(HTTPS BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI NOTIFICATIONS PREMIUM)
     fi
 
     log "Packages to be installed: ${PKGS[*]}"
@@ -757,17 +693,9 @@ ensure_profile_loaded() {
         download_file "${DAPPNODE_PROFILE}" "${PROFILE_URL}"
     fi
 
-    # Patch profile for macOS compatibility (replace GNU-isms and hardcoded Linux paths)
-    # TODO: remove once profile macos-compatibility published
-    if $IS_MACOS; then
-        patch_profile_for_macos "$DAPPNODE_PROFILE"
-    fi
-
     # shellcheck disable=SC1090
     source "${DAPPNODE_PROFILE}"
 }
-
-
 
 resolve_packages() {
     # The indirect variable expansion used in ${!ver##*:} allows us to use versions like 'dev:development'
