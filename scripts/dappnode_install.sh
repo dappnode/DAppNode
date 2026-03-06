@@ -20,6 +20,7 @@ set -Eeuo pipefail
 : "${STATIC_IP:=}"
 : "${LOCAL_PROFILE_PATH:=}"
 : "${MINIMAL:=false}"
+: "${LITE:=false}"
 : "${PACKAGES:=}"
 
 # Enable alias expansion in non-interactive bash scripts.
@@ -61,12 +62,13 @@ Options:
   --local-profile-path <path>   Use a local .dappnode_profile instead of downloading (equivalent: LOCAL_PROFILE_PATH=...)
   --ipfs-endpoint <url>         Override IPFS gateway endpoint (equivalent: IPFS_ENDPOINT=...)
   --profile-url <url>           Override profile download URL (equivalent: PROFILE_URL=...)
-  --minimal                     Force minimal package set: BIND VPN WIREGUARD DAPPMANAGER (equivalent: MINIMAL=true)
+  --minimal                     Install only BIND DAPPMANAGER NOTIFICATIONS PREMIUM (equivalent: MINIMAL=true)
+  --lite                        Install reduced package set: BIND VPN WIREGUARD DAPPMANAGER NOTIFICATIONS PREMIUM (equivalent: LITE=true)
   --packages <list>             Override package selection (comma or space separated), e.g. BIND,IPFS,VPN
   -h, --help                    Show this help
 
 Environment variables (also supported):
-        UPDATE, STATIC_IP, LOCAL_PROFILE_PATH, IPFS_ENDPOINT, PROFILE_URL, MINIMAL, PACKAGES
+        UPDATE, STATIC_IP, LOCAL_PROFILE_PATH, IPFS_ENDPOINT, PROFILE_URL, MINIMAL, LITE, PACKAGES
 EOF
 }
 
@@ -101,6 +103,10 @@ parse_args() {
                 MINIMAL=true
                 shift
                 ;;
+            --lite)
+                LITE=true
+                shift
+                ;;
             --packages)
                 [[ $# -ge 2 ]] || die "--packages requires a package list argument"
                 PACKAGES="$2"
@@ -123,6 +129,12 @@ parse_args() {
                 ;;
         esac
     done
+}
+
+validate_install_mode() {
+    if [[ "${MINIMAL}" == "true" && "${LITE}" == "true" ]]; then
+        die "--minimal and --lite are mutually exclusive"
+    fi
 }
 
 require_cmd() {
@@ -581,7 +593,7 @@ is_port_used() {
 # Determine packages to be installed
 determine_packages() {
     # Explicit package list override from flag/env always has top priority.
-    # It supersedes MINIMAL and any OS/port-based package determination.
+    # It supersedes MINIMAL/LITE and any OS/port-based package determination.
     if [[ -n "${PACKAGES//[[:space:],]/}" ]]; then
         local raw token normalized
         local custom_pkgs=()
@@ -627,10 +639,11 @@ determine_packages() {
             log "--packages/PACKAGES did not include DAPPMANAGER; appending it automatically"
         fi
 
-        if [[ "${MINIMAL}" == "true" ]]; then
-            log "Custom packages provided; overriding --minimal/MINIMAL"
+        if [[ "${MINIMAL}" == "true" || "${LITE}" == "true" ]]; then
+            log "Custom packages provided; overriding --minimal/--lite and MINIMAL/LITE"
         fi
         MINIMAL=false
+        LITE=false
         PKGS=("${custom_pkgs[@]}")
 
         log "Packages override enabled via --packages/PACKAGES"
@@ -644,10 +657,24 @@ determine_packages() {
         return 0
     fi
 
-    # Global override: minimal install, regardless of OS.
+    # Global override: new minimal install, regardless of OS.
     if [[ "${MINIMAL}" == "true" ]]; then
-        PKGS=(BIND VPN WIREGUARD DAPPMANAGER NOTIFICATIONS PREMIUM)
+        PKGS=(BIND DAPPMANAGER NOTIFICATIONS PREMIUM)
         log "Minimal mode enabled; overriding packages"
+        log "Packages to be installed: ${PKGS[*]}"
+        log "PKGS: ${PKGS[*]}"
+        for comp in "${PKGS[@]}"; do
+            local ver_var
+            ver_var="${comp}_VERSION"
+            log "$ver_var = ${!ver_var-}"
+        done
+        return 0
+    fi
+
+    # Global override: lite install (former minimal behavior), regardless of OS.
+    if [[ "${LITE}" == "true" ]]; then
+        PKGS=(BIND VPN WIREGUARD DAPPMANAGER NOTIFICATIONS PREMIUM)
+        log "Lite mode enabled; overriding packages"
         log "Packages to be installed: ${PKGS[*]}"
         log "PKGS: ${PKGS[*]}"
         for comp in "${PKGS[@]}"; do
@@ -1064,6 +1091,7 @@ addUserToDockerGroup() {
 
 main() {
     parse_args "$@"
+    validate_install_mode
 
     bootstrap_filesystem
     check_prereqs
@@ -1078,7 +1106,7 @@ main() {
 
     # --- Linux-only setup steps ---
     if $IS_LINUX; then
-        if [[ "${MINIMAL}" != "true" ]]; then
+        if [[ "${MINIMAL}" != "true" && "${LITE}" != "true" ]]; then
             echo "Creating swap memory..." 2>&1 | tee -a "$LOGFILE"
             addSwap
 
