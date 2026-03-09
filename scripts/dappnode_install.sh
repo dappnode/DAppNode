@@ -447,7 +447,6 @@ remove_logging_section() {
     sed_inplace '/logging/d;/journald/d' "$file"
 }
 
-# TODO: review difference between this and patch_compose_paths
 # Replace Linux paths with macOS paths in compose files
 patch_compose_paths() {
     local file="$1"
