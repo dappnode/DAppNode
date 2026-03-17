@@ -37,18 +37,37 @@ DNCORE_COMPOSE_ARGS=()
 log() {
     # LOGFILE is created after dir bootstrap; until then we just print to stdout.
     if [[ -n "${LOGFILE:-}" && -d "${LOGS_DIR:-}" ]]; then
-        printf '%s\n' "$*" | tee -a "$LOGFILE"
+        printf '%s\n' "[INFO] $*" | tee -a "$LOGFILE"
     else
-        printf '%s\n' "$*"
+        printf '%s\n' "[INFO] $*"
     fi
 }
 
 warn() {
-    log "[WARN] $*"
+    # LOGFILE is created after dir bootstrap; until then we just print to stdout.
+    if [[ -n "${LOGFILE:-}" && -d "${LOGS_DIR:-}" ]]; then
+        printf '%s\n' "[WARN] $*" | tee -a "$LOGFILE"
+    else
+        printf '%s\n' "[WARN] $*"
+    fi
+}
+
+error() {
+    # LOGFILE is created after dir bootstrap; until then we just print to stdout.
+    if [[ -n "${LOGFILE:-}" && -d "${LOGS_DIR:-}" ]]; then
+        printf '%s\n' "[ERROR] $*" | tee -a "$LOGFILE"
+    else
+        printf '%s\n' "[ERROR] $*"
+    fi
 }
 
 die() {
-    log "[ERROR] $*"
+    # LOGFILE is created after dir bootstrap; until then we just print to stdout.
+    if [[ -n "${LOGFILE:-}" && -d "${LOGS_DIR:-}" ]]; then
+        printf '%s\n' "[ERROR] $*" | tee -a "$LOGFILE"
+    else
+        printf '%s\n' "[ERROR] $*"
+    fi
     exit 1
 }
 
@@ -523,33 +542,77 @@ bootstrap_filesystem() {
     touch "${LOGFILE}" || true
 }
 
-# Check if port 80 is in use (necessary for HTTPS)
-# Returns IS_PORT_USED=true only if port 80 or 443 is used by something OTHER than our HTTPS container
-is_port_used() {
-    # Check if port 80 or 443 is in use at all
-    local port80_used port443_used
-    if command -v lsof >/dev/null 2>&1; then
-        lsof -i -P -n | grep ":80 (LISTEN)" &>/dev/null && port80_used=true || port80_used=false
-        lsof -i -P -n | grep ":443 (LISTEN)" &>/dev/null && port443_used=true || port443_used=false
+# Generic helper: returns 0 if a process is bound to the given port, 1 if not.
+# Usage: is_port_listening <port> [tcp|udp]
+#   tcp (default): matches TCP sockets in LISTEN state
+#   udp: matches any process bound to the UDP port
+is_port_listening() {
+    local port="$1"
+    local proto="${2:-tcp}"
+    if [[ "$proto" == "udp" ]]; then
+        lsof -i "udp:${port}" -P -n 2>/dev/null | grep -q .
     else
+        lsof -i "tcp:${port}" -P -n 2>/dev/null | grep -q "(LISTEN)"
+    fi
+}
+
+# Check if ports 80/443 are occupied by something other than our own HTTPS container.
+# Sets HTTPS_PORTS_BLOCKED=true/false.
+check_https_ports_conflict() {
+    if ! command -v lsof >/dev/null 2>&1; then
         warn "lsof not found; assuming ports 80/443 are in use (HTTPS will be skipped)"
-        IS_PORT_USED=true
+        HTTPS_PORTS_BLOCKED=true
         return
     fi
 
-    if [ "$port80_used" = false ] && [ "$port443_used" = false ]; then
-        IS_PORT_USED=false
+    if ! is_port_listening 80 && ! is_port_listening 443; then
+        HTTPS_PORTS_BLOCKED=false
         return
     fi
 
-    # If either port is in use, check if it's our HTTPS container
+    # Port 80 or 443 is in use; check if it's our own HTTPS container
     if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^DAppNodeCore-https.dnp.dappnode.eth$"; then
-        # Port 80 or 443 is used by our HTTPS container, so we consider it "not used" for package determination
-        IS_PORT_USED=false
+        # Our own HTTPS container already holds the port — not a conflict
+        HTTPS_PORTS_BLOCKED=false
     else
         # Port 80 or 443 is used by something else
-        IS_PORT_USED=true
+        HTTPS_PORTS_BLOCKED=true
     fi
+}
+
+# Check that ports required by VPN/Wireguard are not already in use by another process.
+# Must be called after PKGS is populated. Exits with a helpful error on conflict.
+check_vpn_ports_conflict() {
+    if ! command -v lsof >/dev/null 2>&1; then
+        return  # cannot check; proceed and let the container report a bind error
+    fi
+
+    local pkg
+    for pkg in "${PKGS[@]}"; do
+        case "$pkg" in
+            WIREGUARD)
+                if is_port_listening 51820 udp; then
+                    error "Port 51820/UDP is already in use on this host."
+                    error "This port is required by the Wireguard package and must be free before installing."
+                    error "Free up port 51820 and re-run the installer, or — if you do not need VPN"
+                    error "connectivity — consider using --minimal instead (advanced users only)."
+                    exit 1
+                fi
+                ;;
+            VPN)
+                local vpn_blocked=()
+                is_port_listening 1194 udp && vpn_blocked+=(1194/UDP)
+                is_port_listening 8092 tcp && vpn_blocked+=(8092/TCP)
+                if [[ ${#vpn_blocked[@]} -gt 0 ]]; then
+                    error "Port(s) ${vpn_blocked[*]} are already in use on this host."
+                    error "These ports are required by the OpenVPN package and must be free before installing."
+                    error "Free up the port(s) and re-run the installer, or — if you do not need VPN"
+                    error "connectivity — consider using --minimal instead (advanced users only)."
+                    exit 1
+                fi
+                ;;
+        esac
+    done
 }
 
 # Determine packages to be installed
@@ -649,8 +712,8 @@ determine_packages() {
 
     # Default mode (no --packages/--minimal/--lite): install full package set.
     # HTTPS is included only when ports 80/443 are available.
-    is_port_used
-    if [ "$IS_PORT_USED" == "true" ]; then
+    check_https_ports_conflict
+    if [ "$HTTPS_PORTS_BLOCKED" == "true" ]; then
         PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI NOTIFICATIONS PREMIUM)
     else
         PKGS=(HTTPS BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI NOTIFICATIONS PREMIUM)
@@ -710,6 +773,7 @@ resolve_packages() {
     # If such variable with 'dev:'' suffix is used, then the component is built from specified branch or commit.
     # you can also specify an IPFS version like /ipfs/<cid>:<version> (the exact version is required).
     determine_packages
+    check_vpn_ports_conflict
     for comp in "${PKGS[@]}"; do
         ver="${comp}_VERSION"
         log "Processing $comp: ${!ver-}"
