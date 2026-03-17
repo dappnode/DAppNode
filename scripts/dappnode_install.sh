@@ -360,7 +360,7 @@ if $IS_LINUX; then
     UPDATE_MOTD_DIR="/etc/update-motd.d"
 fi
 # Get URLs
-IPFS_ENDPOINT=${IPFS_ENDPOINT:-"https://ipfs-gateway-dev.dappnode.net"}
+IPFS_ENDPOINT=${IPFS_ENDPOINT:-"https://ipfs-gateway.dappnode.net"}
 # PROFILE_URL env is used to fetch the core packages versions that will be used to build the release in script install method
 PROFILE_URL=${PROFILE_URL:-"https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_profile.sh"}
 DAPPNODE_ACCESS_CREDENTIALS="${DAPPNODE_DIR}/scripts/dappnode_access_credentials.sh"
