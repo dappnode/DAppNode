@@ -172,11 +172,12 @@ check_prereqs() {
 
 # Wait until dappmanager publishes INTERNAL_IP via its local HTTP endpoint.
 # Runs the curl inside the provided container and exits with error on timeout.
-# Usage: wait_for_internal_ip <container_name> [timeout_seconds] [initial_sleep_seconds]
+# Usage: wait_for_internal_ip <container_name> [timeout_seconds] [initial_sleep_seconds] [final_sleep_seconds]
 wait_for_internal_ip() {
     local container_name="$1"
     local timeout_seconds="${2:-120}"
     local initial_sleep_seconds="${3:-10}"
+    local final_sleep_seconds="${4:-2}"
     local internal_ip_url="http://127.0.0.1/global-envs/INTERNAL_IP"
     local hostname_url="http://127.0.0.1/global-envs/HOSTNAME"
 
@@ -214,7 +215,7 @@ wait_for_internal_ip() {
         hostname_value="$(printf '%s\n' "$hostname_result" | head -n 1 | tr -d '\r' | xargs)"
 
         if [[ "$internal_http_code" == "200" && -n "$internal_value" && "$internal_value" != "null" && "$hostname_http_code" == "200" && -n "$hostname_value" && "$hostname_value" != "null" ]]; then
-            sleep 2 # Extra buffer to ensure values are fully propagated before we proceed
+            sleep "$final_sleep_seconds" # Extra buffer to ensure values are fully propagated before we proceed
             echo "INTERNAL_IP is ready: $internal_value"
             echo "HOSTNAME is ready: $hostname_value"
             return 0
@@ -253,7 +254,7 @@ print_vpn_access_credentials() {
 
     echo ""
     echo "Waiting for VPN initialization..."
-    wait_for_internal_ip "DAppNodeCore-dappmanager.dnp.dappnode.eth" 120 20
+    wait_for_internal_ip "DAppNodeCore-dappmanager.dnp.dappnode.eth" 120 20 10
 
     echo ""
     echo "##############################################"
