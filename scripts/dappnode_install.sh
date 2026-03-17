@@ -216,6 +216,7 @@ wait_for_internal_ip() {
     internal_value=""
     hostname_http_code=""
     hostname_value=""
+    local retry_count=0
 
     while true; do
         if (( SECONDS - start_seconds >= timeout_seconds )); then
@@ -246,7 +247,10 @@ wait_for_internal_ip() {
             return 0
         fi
 
-        log "INTERNAL_IP/HOSTNAME not ready yet (INTERNAL_IP code=${internal_http_code:-?}, HOSTNAME code=${hostname_http_code:-?}). Retrying..."
+        retry_count=$((retry_count + 1))
+        if (( retry_count % 5 == 1 )); then
+            log "INTERNAL_IP/HOSTNAME not ready yet (INTERNAL_IP code=${internal_http_code:-?}, HOSTNAME code=${hostname_http_code:-?}). Retrying..."
+        fi
         sleep 2
     done
 }
@@ -293,7 +297,7 @@ print_vpn_access_credentials() {
     if [[ "$has_wireguard" == "true" ]]; then
         log "--- Wireguard ---"
         docker exec -i DAppNodeCore-api.wireguard.dnp.dappnode.eth getWireguardCredentials "${localhost_flag[@]}" 2>&1 || \
-            log "Wireguard credentials not yet available. Try later with: dappnode_wireguard${localhost_flag:+ ${localhost_flag[*]}}"
+            warn "Wireguard credentials not yet available. Try later with: dappnode_wireguard${localhost_flag:+ ${localhost_flag[*]}}"
     fi
 
     if [[ "$has_wireguard" == "true" && "$has_vpn" == "true" ]]; then
@@ -303,7 +307,7 @@ print_vpn_access_credentials() {
     if [[ "$has_vpn" == "true" ]]; then
         log "--- OpenVPN ---"
         docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth vpncli get dappnode_admin "${localhost_flag[@]}" 2>&1 || \
-            log "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin${localhost_flag:+ ${localhost_flag[*]}}"
+            warn "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin${localhost_flag:+ ${localhost_flag[*]}}"
     fi
 
     log ""
@@ -1041,7 +1045,7 @@ grabContentHashes() {
         for comp in "${content_hash_pkgs[@]}"; do
             CONTENT_HASH=$(download_stdout "https://github.com/dappnode/DAppNodePackage-${comp}/releases/latest/download/content-hash")
             if [ -z "$CONTENT_HASH" ]; then
-                echo "ERROR! Failed to find content hash of ${comp}." 2>&1 | tee -a "$LOGFILE"
+                error "Failed to find content hash of ${comp}."
                 exit 1
             fi
             echo "${comp}.dnp.dappnode.eth,${CONTENT_HASH}" >>"${CONTENT_HASH_FILE}"
@@ -1074,12 +1078,12 @@ addUserToDockerGroup() {
 
     # If USER is not found, warn the user and return
     if [ -z "$user" ]; then
-        echo "WARN: Default user not found. Could not add it to the docker group." 2>&1 | tee -a "$LOGFILE"
+        warn "Default user not found. Could not add it to the docker group."
         return
     fi
 
     if groups "$user" | grep &>/dev/null '\bdocker\b'; then
-        echo "User $user is already in the docker group" 2>&1 | tee -a "$LOGFILE"
+        log "User $user is already in the docker group"
         return
     fi
 
@@ -1087,7 +1091,7 @@ addUserToDockerGroup() {
     # but it's not working in the Ubuntu ISO because the late-commands in the autoinstall.yaml
     # file are executed before the user is created.
     usermod -aG docker "$user"
-    echo "User $user added to the docker group" 2>&1 | tee -a "$LOGFILE"
+    log "User $user added to the docker group"
 }
 
 ##############################################
