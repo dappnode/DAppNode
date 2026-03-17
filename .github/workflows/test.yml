@@ -7,13 +7,13 @@ on:
     branches: [master]
 
 jobs:
-  scripts:
-    name: test scripts
+  linux-scripts:
+    name: test Linux scripts
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Setup Test Environment
         run: |
           sudo /bin/bash ./test/environment_setup.sh
@@ -30,6 +30,37 @@ jobs:
       - name: Uninstall DAppNode
         run: |
           sudo /bin/bash ./scripts/dappnode_uninstall.sh y
+
+  macos-scripts:
+    name: test macOS scripts
+    runs-on: macos-15-intel
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install Docker client and Colima
+        run: |
+          brew install docker colima
+      - name: Start Colima
+        run: |
+          colima start --cpu 2 --memory 4 --disk 20
+          docker version
+          docker info
+      - name: Install DAppNode
+        run: |
+          /bin/bash ./scripts/dappnode_install.sh --local-profile-path "$PWD/.dappnode_profile"
+      - name: Show installation logs
+        if: always()
+        run: |
+          cat "$HOME/dappnode/logs/dappnode_install.log"
+      - name: Uninstall DAppNode
+        if: always()
+        run: |
+          /bin/bash ./scripts/dappnode_uninstall.sh y
+      - name: Stop Colima
+        if: always()
+        run: |
+          colima stop
 
   iso:
     name: test Debian and Ubuntu ISO
