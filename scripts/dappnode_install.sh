@@ -188,7 +188,6 @@ check_prereqs() {
     fi
 
     require_downloader
-    require_cmd xz
 
     # Ensure compose is available (Docker Desktop / modern docker engine)
     if ! docker compose version >/dev/null 2>&1; then

@@ -40,14 +40,29 @@ jobs:
         uses: actions/checkout@v6
       - name: Install Docker client and Colima
         run: |
-          brew install docker docker-compose colima xz
+          brew install docker docker-compose colima
           mkdir -p "$HOME/.docker/cli-plugins"
           ln -sf "$(command -v docker-compose)" "$HOME/.docker/cli-plugins/docker-compose"
           docker compose version
-          xz --version
       - name: Start Colima
         run: |
           colima start --cpu 2 --memory 4 --disk 20
+          colima ssh -- sh -lc '
+            if command -v apk >/dev/null 2>&1; then
+              sudo apk add --no-cache xz
+            elif command -v apt-get >/dev/null 2>&1; then
+              sudo apt-get update && sudo apt-get install -y xz-utils
+            elif command -v dnf >/dev/null 2>&1; then
+              sudo dnf install -y xz
+            elif command -v yum >/dev/null 2>&1; then
+              sudo yum install -y xz
+            else
+              echo "Unsupported Colima guest OS; could not install xz" >&2
+              exit 1
+            fi
+            command -v xz
+            xz --version
+          '
           docker version
           docker info
       - name: Install DAppNode
