@@ -4,9 +4,56 @@
 # thanks to the shebang), but users sometimes invoke it as `zsh ./script.sh` or `source ./script.sh`.
 # - If sourced, bail out (sourcing would pollute the current shell and can break it).
 # - If invoked by a non-bash shell, re-exec with bash before hitting bash-specific builtins.
+
+##############################
+# Logging / Errors            #
+##############################
+# Note: LOGFILE and LOGS_DIR are set during bootstrap_filesystem based on DAPPNODE_DIR
+# Early definition allows these functions to be used throughout the script.
+
+log() {
+    # LOGFILE is created after dir bootstrap; until then we just print to stdout.
+    if [[ -n "${LOGFILE:-}" && -d "${LOGS_DIR:-}" ]]; then
+        printf '%s\n' "[INFO] $*" | tee -a "$LOGFILE"
+    else
+        printf '%s\n' "[INFO] $*"
+    fi
+}
+
+warn() {
+    # LOGFILE is created after dir bootstrap; until then we just print to stdout.
+    if [[ -n "${LOGFILE:-}" && -d "${LOGS_DIR:-}" ]]; then
+        printf '%s\n' "[WARN] $*" | tee -a "$LOGFILE"
+    else
+        printf '%s\n' "[WARN] $*"
+    fi
+}
+
+error() {
+    # LOGFILE is created after dir bootstrap; until then we just print to stdout.
+    if [[ -n "${LOGFILE:-}" && -d "${LOGS_DIR:-}" ]]; then
+        printf '%s\n' "[ERROR] $*" | tee -a "$LOGFILE"
+    else
+        printf '%s\n' "[ERROR] $*"
+    fi
+}
+
+die() {
+    # LOGFILE is created after dir bootstrap; until then we just print to stdout.
+    if [[ -n "${LOGFILE:-}" && -d "${LOGS_DIR:-}" ]]; then
+        printf '%s\n' "[ERROR] $*" | tee -a "$LOGFILE"
+    else
+        printf '%s\n' "[ERROR] $*"
+    fi
+    exit 1
+}
+
+##############################
+# Script Guards               #
+##############################
+
 if (return 0 2>/dev/null); then
-    echo "This script must be executed, not sourced. Run: bash $0"
-    return 1
+    die "This script must be executed, not sourced. Run: bash $0"
 fi
 
 if [ -z "${BASH_VERSION:-}" ]; then
@@ -29,28 +76,6 @@ shopt -s expand_aliases
 
 # Ensure array is always defined (avoid `set -u` edge cases)
 DNCORE_COMPOSE_ARGS=()
-
-##############################
-# Logging / Errors            #
-##############################
-
-log() {
-    # LOGFILE is created after dir bootstrap; until then we just print to stdout.
-    if [[ -n "${LOGFILE:-}" && -d "${LOGS_DIR:-}" ]]; then
-        printf '%s\n' "$*" | tee -a "$LOGFILE"
-    else
-        printf '%s\n' "$*"
-    fi
-}
-
-warn() {
-    log "[WARN] $*"
-}
-
-die() {
-    log "[ERROR] $*"
-    exit 1
-}
 
 usage() {
     cat <<'EOF'
@@ -181,7 +206,7 @@ wait_for_internal_ip() {
     local internal_ip_url="http://127.0.0.1/global-envs/INTERNAL_IP"
     local hostname_url="http://127.0.0.1/global-envs/HOSTNAME"
 
-    echo "Waiting for dappmanager to publish INTERNAL_IP and HOSTNAME..."
+    log "Waiting for dappmanager to publish INTERNAL_IP and HOSTNAME..."
     sleep "$initial_sleep_seconds"
 
     local start_seconds internal_http_code internal_value internal_result
@@ -191,6 +216,7 @@ wait_for_internal_ip() {
     internal_value=""
     hostname_http_code=""
     hostname_value=""
+    local retry_count=0
 
     while true; do
         if (( SECONDS - start_seconds >= timeout_seconds )); then
@@ -216,12 +242,15 @@ wait_for_internal_ip() {
 
         if [[ "$internal_http_code" == "200" && -n "$internal_value" && "$internal_value" != "null" && "$hostname_http_code" == "200" && -n "$hostname_value" && "$hostname_value" != "null" ]]; then
             sleep "$final_sleep_seconds" # Extra buffer to ensure values are fully propagated before we proceed
-            echo "INTERNAL_IP is ready: $internal_value"
-            echo "HOSTNAME is ready: $hostname_value"
+            log "INTERNAL_IP is ready: $internal_value"
+            log "HOSTNAME is ready: $hostname_value"
             return 0
         fi
 
-        echo "INTERNAL_IP/HOSTNAME not ready yet (INTERNAL_IP code=${internal_http_code:-?}, HOSTNAME code=${hostname_http_code:-?}). Retrying..."
+        retry_count=$((retry_count + 1))
+        if (( retry_count % 5 == 1 )); then
+            log "INTERNAL_IP/HOSTNAME not ready yet (INTERNAL_IP code=${internal_http_code:-?}, HOSTNAME code=${hostname_http_code:-?}). Retrying..."
+        fi
         sleep 2
     done
 }
@@ -247,43 +276,42 @@ print_vpn_access_credentials() {
     done
 
     if [[ "$has_wireguard" != "true" && "$has_vpn" != "true" ]]; then
-        echo ""
-        echo "No VPN package selected (VPN/WIREGUARD). Skipping credentials output."
+        log "No VPN package selected (VPN/WIREGUARD). Skipping credentials output."
         return 0
     fi
 
-    echo ""
-    echo "Waiting for VPN initialization..."
+    log ""
+    log "Waiting for VPN initialization..."
     wait_for_internal_ip "DAppNodeCore-dappmanager.dnp.dappnode.eth" 120 20 10
 
-    echo ""
-    echo "##############################################"
-    echo "#      DAppNode VPN Access Credentials        #"
-    echo "##############################################"
-    echo ""
-    echo "Your DAppNode is ready! Connect using your preferred VPN client."
-    echo "Choose either Wireguard (recommended) or OpenVPN and import the"
-    echo "credentials below into your VPN app to access your DAppNode."
-    echo ""
+    log ""
+    log "##############################################"
+    log "#      DAppNode VPN Access Credentials        #"
+    log "##############################################"
+    log ""
+    log "Your DAppNode is ready! Connect using your preferred VPN client."
+    log "Choose either Wireguard (recommended) or OpenVPN and import the"
+    log "credentials below into your VPN app to access your DAppNode."
+    log ""
 
     if [[ "$has_wireguard" == "true" ]]; then
-        echo "--- Wireguard ---"
+        log "--- Wireguard ---"
         docker exec -i DAppNodeCore-api.wireguard.dnp.dappnode.eth getWireguardCredentials "${localhost_flag[@]}" 2>&1 || \
-            echo "Wireguard credentials not yet available. Try later with: dappnode_wireguard${localhost_flag:+ ${localhost_flag[*]}}"
+            warn "Wireguard credentials not yet available. Try later with: dappnode_wireguard${localhost_flag:+ ${localhost_flag[*]}}"
     fi
 
     if [[ "$has_wireguard" == "true" && "$has_vpn" == "true" ]]; then
-        echo ""
+        log ""
     fi
 
     if [[ "$has_vpn" == "true" ]]; then
-        echo "--- OpenVPN ---"
+        log "--- OpenVPN ---"
         docker exec -i DAppNodeCore-vpn.dnp.dappnode.eth vpncli get dappnode_admin "${localhost_flag[@]}" 2>&1 || \
-            echo "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin${localhost_flag:+ ${localhost_flag[*]}}"
+            warn "OpenVPN credentials not yet available. Try later with: dappnode_openvpn_get dappnode_admin${localhost_flag:+ ${localhost_flag[*]}}"
     fi
 
-    echo ""
-    echo "Import the configuration above into your VPN client of choice to access your DAppNode at http://my.dappnode"
+    log ""
+    log "Import the configuration above into your VPN client of choice to access your DAppNode at http://my.dappnode"
 }
 
 # Build docker compose "-f <file>" args from downloaded compose files.
@@ -332,7 +360,7 @@ if $IS_LINUX; then
     UPDATE_MOTD_DIR="/etc/update-motd.d"
 fi
 # Get URLs
-IPFS_ENDPOINT=${IPFS_ENDPOINT:-"https://ipfs-gateway-dev.dappnode.net"}
+IPFS_ENDPOINT=${IPFS_ENDPOINT:-"https://ipfs-gateway.dappnode.net"}
 # PROFILE_URL env is used to fetch the core packages versions that will be used to build the release in script install method
 PROFILE_URL=${PROFILE_URL:-"https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_profile.sh"}
 DAPPNODE_ACCESS_CREDENTIALS="${DAPPNODE_DIR}/scripts/dappnode_access_credentials.sh"
@@ -402,8 +430,8 @@ normalize_ipfs_version_ref() {
         local manifest
         manifest="$(download_stdout "$manifest_url" 2>/dev/null || true)"
         if [[ -z "$manifest" ]]; then
-            echo "[ERROR] Could not fetch IPFS manifest for ${comp} from: $manifest_url" 1>&2
-            echo "[ERROR] Provide ${comp}_VERSION as /ipfs/<cid>:<version> (example: /ipfs/Qm...:0.2.11)" 1>&2
+            error "Could not fetch IPFS manifest for ${comp} from: $manifest_url"
+            error "Provide ${comp}_VERSION as /ipfs/<cid>:<version> (example: /ipfs/Qm...:0.2.11)"
             return 1
         fi
 
@@ -416,8 +444,8 @@ normalize_ipfs_version_ref() {
         )"
 
         if [[ -z "$inferred_version" || "$inferred_version" == "$manifest" ]]; then
-            echo "[ERROR] Could not infer version for ${comp} from IPFS manifest: $manifest_url" 1>&2
-            echo "[ERROR] Provide ${comp}_VERSION as /ipfs/<cid>:<version>" 1>&2
+            error "Could not infer version for ${comp} from IPFS manifest: $manifest_url"
+            error "Provide ${comp}_VERSION as /ipfs/<cid>:<version>"
             return 1
         fi
 
@@ -501,7 +529,7 @@ patch_dappmanager_compose_for_macos() {
 bootstrap_filesystem() {
     # Clean if update
     if [[ "${UPDATE}" == "true" ]]; then
-        echo "Cleaning for update..."
+        log "Cleaning for update..."
         rm -f "${LOGFILE}" || true
         rm -f "${DAPPNODE_CORE_DIR}"/docker-compose-*.yml || true
         rm -f "${DAPPNODE_CORE_DIR}"/dappnode_package-*.json || true
@@ -523,33 +551,77 @@ bootstrap_filesystem() {
     touch "${LOGFILE}" || true
 }
 
-# Check if port 80 is in use (necessary for HTTPS)
-# Returns IS_PORT_USED=true only if port 80 or 443 is used by something OTHER than our HTTPS container
-is_port_used() {
-    # Check if port 80 or 443 is in use at all
-    local port80_used port443_used
-    if command -v lsof >/dev/null 2>&1; then
-        lsof -i -P -n | grep ":80 (LISTEN)" &>/dev/null && port80_used=true || port80_used=false
-        lsof -i -P -n | grep ":443 (LISTEN)" &>/dev/null && port443_used=true || port443_used=false
+# Generic helper: returns 0 if a process is bound to the given port, 1 if not.
+# Usage: is_port_listening <port> [tcp|udp]
+#   tcp (default): matches TCP sockets in LISTEN state
+#   udp: matches any process bound to the UDP port
+is_port_listening() {
+    local port="$1"
+    local proto="${2:-tcp}"
+    if [[ "$proto" == "udp" ]]; then
+        lsof -i "udp:${port}" -P -n 2>/dev/null | grep -q .
     else
+        lsof -i "tcp:${port}" -P -n 2>/dev/null | grep -q "(LISTEN)"
+    fi
+}
+
+# Check if ports 80/443 are occupied by something other than our own HTTPS container.
+# Sets HTTPS_PORTS_BLOCKED=true/false.
+check_https_ports_conflict() {
+    if ! command -v lsof >/dev/null 2>&1; then
         warn "lsof not found; assuming ports 80/443 are in use (HTTPS will be skipped)"
-        IS_PORT_USED=true
+        HTTPS_PORTS_BLOCKED=true
         return
     fi
 
-    if [ "$port80_used" = false ] && [ "$port443_used" = false ]; then
-        IS_PORT_USED=false
+    if ! is_port_listening 80 && ! is_port_listening 443; then
+        HTTPS_PORTS_BLOCKED=false
         return
     fi
 
-    # If either port is in use, check if it's our HTTPS container
+    # Port 80 or 443 is in use; check if it's our own HTTPS container
     if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^DAppNodeCore-https.dnp.dappnode.eth$"; then
-        # Port 80 or 443 is used by our HTTPS container, so we consider it "not used" for package determination
-        IS_PORT_USED=false
+        # Our own HTTPS container already holds the port — not a conflict
+        HTTPS_PORTS_BLOCKED=false
     else
         # Port 80 or 443 is used by something else
-        IS_PORT_USED=true
+        HTTPS_PORTS_BLOCKED=true
     fi
+}
+
+# Check that ports required by VPN/Wireguard are not already in use by another process.
+# Must be called after PKGS is populated. Exits with a helpful error on conflict.
+check_vpn_ports_conflict() {
+    if ! command -v lsof >/dev/null 2>&1; then
+        return  # cannot check; proceed and let the container report a bind error
+    fi
+
+    local pkg
+    for pkg in "${PKGS[@]}"; do
+        case "$pkg" in
+            WIREGUARD)
+                if is_port_listening 51820 udp; then
+                    error "Port 51820/UDP is already in use on this host."
+                    error "This port is required by the Wireguard package and must be free before installing."
+                    error "Free up port 51820 and re-run the installer, or — if you do not need VPN"
+                    error "connectivity — consider using --minimal instead (advanced users only)."
+                    exit 1
+                fi
+                ;;
+            VPN)
+                local vpn_blocked=()
+                is_port_listening 1194 udp && vpn_blocked+=(1194/UDP)
+                is_port_listening 8092 tcp && vpn_blocked+=(8092/TCP)
+                if [[ ${#vpn_blocked[@]} -gt 0 ]]; then
+                    error "Port(s) ${vpn_blocked[*]} are already in use on this host."
+                    error "These ports are required by the OpenVPN package and must be free before installing."
+                    error "Free up the port(s) and re-run the installer, or — if you do not need VPN"
+                    error "connectivity — consider using --minimal instead (advanced users only)."
+                    exit 1
+                fi
+                ;;
+        esac
+    done
 }
 
 # Determine packages to be installed
@@ -649,8 +721,8 @@ determine_packages() {
 
     # Default mode (no --packages/--minimal/--lite): install full package set.
     # HTTPS is included only when ports 80/443 are available.
-    is_port_used
-    if [ "$IS_PORT_USED" == "true" ]; then
+    check_https_ports_conflict
+    if [ "$HTTPS_PORTS_BLOCKED" == "true" ]; then
         PKGS=(BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI NOTIFICATIONS PREMIUM)
     else
         PKGS=(HTTPS BIND IPFS VPN WIREGUARD DAPPMANAGER WIFI NOTIFICATIONS PREMIUM)
@@ -710,6 +782,7 @@ resolve_packages() {
     # If such variable with 'dev:'' suffix is used, then the component is built from specified branch or commit.
     # you can also specify an IPFS version like /ipfs/<cid>:<version> (the exact version is required).
     determine_packages
+    check_vpn_ports_conflict
     for comp in "${PKGS[@]}"; do
         ver="${comp}_VERSION"
         log "Processing $comp: ${!ver-}"
@@ -741,17 +814,17 @@ dappnode_core_build() {
         ver="${comp}_VERSION"
         if [[ ${!ver} == dev:* ]]; then
             if $IS_MACOS; then
-                echo "Development builds (dev:*) are not supported on macOS."
+                error "Development builds (dev:*) are not supported on macOS."
                 exit 1
             fi
-            echo "Cloning & building DNP_${comp}..."
+            log "Cloning & building DNP_${comp}..."
             if ! dpkg -s git >/dev/null 2>&1; then
                 apt-get install -y git
             fi
             local tmpdir
             tmpdir="$(mktemp -d)"
             pushd "$tmpdir" >/dev/null || {
-                echo "Error on pushd"
+                error "Error on pushd"
                 exit 1
             }
             git clone -b "${!ver##*:}" https://github.com/dappnode/DNP_"${comp}"
@@ -765,7 +838,7 @@ dappnode_core_build() {
             cp "./DNP_${comp}/dappnode_package.json" "${DAPPNODE_CORE_DIR}/dappnode_package-${comp_lower}.json"
             rm -rf "./DNP_${comp}"
             popd >/dev/null || {
-                echo "Error on popd"
+                error "Error on popd"
                 exit 1
             }
             rm -rf "$tmpdir"
@@ -785,13 +858,13 @@ dappnode_core_download() {
             local manifest_var="${comp}_MANIFEST"
 
             # Download DAppNode Core Images if needed
-            echo "Downloading ${comp} tar..."
+            log "Downloading ${comp} tar..."
             [ -f "${!file_var}" ] || download_file "${!file_var}" "${!url_var}" || exit 1
             # Download DAppNode Core docker-compose yml files if needed
-            echo "Downloading ${comp} yml..."
+            log "Downloading ${comp} yml..."
             [ -f "${!yml_file_var}" ] || download_file "${!yml_file_var}" "${!yml_var}" || exit 1
             # Download DAppNode Core manifest files if needed
-            echo "Downloading ${comp} manifest..."
+            log "Downloading ${comp} manifest..."
             [ -f "${!manifest_file_var}" ] || download_file "${!manifest_file_var}" "${!manifest_var}" || exit 1
 
             # macOS: patch compose files for Docker Desktop compatibility
@@ -877,7 +950,7 @@ addSwap() {
 
     # if not then create it
     if [ "$IS_SWAP" -eq 0 ]; then
-        echo 'Swap not found. Adding swapfile.'
+        log 'Swap not found. Adding swapfile.'
         #RAM=$(awk '/MemTotal/ {print $2}' /proc/meminfo)
         #SWAP=$(($RAM * 2))
         SWAP=8388608
@@ -887,7 +960,7 @@ addSwap() {
         swapon /swapfile
         echo '/swapfile none swap defaults 0 0' >>/etc/fstab
     else
-        echo 'Swap found. No changes made.'
+        log 'Swap found. No changes made.'
     fi
 }
 
@@ -936,7 +1009,7 @@ add_profile_to_shell() {
 }
 
 dappnode_core_start() {
-    echo "DAppNode starting..." 2>&1 | tee -a "$LOGFILE"
+    log "DAppNode starting..."
 
     if [[ ${#DNCORE_COMPOSE_ARGS[@]} -eq 0 ]]; then
         build_dncore_compose_args
@@ -944,7 +1017,7 @@ dappnode_core_start() {
     [[ ${#DNCORE_COMPOSE_ARGS[@]} -gt 0 ]] || die "No docker-compose-*.yml files found in ${DAPPNODE_CORE_DIR}"
 
     docker compose "${DNCORE_COMPOSE_ARGS[@]}" up -d 2>&1 | tee -a "$LOGFILE"
-    echo "DAppNode started" 2>&1 | tee -a "$LOGFILE"
+    log "DAppNode started"
 
     # Add profile sourcing to user's shell configuration
     add_profile_to_shell
@@ -963,7 +1036,7 @@ dappnode_core_start() {
     fi
 
     # Display help message to the user
-    echo "Execute dappnode_help to see a full list with commands available"
+    log "Execute dappnode_help to see a full list with commands available"
 }
 
 grabContentHashes() {
@@ -972,7 +1045,7 @@ grabContentHashes() {
         for comp in "${content_hash_pkgs[@]}"; do
             CONTENT_HASH=$(download_stdout "https://github.com/dappnode/DAppNodePackage-${comp}/releases/latest/download/content-hash")
             if [ -z "$CONTENT_HASH" ]; then
-                echo "ERROR! Failed to find content hash of ${comp}." 2>&1 | tee -a "$LOGFILE"
+                error "Failed to find content hash of ${comp}."
                 exit 1
             fi
             echo "${comp}.dnp.dappnode.eth,${CONTENT_HASH}" >>"${CONTENT_HASH_FILE}"
@@ -1005,12 +1078,12 @@ addUserToDockerGroup() {
 
     # If USER is not found, warn the user and return
     if [ -z "$user" ]; then
-        echo "WARN: Default user not found. Could not add it to the docker group." 2>&1 | tee -a "$LOGFILE"
+        warn "Default user not found. Could not add it to the docker group."
         return
     fi
 
     if groups "$user" | grep &>/dev/null '\bdocker\b'; then
-        echo "User $user is already in the docker group" 2>&1 | tee -a "$LOGFILE"
+        log "User $user is already in the docker group"
         return
     fi
 
@@ -1018,7 +1091,7 @@ addUserToDockerGroup() {
     # but it's not working in the Ubuntu ISO because the late-commands in the autoinstall.yaml
     # file are executed before the user is created.
     usermod -aG docker "$user"
-    echo "User $user added to the docker group" 2>&1 | tee -a "$LOGFILE"
+    log "User $user added to the docker group"
 }
 
 ##############################################
@@ -1036,58 +1109,58 @@ main() {
     resolve_packages
 
     echo "" 2>&1 | tee -a "$LOGFILE"
-    echo "##############################################" 2>&1 | tee -a "$LOGFILE"
-    echo "####          DAPPNODE INSTALLER          ####" 2>&1 | tee -a "$LOGFILE"
-    echo "##############################################" 2>&1 | tee -a "$LOGFILE"
+    log "##############################################"
+    log "####          DAPPNODE INSTALLER          ####"
+    log "##############################################"
 
     # --- Linux-only setup steps ---
     if $IS_LINUX; then
         if [[ "${MINIMAL}" != "true" && "${LITE}" != "true" ]]; then
-            echo "Creating swap memory..." 2>&1 | tee -a "$LOGFILE"
+            log "Creating swap memory..."
             addSwap
 
-            echo "Customizing login..." 2>&1 | tee -a "$LOGFILE"
+            log "Customizing login..."
             customMotd
 
-            echo "Installing extra packages..." 2>&1 | tee -a "$LOGFILE"
+            log "Installing extra packages..."
             installExtraDpkg
 
-            echo "Grabbing latest content hashes..." 2>&1 | tee -a "$LOGFILE"
+            log "Grabbing latest content hashes..."
             grabContentHashes
 
             if [ "$ARCH" == "amd64" ]; then
-            echo "Installing SGX modules..." 2>&1 | tee -a "$LOGFILE"
+            log "Installing SGX modules..."
             installSgx
 
-            echo "Installing extra packages..." 2>&1 | tee -a "$LOGFILE"
+            log "Installing extra packages..."
             installExtraDpkg # TODO: Why is this being called twice?
         fi
     fi
 
-        echo "Adding user to docker group..." 2>&1 | tee -a "$LOGFILE"
+        log "Adding user to docker group..."
         addUserToDockerGroup
     fi
 
     # --- Common steps (Linux and macOS) ---
-    echo "Creating dncore_network if needed..." 2>&1 | tee -a "$LOGFILE"
+    log "Creating dncore_network if needed..."
     docker network create --driver bridge --subnet 172.33.0.0/16 dncore_network 2>&1 | tee -a "$LOGFILE" || true
 
-    echo "Building DAppNode Core if needed..." 2>&1 | tee -a "$LOGFILE"
+    log "Building DAppNode Core if needed..."
     dappnode_core_build
 
-    echo "Downloading DAppNode Core..." 2>&1 | tee -a "$LOGFILE"
+    log "Downloading DAppNode Core..."
     dappnode_core_download
 
     # Build compose args now that compose files exist
     build_dncore_compose_args
 
-    echo "Loading DAppNode Core..." 2>&1 | tee -a "$LOGFILE"
+    log "Loading DAppNode Core..."
     dappnode_core_load
 
     # --- Start DAppNode ---
     if $IS_LINUX; then
         if [ ! -f "${DAPPNODE_DIR}/.firstboot" ]; then
-            echo "DAppNode installed" 2>&1 | tee -a "$LOGFILE"
+            log "DAppNode installed"
             dappnode_core_start
             print_vpn_access_credentials
         fi
@@ -1102,7 +1175,7 @@ main() {
     fi
 
     if $IS_MACOS; then
-        echo "DAppNode installed" 2>&1 | tee -a "$LOGFILE"
+        log "DAppNode installed"
         dappnode_core_start
         print_vpn_access_credentials
     fi
