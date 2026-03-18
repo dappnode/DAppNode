@@ -5,10 +5,10 @@ SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
 
 source ${SCRIPTS_DIR}/common_iso_generation.sh
 
-BASE_ISO_NAME=ubuntu-24.04.3-live-server-amd64.iso
+BASE_ISO_NAME=ubuntu-24.04.4-live-server-amd64.iso
 BASE_ISO_PATH="/images/${BASE_ISO_NAME}"
 BASE_ISO_URL="https://releases.ubuntu.com/24.04/${BASE_ISO_NAME}"
-BASE_ISO_SHASUM="c3514bf0056180d09376462a7a1b4f213c1d6e8ea67fae5c25099c6fd3d8274b  ${BASE_ISO_PATH}"
+BASE_ISO_SHASUM="e907d92eeec9df64163a7e454cbc8d7755e8ddc7ed42f99dbc80c40f1a138433  ${BASE_ISO_PATH}"
 
 DAPPNODE_ISO_NAME="${DAPPNODE_ISO_PREFIX}${BASE_ISO_NAME}"
 DAPPNODE_ISO_PATH="/images/${DAPPNODE_ISO_NAME}"
