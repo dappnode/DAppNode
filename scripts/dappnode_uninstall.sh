@@ -90,9 +90,9 @@ uninstall() {
         docker volume rm "$volume" &>/dev/null
     done
 
-    # Remove dncore_network
-    echo "Removing docker dncore_network"
-    docker network remove dncore_network || echo "dncore_network already removed"
+    # Remove dncore_network dnprivate_network dnpublic_network gnosis_network holesky_network hoodi_network lukso_network mainnet_network prater_network sepolia_network starknet_network starknet_sepolia_network
+    echo "Removing dappnode networks..."
+    docker network remove dncore_network dnprivate_network dnpublic_network gnosis_network holesky_network hoodi_network lukso_network mainnet_network prater_network sepolia_network starknet_network starknet_sepolia_network &>/dev/null || true
 
     # Clean up host DNS resolution artifacts (--resolve-from-host)
     if $IS_LINUX; then
