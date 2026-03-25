@@ -1476,8 +1476,9 @@ main() {
     fi
 
     # --- Common steps (Linux and macOS) ---
-    log "Creating dncore_network if needed..."
+    log "Creating dncore_network and dnprivate_network if needed..."
     docker network create --driver bridge --subnet 172.33.0.0/16 dncore_network 2>&1 | tee -a "$LOGFILE" || true
+    docker network create --driver bridge --subnet 10.20.0.0/24 dnprivate_network 2>&1 | tee -a "$LOGFILE" || true
 
     log "Building DAppNode Core if needed..."
     dappnode_core_build
