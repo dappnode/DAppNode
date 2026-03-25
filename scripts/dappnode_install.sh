@@ -1244,7 +1244,7 @@ main() {
 
   if $private_exists; then
     if private_iface=$(get_bridge_with_retry "dnprivate_network"); then
-      apply_dns "$private_iface" "10.20.0.2" "~private.dappnode"
+        apply_dns "$private_iface" "10.20.0.2" "~dappnode.private"
     fi
   fi
 
