@@ -1400,6 +1400,34 @@ configure_host_dns_resolution() {
     fi
 }
 
+# Verify that .dappnode domains can be resolved from the host after DNS setup.
+# Retries a few times to allow DNS propagation, then logs a warning on failure.
+verify_host_dns_resolution() {
+    if [[ "${RESOLVE_FROM_HOST}" != "true" ]]; then
+        return 0
+    fi
+
+    local domain="my.dappnode"
+    local max_retries=5
+    local sleep_seconds=3
+    local attempt
+
+    log "Verifying host DNS resolution for ${domain}..."
+
+    for ((attempt = 1; attempt <= max_retries; attempt++)); do
+        if getent hosts "$domain" >/dev/null 2>&1; then
+            log "DNS verification succeeded: ${domain} resolves correctly (attempt ${attempt}/${max_retries})"
+            return 0
+        fi
+        log "DNS verification attempt ${attempt}/${max_retries}: ${domain} not yet resolvable. Retrying in ${sleep_seconds}s..."
+        sleep "$sleep_seconds"
+    done
+
+    warn "DNS verification failed: ${domain} could not be resolved after ${max_retries} attempts."
+    warn "Host DNS resolution for .dappnode domains may not be working correctly."
+    warn "Ensure the BIND container is running and your DNS configuration is correct."
+}
+
 ##############################################
 ####             SCRIPT START             ####
 ##############################################
@@ -1469,6 +1497,7 @@ main() {
             log "DAppNode installed"
             dappnode_core_start
             configure_host_dns_resolution
+            verify_host_dns_resolution
             print_vpn_access_credentials
         fi
 
