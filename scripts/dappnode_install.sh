@@ -69,6 +69,7 @@ set -Eeuo pipefail
 : "${MINIMAL:=false}"
 : "${LITE:=false}"
 : "${PACKAGES:=}"
+: "${RESOLVE_FROM_HOST:=false}"
 
 # Enable alias expansion in non-interactive bash scripts.
 # Required so commands like `dappnode_wireguard` (defined as aliases in `.dappnode_profile`) work.
@@ -90,10 +91,11 @@ Options:
   --minimal                     Install only BIND DAPPMANAGER NOTIFICATIONS PREMIUM (equivalent: MINIMAL=true)
   --lite                        Install reduced package set: BIND VPN WIREGUARD DAPPMANAGER NOTIFICATIONS PREMIUM (equivalent: LITE=true)
   --packages <list>             Override package selection (comma or space separated), e.g. BIND,IPFS,VPN
+  --resolve-from-host           Configure host DNS to resolve .dappnode domains (Linux only) (equivalent: RESOLVE_FROM_HOST=true)
   -h, --help                    Show this help
 
 Environment variables (also supported):
-        UPDATE, STATIC_IP, LOCAL_PROFILE_PATH, IPFS_ENDPOINT, PROFILE_URL, MINIMAL, LITE, PACKAGES
+        UPDATE, STATIC_IP, LOCAL_PROFILE_PATH, IPFS_ENDPOINT, PROFILE_URL, MINIMAL, LITE, PACKAGES, RESOLVE_FROM_HOST
 EOF
 }
 
@@ -139,6 +141,10 @@ parse_args() {
                 ;;
             --packages=*)
                 PACKAGES="${1#*=}"
+                shift
+                ;;
+            --resolve-from-host)
+                RESOLVE_FROM_HOST=true
                 shift
                 ;;
             -h|--help)
@@ -1094,6 +1100,334 @@ addUserToDockerGroup() {
     log "User $user added to the docker group"
 }
 
+##############################
+# Host DNS Resolution        #
+##############################
+
+# Install systemd service + timer that configures split DNS via resolvectl
+# for .dappnode domains on the dncore_network (and dnprivate_network) bridge interfaces.
+setup_resolved_dns() {
+    local script_path="/usr/local/bin/dappnode-dns.sh"
+    local service_path="/etc/systemd/system/dappnode-dns.service"
+    local timer_path="/etc/systemd/system/dappnode-dns.timer"
+
+    log "Setting up host DNS resolution via systemd-resolved..."
+
+    # --- Install the dappnode-dns.sh script ---
+    cat > "$script_path" << 'DNSEOF'
+#!/usr/bin/env bash
+set -euo pipefail
+
+TAG="dappnode-dns"
+MAX_RETRIES=5
+SLEEP_SECONDS=2
+
+##############################
+# Logging                    #
+##############################
+
+log_info() {
+  logger -t "$TAG" "[INFO] $1"
+}
+
+log_warn() {
+  logger -t "$TAG" "[WARN] $1"
+}
+
+log_error() {
+  logger -t "$TAG" "[ERROR] $1"
+}
+
+# Log unexpected errors with line number
+trap 'log_error "Unexpected error on line $LINENO (exit $?)"' ERR
+
+##############################
+# Pre-flight checks          #
+##############################
+
+preflight() {
+  if ! command -v docker &>/dev/null; then
+    log_error "docker not found. Skipping DNS configuration."
+    exit 0
+  fi
+
+  if ! docker info &>/dev/null; then
+    log_warn "Docker is not running. Skipping DNS configuration."
+    exit 0
+  fi
+
+  if ! command -v resolvectl &>/dev/null; then
+    log_error "resolvectl not found. Cannot configure split DNS."
+    exit 1
+  fi
+}
+
+##############################
+# Network helpers            #
+##############################
+
+network_exists() {
+  docker network inspect "$1" &>/dev/null
+}
+
+get_bridge_iface() {
+  local net="$1"
+  local net_id
+  net_id=$(docker network inspect -f '{{.Id}}' "$net" 2>/dev/null || true)
+  [[ -z "$net_id" ]] && return 1
+
+  local iface="br-${net_id:0:12}"
+  ip link show "$iface" &>/dev/null || return 1
+  echo "$iface"
+}
+
+get_bridge_with_retry() {
+  local net="$1"
+  local iface
+
+  for ((i=1; i<=MAX_RETRIES; i++)); do
+    if iface=$(get_bridge_iface "$net"); then
+      log_info "Interface $iface found for $net (attempt $i/$MAX_RETRIES)"
+      echo "$iface"
+      return 0
+    fi
+    sleep "$SLEEP_SECONDS"
+  done
+
+  log_error "Failed to find bridge interface for $net after $MAX_RETRIES attempts"
+  return 1
+}
+
+##############################
+# DNS application            #
+##############################
+
+apply_dns() {
+  local iface="$1"
+  local dns_ip="$2"
+  local domain="$3"
+
+  [[ -z "$iface" ]] && return
+
+  log_info "Setting DNS=$dns_ip domain=$domain on interface $iface"
+  resolvectl dns "$iface" "$dns_ip" || { log_error "resolvectl dns failed on $iface"; return 1; }
+  resolvectl domain "$iface" "$domain" || { log_error "resolvectl domain failed on $iface"; return 1; }
+}
+
+##############################
+# Main                       #
+##############################
+
+main() {
+  log_info "===== dappnode-dns.sh started ====="
+
+  preflight
+
+  local core_exists=false
+  local private_exists=false
+
+  network_exists "dncore_network" && core_exists=true
+  network_exists "dnprivate_network" && private_exists=true
+
+  # If no DAppNode networks exist, nothing to do.
+  # Cleanup is handled by the DAppNode uninstall script.
+  if [[ "$core_exists" == false && "$private_exists" == false ]]; then
+    log_warn "No DAppNode networks found. Nothing to configure."
+    exit 0
+  fi
+
+  if $core_exists; then
+    if core_iface=$(get_bridge_with_retry "dncore_network"); then
+      apply_dns "$core_iface" "172.33.1.2" "~dappnode"
+    fi
+  fi
+
+  if $private_exists; then
+    if private_iface=$(get_bridge_with_retry "dnprivate_network"); then
+        apply_dns "$private_iface" "10.20.0.2" "~dappnode.private"
+    fi
+  fi
+
+  log_info "===== dappnode-dns.sh finished ====="
+}
+
+main
+DNSEOF
+    chmod +x "$script_path"
+
+    # --- Install the systemd service ---
+    cat > "$service_path" << 'SVCEOF'
+[Unit]
+Description=Configure DAppNode DNS
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/dappnode-dns.sh
+SVCEOF
+
+    # --- Install the systemd timer ---
+    cat > "$timer_path" << 'TMREOF'
+[Unit]
+Description=Run DAppNode DNS periodically
+
+[Timer]
+OnBootSec=30
+OnUnitActiveSec=60
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+TMREOF
+
+    systemctl daemon-reload
+    systemctl enable dappnode-dns.timer
+    systemctl start dappnode-dns.timer
+
+    log "systemd-resolved DNS setup complete (service + timer installed)"
+}
+
+# Install and configure dnsmasq for split DNS on systems using classic /etc/resolv.conf.
+setup_dnsmasq_dns() {
+    log "Setting up host DNS resolution via dnsmasq..."
+
+    # Check port 53 conflicts before installing
+    if is_port_listening 53 tcp || is_port_listening 53 udp; then
+        die "Port 53 is already in use on this host. Cannot set up dnsmasq for .dappnode resolution. Free up port 53 (check for existing dnsmasq, pihole, or other DNS services) and re-run the installer."
+    fi
+
+    # Install dnsmasq
+    log "Installing dnsmasq..."
+    apt-get update -qq
+    apt-get install -y dnsmasq
+
+    # Write split-DNS config
+    local dnsmasq_conf="/etc/dnsmasq.d/dappnode.conf"
+    log "Writing dnsmasq config to ${dnsmasq_conf}..."
+    cat > "$dnsmasq_conf" << 'DNSMASQEOF'
+########################################
+# DAppNode DNS routing (split DNS)
+########################################
+
+# Route all *.dappnode domains to the DAppNode BIND container
+server=/dappnode/172.33.1.2
+
+########################################
+# Upstream DNS (fallback)
+########################################
+
+server=1.1.1.1
+server=8.8.8.8
+
+########################################
+# Performance
+########################################
+
+cache-size=1000
+
+########################################
+# Security / Isolation
+########################################
+
+listen-address=127.0.0.1
+bind-interfaces
+
+########################################
+# DNS behavior
+########################################
+
+# Never forward plain names (no dots)
+domain-needed
+
+# Never forward reverse lookups for private IPs
+bogus-priv
+DNSMASQEOF
+
+    # Backup and update /etc/resolv.conf
+    if [ -f /etc/resolv.conf ]; then
+        cp /etc/resolv.conf /etc/resolv.conf.dappnode.bak
+        log "Backed up /etc/resolv.conf to /etc/resolv.conf.dappnode.bak"
+    fi
+
+    # Write resolv.conf pointing to dnsmasq, with a public fallback
+    cat > /etc/resolv.conf << 'RESOLVEOF'
+# Managed by DAppNode installer (--resolve-from-host)
+# Original backed up to /etc/resolv.conf.dappnode.bak
+nameserver 127.0.0.1
+nameserver 1.1.1.1
+RESOLVEOF
+
+    systemctl restart dnsmasq
+    log "dnsmasq DNS setup complete"
+}
+
+# Main dispatcher: detect the DNS subsystem and apply the appropriate solution.
+configure_host_dns_resolution() {
+    if [[ "${RESOLVE_FROM_HOST}" != "true" ]]; then
+        return 0
+    fi
+
+    if $IS_MACOS; then
+        warn "Host DNS resolution (--resolve-from-host) is only supported on Linux. Ignoring on macOS."
+        return 0
+    fi
+
+    # Validate BIND is in the package set — both DNS paths forward to 172.33.1.2
+    local has_bind=false
+    local pkg
+    for pkg in "${PKGS[@]}"; do
+        if [[ "$pkg" == "BIND" ]]; then
+            has_bind=true
+            break
+        fi
+    done
+    if [[ "$has_bind" != "true" ]]; then
+        die "--resolve-from-host requires the BIND package (DNS server at 172.33.1.2), but BIND is not in the package set. Add BIND to --packages or remove --resolve-from-host."
+    fi
+
+    log "Configuring host DNS resolution for .dappnode domains..."
+
+    # Detect DNS subsystem
+    if systemctl is-active --quiet systemd-resolved 2>/dev/null; then
+        log "Detected systemd-resolved as the active DNS resolver"
+        setup_resolved_dns
+    elif [ -f /etc/resolv.conf ] && ! readlink -f /etc/resolv.conf 2>/dev/null | grep -q "systemd"; then
+        log "Detected classic /etc/resolv.conf (no systemd-resolved)"
+        setup_dnsmasq_dns
+    else
+        die "Unsupported DNS system. --resolve-from-host requires either systemd-resolved (Ubuntu 16.10+) or classic /etc/resolv.conf. Your system uses a different DNS configuration that this installer cannot automatically configure."
+    fi
+}
+
+# Verify that .dappnode domains can be resolved from the host after DNS setup.
+# Retries a few times to allow DNS propagation, then logs a warning on failure.
+verify_host_dns_resolution() {
+    if [[ "${RESOLVE_FROM_HOST}" != "true" ]]; then
+        return 0
+    fi
+
+    local domain="my.dappnode"
+    local max_retries=20
+    local sleep_seconds=3
+    local attempt
+
+    log "Verifying host DNS resolution for ${domain}..."
+
+    for ((attempt = 1; attempt <= max_retries; attempt++)); do
+        if getent hosts "$domain" >/dev/null 2>&1; then
+            log "DNS verification succeeded: ${domain} resolves correctly (attempt ${attempt}/${max_retries})"
+            return 0
+        fi
+        log "DNS verification attempt ${attempt}/${max_retries}: ${domain} not yet resolvable. Retrying in ${sleep_seconds}s..."
+        sleep "$sleep_seconds"
+    done
+
+    warn "DNS verification failed: ${domain} could not be resolved after ${max_retries} attempts."
+    warn "Host DNS resolution for .dappnode domains may not be working correctly."
+    warn "Ensure the BIND container is running and your DNS configuration is correct."
+}
+
 ##############################################
 ####             SCRIPT START             ####
 ##############################################
@@ -1142,8 +1476,9 @@ main() {
     fi
 
     # --- Common steps (Linux and macOS) ---
-    log "Creating dncore_network if needed..."
+    log "Creating dncore_network and dnprivate_network if needed..."
     docker network create --driver bridge --subnet 172.33.0.0/16 dncore_network 2>&1 | tee -a "$LOGFILE" || true
+    docker network create --driver bridge --subnet 10.20.0.0/24 dnprivate_network 2>&1 | tee -a "$LOGFILE" || true
 
     log "Building DAppNode Core if needed..."
     dappnode_core_build
@@ -1162,6 +1497,8 @@ main() {
         if [ ! -f "${DAPPNODE_DIR}/.firstboot" ]; then
             log "DAppNode installed"
             dappnode_core_start
+            configure_host_dns_resolution
+            verify_host_dns_resolution
             print_vpn_access_credentials
         fi
 
