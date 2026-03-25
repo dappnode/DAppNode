@@ -1408,7 +1408,7 @@ verify_host_dns_resolution() {
     fi
 
     local domain="my.dappnode"
-    local max_retries=5
+    local max_retries=20
     local sleep_seconds=3
     local attempt
 
