@@ -91,11 +91,11 @@ Options:
   --minimal                     Install only BIND DAPPMANAGER NOTIFICATIONS PREMIUM (equivalent: MINIMAL=true)
   --lite                        Install reduced package set: BIND VPN WIREGUARD DAPPMANAGER NOTIFICATIONS PREMIUM (equivalent: LITE=true)
   --packages <list>             Override package selection (comma or space separated), e.g. BIND,IPFS,VPN
-  --resolve-from-host           Configure host DNS to resolve .dappnode domains (Linux only) (equivalent: RESOLVE_FROM_HOST=true)
+  --resolve-from-host           Configure host DNS to resolve .dappnode.private domains (Linux only) (equivalent: RESOLVE_FROM_HOST=true)
   -h, --help                    Show this help
 
 Environment variables (also supported):
-        UPDATE, STATIC_IP, LOCAL_PROFILE_PATH, IPFS_ENDPOINT, PROFILE_URL, MINIMAL, LITE, PACKAGES, RESOLVE_FROM_HOST
+    UPDATE, STATIC_IP, LOCAL_PROFILE_PATH, IPFS_ENDPOINT, PROFILE_URL, MINIMAL, LITE, PACKAGES, RESOLVE_FROM_HOST
 EOF
 }
 
@@ -1105,7 +1105,9 @@ addUserToDockerGroup() {
 ##############################
 
 # Install systemd service + timer that configures split DNS via resolvectl
-# for .dappnode domains on the dncore_network (and dnprivate_network) bridge interfaces.
+# for .dappnode.private domains on the dnprivate_network bridge interface.
+# CAUTION: when doing same configuration for dnprivate_network, the dappmanager 
+# node app container internet connectivity is broken for an unknown reason.
 setup_resolved_dns() {
     local script_path="/usr/local/bin/dappnode-dns.sh"
     local service_path="/etc/systemd/system/dappnode-dns.service"
@@ -1223,29 +1225,13 @@ main() {
 
   preflight
 
-  local core_exists=false
-  local private_exists=false
-
-  network_exists "dncore_network" && core_exists=true
-  network_exists "dnprivate_network" && private_exists=true
-
-  # If no DAppNode networks exist, nothing to do.
-  # Cleanup is handled by the DAppNode uninstall script.
-  if [[ "$core_exists" == false && "$private_exists" == false ]]; then
-    log_warn "No DAppNode networks found. Nothing to configure."
+  if ! network_exists "dnprivate_network"; then
+    log_warn "dnprivate_network not found. Nothing to configure."
     exit 0
   fi
 
-  if $core_exists; then
-    if core_iface=$(get_bridge_with_retry "dncore_network"); then
-      apply_dns "$core_iface" "172.33.1.2" "~dappnode"
-    fi
-  fi
-
-  if $private_exists; then
-    if private_iface=$(get_bridge_with_retry "dnprivate_network"); then
-        apply_dns "$private_iface" "10.20.0.2" "~dappnode.private"
-    fi
+  if private_iface=$(get_bridge_with_retry "dnprivate_network"); then
+    apply_dns "$private_iface" "10.20.0.2" "~dappnode.private"
   fi
 
   log_info "===== dappnode-dns.sh finished ====="
@@ -1273,6 +1259,7 @@ SVCEOF
 Description=Run DAppNode DNS periodically
 
 [Timer]
+Unit=dappnode-dns.service
 OnBootSec=30
 OnUnitActiveSec=60
 Persistent=true
@@ -1283,9 +1270,10 @@ TMREOF
 
     systemctl daemon-reload
     systemctl enable dappnode-dns.timer
+    systemctl start dappnode-dns.service
     systemctl start dappnode-dns.timer
 
-    log "systemd-resolved DNS setup complete (service + timer installed)"
+    log "systemd-resolved DNS setup complete (service + timer installed; initial run executed; interval=60s)"
 }
 
 # Install and configure dnsmasq for split DNS on systems using classic /etc/resolv.conf.
@@ -1310,8 +1298,8 @@ setup_dnsmasq_dns() {
 # DAppNode DNS routing (split DNS)
 ########################################
 
-# Route all *.dappnode domains to the DAppNode BIND container
-server=/dappnode/172.33.1.2
+# Route all *.dappnode.private domains to the DAppNode private DNS
+server=/dappnode.private/10.20.0.2
 
 ########################################
 # Upstream DNS (fallback)
@@ -1407,7 +1395,7 @@ verify_host_dns_resolution() {
         return 0
     fi
 
-    local domain="my.dappnode"
+    local domain="my.dappnode.private"
     local max_retries=20
     local sleep_seconds=3
     local attempt
@@ -1417,6 +1405,15 @@ verify_host_dns_resolution() {
     for ((attempt = 1; attempt <= max_retries; attempt++)); do
         if getent hosts "$domain" >/dev/null 2>&1; then
             log "DNS verification succeeded: ${domain} resolves correctly (attempt ${attempt}/${max_retries})"
+            log ""
+            log "##############################################"
+            log "#      DAppNode is accessible from host!      #"
+            log "##############################################"
+            log ""
+            log "You can now access the DAppNode UI directly from this machine at:"
+            log ""
+            log "    http://${domain}"
+            log ""
             return 0
         fi
         log "DNS verification attempt ${attempt}/${max_retries}: ${domain} not yet resolvable. Retrying in ${sleep_seconds}s..."
@@ -1424,7 +1421,7 @@ verify_host_dns_resolution() {
     done
 
     warn "DNS verification failed: ${domain} could not be resolved after ${max_retries} attempts."
-    warn "Host DNS resolution for .dappnode domains may not be working correctly."
+    warn "Host DNS resolution for .dappnode.private domains may not be working correctly."
     warn "Ensure the BIND container is running and your DNS configuration is correct."
 }
 
