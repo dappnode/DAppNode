@@ -97,7 +97,7 @@ uninstall() {
     # Clean up host DNS resolution artifacts (--resolve-from-host)
     if $IS_LINUX; then
         # systemd-resolved path: remove service, timer, and script
-        if [ -f /etc/systemd/system/dappnode-dns.timer ]; then
+        if [ -f /etc/systemd/system/dappnode-dns.timer ] || [ -f /etc/systemd/system/dappnode-dns.service ] || [ -f /usr/local/bin/dappnode-dns.sh ]; then
             echo "Removing dappnode-dns systemd timer and service..."
             systemctl disable dappnode-dns.timer 2>/dev/null || true
             systemctl stop dappnode-dns.timer 2>/dev/null || true
