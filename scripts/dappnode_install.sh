@@ -605,6 +605,8 @@ check_https_ports_conflict() {
 
 # Check that ports required by VPN/Wireguard are not already in use by another process.
 # Must be called after PKGS is populated. Exits with a helpful error on conflict.
+# Ports held by our own dappnode core VPN/Wireguard containers are not conflicts —
+# the upcoming compose-up will replace them.
 check_vpn_ports_conflict() {
     if ! command -v lsof >/dev/null 2>&1; then
         return  # cannot check; proceed and let the container report a bind error
@@ -615,11 +617,16 @@ check_vpn_ports_conflict() {
         case "$pkg" in
             WIREGUARD)
                 if is_port_listening 51820 udp; then
-                    error "Port 51820/UDP is already in use on this host."
-                    error "This port is required by the Wireguard package and must be free before installing."
-                    error "Free up port 51820 and re-run the installer, or — if you do not need VPN"
-                    error "connectivity — consider using --minimal instead (advanced users only)."
-                    exit 1
+                    # Port 51820 is in use; check if it's our own Wireguard container
+                    if docker ps --format '{{.Names}}' 2>/dev/null | grep -qE "^DAppNodeCore-.*wireguard.*\.dnp\.dappnode\.eth$"; then
+                        log "Port 51820/UDP is held by the existing DAppNode Wireguard container; it will be replaced."
+                    else
+                        error "Port 51820/UDP is already in use on this host."
+                        error "This port is required by the Wireguard package and must be free before installing."
+                        error "Free up port 51820 and re-run the installer, or — if you do not need VPN"
+                        error "connectivity — consider using --minimal instead (advanced users only)."
+                        exit 1
+                    fi
                 fi
                 ;;
             VPN)
@@ -627,11 +634,16 @@ check_vpn_ports_conflict() {
                 is_port_listening 1194 udp && vpn_blocked+=(1194/UDP)
                 is_port_listening 8092 tcp && vpn_blocked+=(8092/TCP)
                 if [[ ${#vpn_blocked[@]} -gt 0 ]]; then
-                    error "Port(s) ${vpn_blocked[*]} are already in use on this host."
-                    error "These ports are required by the OpenVPN package and must be free before installing."
-                    error "Free up the port(s) and re-run the installer, or — if you do not need VPN"
-                    error "connectivity — consider using --minimal instead (advanced users only)."
-                    exit 1
+                    # Port(s) in use; check if held by our own OpenVPN container
+                    if docker ps --format '{{.Names}}' 2>/dev/null | grep -q "^DAppNodeCore-vpn.dnp.dappnode.eth$"; then
+                        log "Port(s) ${vpn_blocked[*]} are held by the existing DAppNode VPN container; it will be replaced."
+                    else
+                        error "Port(s) ${vpn_blocked[*]} are already in use on this host."
+                        error "These ports are required by the OpenVPN package and must be free before installing."
+                        error "Free up the port(s) and re-run the installer, or — if you do not need VPN"
+                        error "connectivity — consider using --minimal instead (advanced users only)."
+                        exit 1
+                    fi
                 fi
                 ;;
         esac
