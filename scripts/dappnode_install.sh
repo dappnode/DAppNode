@@ -527,16 +527,14 @@ patch_dappmanager_compose_for_macos() {
 }
 
 bootstrap_filesystem() {
-    # Clean if update
+    # Clean if update — only the logfile and profile are removed here.
+    # Removing the profile early forces ensure_profile_loaded to re-download
+    # the latest one (so resolved package versions match the new release).
+    # Composes/manifests/archives are removed later by clean_for_update,
+    # AFTER preflight passes — see comment in main().
     if [[ "${UPDATE}" == "true" ]]; then
-        log "Cleaning for update..."
         rm -f "${LOGFILE}" || true
-        rm -f "${DAPPNODE_CORE_DIR}"/docker-compose-*.yml || true
-        rm -f "${DAPPNODE_CORE_DIR}"/dappnode_package-*.json || true
-        rm -f "${DAPPNODE_CORE_DIR}"/*.tar.xz || true
-        rm -f "${DAPPNODE_CORE_DIR}"/*.txz || true
         rm -f "${DAPPNODE_CORE_DIR}/.dappnode_profile" || true
-        rm -f "${CONTENT_HASH_FILE}" || true
     fi
 
     # Create necessary directories
@@ -549,6 +547,22 @@ bootstrap_filesystem() {
 
     # Ensure the log file path exists before first use by helpers.
     touch "${LOGFILE}" || true
+}
+
+# Destructive: remove on-disk artifacts from the previous install so fresh
+# downloads take their place. Must only run AFTER preflight checks have passed —
+# otherwise a failing preflight (e.g. port conflict) leaves the host with no
+# compose files on disk while running containers continue to hold the ports.
+clean_for_update() {
+    if [[ "${UPDATE}" != "true" ]]; then
+        return 0
+    fi
+    log "Cleaning for update..."
+    rm -f "${DAPPNODE_CORE_DIR}"/docker-compose-*.yml || true
+    rm -f "${DAPPNODE_CORE_DIR}"/dappnode_package-*.json || true
+    rm -f "${DAPPNODE_CORE_DIR}"/*.tar.xz || true
+    rm -f "${DAPPNODE_CORE_DIR}"/*.txz || true
+    rm -f "${CONTENT_HASH_FILE}" || true
 }
 
 # Generic helper: returns 0 if a process is bound to the given port, 1 if not.
@@ -1107,6 +1121,10 @@ main() {
     configure_static_ip
     ensure_profile_loaded
     resolve_packages
+    # Destructive cleanup runs only after preflight (resolve_packages -> check_vpn_ports_conflict)
+    # has passed; otherwise a failing port check would wipe the on-disk composes while the
+    # running containers still hold the ports, leaving the node un-restartable.
+    clean_for_update
 
     echo "" 2>&1 | tee -a "$LOGFILE"
     log "##############################################"
