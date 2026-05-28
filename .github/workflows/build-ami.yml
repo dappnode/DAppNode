@@ -2,7 +2,7 @@ name: Build DAppNode AMI
 
 on:
   workflow_run:
-    workflows: ["Pre-release"]
+    workflows: ["Release"]
     types: [completed]
 
 permissions:
@@ -15,72 +15,35 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
-      - name: Get release tag
-        id: tag
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Get the latest pre-release tag (the one just created by the triggering workflow)
-          TAG=$(gh release list --repo ${{ github.repository }} \
-            --limit 1 --json tagName --jq '.[0].tagName')
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "Release tag: $TAG"
-
       - name: Configure AWS credentials via OIDC
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.IMAGE_BUILDER_ROLE_ARN }}
           aws-region: us-east-1
 
-      - name: Create component, recipe, and trigger AMI build
+      - name: Bump recipe and trigger AMI build
         env:
           PIPELINE_ARN: ${{ secrets.IMAGE_BUILDER_PIPELINE_ARN }}
           INFRA_ARN: ${{ secrets.IMAGE_BUILDER_INFRA_ARN }}
           DIST_ARN: ${{ secrets.IMAGE_BUILDER_DIST_ARN }}
-          TAG: ${{ steps.tag.outputs.tag }}
         run: |
-          PROFILE_URL="https://github.com/dappnode/DAppNode/releases/download/${TAG}/dappnode_profile.sh"
-          SCRIPT_URL="https://raw.githubusercontent.com/dappnode/DAppNode/${TAG}/scripts/dappnode_ami_build.sh"
-
-          # Derive component version from tag (v0.2.47 -> 0.2.47)
-          COMP_VERSION="${TAG#v}"
-
-          # Create per-release component (thin wrapper: downloads repo script and runs it)
-          COMPONENT_ARN=$(aws imagebuilder create-component \
-            --name "dappnode-build" \
-            --semantic-version "$COMP_VERSION" \
-            --platform "Linux" \
-            --supported-os-versions "Ubuntu" \
-            --data "$(cat <<EOF
-          name: DAppNodeBuild
-          schemaVersion: 1.0
-          phases:
-            - name: build
-              steps:
-                - name: RunBuildScript
-                  action: ExecuteBash
-                  inputs:
-                    commands:
-                      - |
-                        export PROFILE_URL="${PROFILE_URL}"
-                        wget -O /tmp/dappnode_ami_build.sh "${SCRIPT_URL}"
-                        chmod +x /tmp/dappnode_ami_build.sh
-                        /tmp/dappnode_ami_build.sh
-          EOF
-          )" \
-            --query 'componentBuildVersionArn' --output text)
-          echo "Component: $COMPONENT_ARN"
-
-          # Get current recipe version and patch bump
-          CURRENT_RECIPE=$(aws imagebuilder get-image-pipeline \
+          # Get current recipe and extract component + version
+          CURRENT_RECIPE_ARN=$(aws imagebuilder get-image-pipeline \
             --image-pipeline-arn "$PIPELINE_ARN" \
             --query 'imagePipeline.imageRecipeArn' --output text)
-          CURRENT_VERSION=$(echo "$CURRENT_RECIPE" | grep -oP '[0-9]+\.[0-9]+\.[0-9]+$')
+
+          CURRENT_VERSION=$(echo "$CURRENT_RECIPE_ARN" | grep -oP '[0-9]+\.[0-9]+\.[0-9]+$')
           IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
           NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
           echo "Recipe: $CURRENT_VERSION -> $NEW_VERSION"
 
-          # Create recipe with per-release component
+          # Get component from current recipe
+          COMPONENT_ARN=$(aws imagebuilder get-image-recipe \
+            --image-recipe-arn "$CURRENT_RECIPE_ARN" \
+            --query 'imageRecipe.components[0].componentArn' --output text)
+          echo "Component: $COMPONENT_ARN"
+
+          # Create new recipe version (same component, latest Ubuntu 24)
           RECIPE_ARN=$(aws imagebuilder create-image-recipe \
             --name "dappnode-image" \
             --semantic-version "$NEW_VERSION" \
@@ -103,7 +66,5 @@ jobs:
             --query 'imageBuildVersionArn' --output text)
 
           echo "### AMI Build Triggered 🚀" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Tag:** ${TAG}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Recipe:** ${NEW_VERSION}" >> "$GITHUB_STEP_SUMMARY"
-          echo "- **Profile:** ${PROFILE_URL}" >> "$GITHUB_STEP_SUMMARY"
           echo "- **Image ARN:** ${EXECUTION}" >> "$GITHUB_STEP_SUMMARY"

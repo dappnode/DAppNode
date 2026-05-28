@@ -4,14 +4,14 @@
 # first-boot installer for EC2 Image Builder.
 #
 # Env vars:
-#   PROFILE_URL — URL to dappnode_profile.sh with pinned versions (required)
+#   PROFILE_URL — URL to dappnode_profile.sh (defaults to latest release)
 #
 # The installer still runs at first boot (via rc.local), but finds the heavy
 # Docker images already cached in /usr/src/dappnode/DNCORE/, making boot fast.
 
 set -euo pipefail
 
-: "${PROFILE_URL:?PROFILE_URL env var is required}"
+: "${PROFILE_URL:=https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_profile.sh}"
 
 DAPPNODE_DIR="/usr/src/dappnode"
 DNCORE_DIR="$DAPPNODE_DIR/DNCORE"
