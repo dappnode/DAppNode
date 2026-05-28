@@ -1,4 +1,9 @@
 name: Pre-release
+
+permissions:
+  id-token: write
+  contents: write
+
 on:
   workflow_dispatch:
     inputs:
@@ -262,3 +267,57 @@ jobs:
           body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-ami:
+    name: Build DAppNode AMI
+    runs-on: ubuntu-latest
+    needs: release
+    steps:
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.IMAGE_BUILDER_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Bump recipe version and trigger AMI build
+        env:
+          PIPELINE_ARN: ${{ secrets.IMAGE_BUILDER_PIPELINE_ARN }}
+          INFRA_ARN: ${{ secrets.IMAGE_BUILDER_INFRA_ARN }}
+          DIST_ARN: ${{ secrets.IMAGE_BUILDER_DIST_ARN }}
+          COMPONENT_ARN: ${{ secrets.IMAGE_BUILDER_COMPONENT_ARN }}
+        run: |
+          # Get current recipe version and patch bump
+          CURRENT_RECIPE=$(aws imagebuilder get-image-pipeline \
+            --image-pipeline-arn "$PIPELINE_ARN" \
+            --query 'imagePipeline.imageRecipeArn' --output text)
+          CURRENT_VERSION=$(echo "$CURRENT_RECIPE" | grep -oP '[0-9]+\.[0-9]+\.[0-9]+$')
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          NEW_VERSION="${MAJOR}.${MINOR}.$((PATCH + 1))"
+          echo "Bumping recipe: $CURRENT_VERSION -> $NEW_VERSION"
+
+          # Create new recipe version (same component, fresh Ubuntu 24 base)
+          RECIPE_ARN=$(aws imagebuilder create-image-recipe \
+            --name "dappnode-image" \
+            --semantic-version "$NEW_VERSION" \
+            --parent-image "arn:aws:imagebuilder:us-east-1:aws:image/ubuntu-server-24-lts-x86/x.x.x" \
+            --components "[{\"componentArn\":\"$COMPONENT_ARN\"}]" \
+            --block-device-mappings '[{"deviceName":"/dev/sda1","ebs":{"volumeSize":8,"volumeType":"gp2","deleteOnTermination":true}}]' \
+            --working-directory "/tmp" \
+            --query 'imageRecipeArn' --output text)
+
+          # Update pipeline and trigger build
+          aws imagebuilder update-image-pipeline \
+            --image-pipeline-arn "$PIPELINE_ARN" \
+            --image-recipe-arn "$RECIPE_ARN" \
+            --infrastructure-configuration-arn "$INFRA_ARN" \
+            --distribution-configuration-arn "$DIST_ARN" \
+            --image-tests-configuration "imageTestsEnabled=false"
+
+          EXECUTION=$(aws imagebuilder start-image-pipeline-execution \
+            --image-pipeline-arn "$PIPELINE_ARN" \
+            --query 'imageBuildVersionArn' --output text)
+
+          echo "🚀 AMI build started: $EXECUTION (recipe $NEW_VERSION)"
+          echo "### AMI Build Triggered" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Recipe version:** $NEW_VERSION" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Image ARN:** $EXECUTION" >> "$GITHUB_STEP_SUMMARY"
