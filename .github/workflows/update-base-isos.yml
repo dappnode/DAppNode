@@ -6,15 +6,17 @@ on:
     - cron: "0 8 * * *"
   workflow_dispatch:
 
-permissions:
-  contents: write
-  pull-requests: write
-
 jobs:
   update-ubuntu-iso:
     name: Check for Ubuntu ISO updates
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.TROPI_APP_ID }}
+          private-key: ${{ secrets.TROPI_APP_PRIVATE_KEY }}
+
       - name: Checkout Code
         uses: actions/checkout@v6
 
@@ -59,10 +61,21 @@ jobs:
           echo "current_iso=$CURRENT_ISO" >> "$GITHUB_OUTPUT"
           echo "latest_iso=$LATEST_ISO" >> "$GITHUB_OUTPUT"
 
+      - name: Close outdated Ubuntu ISO PR
+        if: steps.ubuntu.outputs.updated == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          EXISTING_PR=$(gh pr list --head auto/update-ubuntu-iso --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING_PR" ]; then
+            gh pr close "$EXISTING_PR" --comment "Superseded by a newer Ubuntu ISO version (${{ steps.ubuntu.outputs.latest_iso }})." --delete-branch
+          fi
+
       - name: Create Pull Request for Ubuntu ISO update
         if: steps.ubuntu.outputs.updated == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ steps.app-token.outputs.token }}
           commit-message: "Update Ubuntu base ISO to ${{ steps.ubuntu.outputs.latest_iso }}"
           branch: auto/update-ubuntu-iso
           delete-branch: true
@@ -80,6 +93,12 @@ jobs:
     name: Check for Debian ISO updates
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/create-github-app-token@v1
+        id: app-token
+        with:
+          app-id: ${{ vars.TROPI_APP_ID }}
+          private-key: ${{ secrets.TROPI_APP_PRIVATE_KEY }}
+
       - name: Checkout Code
         uses: actions/checkout@v6
 
@@ -139,10 +158,21 @@ jobs:
           echo "current_iso=$CURRENT_ISO" >> "$GITHUB_OUTPUT"
           echo "latest_iso=$LATEST_ISO" >> "$GITHUB_OUTPUT"
 
+      - name: Close outdated Debian ISO PR
+        if: steps.debian.outputs.updated == 'true'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          EXISTING_PR=$(gh pr list --head auto/update-debian-iso --state open --json number --jq '.[0].number')
+          if [ -n "$EXISTING_PR" ]; then
+            gh pr close "$EXISTING_PR" --comment "Superseded by a newer Debian ISO version (${{ steps.debian.outputs.latest_iso }})." --delete-branch
+          fi
+
       - name: Create Pull Request for Debian ISO update
         if: steps.debian.outputs.updated == 'true'
         uses: peter-evans/create-pull-request@v7
         with:
+          token: ${{ steps.app-token.outputs.token }}
           commit-message: "Update Debian base ISO to ${{ steps.debian.outputs.latest_iso }}"
           branch: auto/update-debian-iso
           delete-branch: true
