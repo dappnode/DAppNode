@@ -3,76 +3,63 @@
 # Purpose: Install prerequisites, pre-download core Docker images, and set up
 # first-boot installer for EC2 Image Builder.
 #
+# Env vars:
+#   PROFILE_URL — URL to dappnode_profile.sh with pinned versions (required)
+#
 # The installer still runs at first boot (via rc.local), but finds the heavy
-# Docker images already cached in /usr/src/dappnode/DNCORE/, making boot fast
-# and not dependent on network for bulk downloads.
+# Docker images already cached in /usr/src/dappnode/DNCORE/, making boot fast.
 
 set -euo pipefail
+
+: "${PROFILE_URL:?PROFILE_URL env var is required}"
 
 DAPPNODE_DIR="/usr/src/dappnode"
 DNCORE_DIR="$DAPPNODE_DIR/DNCORE"
 LOGS_DIR="$DAPPNODE_DIR/logs"
 LOG_FILE="$LOGS_DIR/ami_build.log"
 
+export DEBIAN_FRONTEND=noninteractive
+
 mkdir -p "$DAPPNODE_DIR/scripts" "$DNCORE_DIR" "$LOGS_DIR"
 touch "$LOG_FILE"
+exec > >(tee -a "$LOG_FILE") 2>&1
 
-log() { echo "[AMI-BUILD] $*" | tee -a "$LOG_FILE"; }
+log() { echo "[AMI-BUILD] $*"; }
 
 lsb_dist="$(. /etc/os-release && echo "$ID")"
-log "Detected OS: $lsb_dist"
+log "OS: $lsb_dist | Profile: $PROFILE_URL"
 
-# ─── Docker ───────────────────────────────────────────────────────────────────
-install_docker() {
+# ─── Phase 1: Prerequisites ──────────────────────────────────────────────────
+log "=== Phase 1: Prerequisites ==="
+
+apt-get update -y
+
+if ! docker -v >/dev/null 2>&1; then
     log "Installing Docker..."
-    apt-get update -y
     apt-get remove -y docker docker-engine docker.io containerd runc || true
-
     apt-get install -y ca-certificates curl lsb-release
     install -m 0755 -d /etc/apt/keyrings
     curl -fsSL "https://download.docker.com/linux/${lsb_dist}/gpg" -o /etc/apt/keyrings/docker.asc
     chmod a+r /etc/apt/keyrings/docker.asc
-
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/$lsb_dist $(lsb_release -cs) stable" \
         | tee /etc/apt/sources.list.d/docker.list >/dev/null
-
     apt-get update -y
     apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-    [ -f "/usr/bin/xz" ] || apt-get install -y xz-utils
-    log "Docker installed successfully"
-}
+fi
 
-# ─── Docker Compose alias (legacy compatibility) ──────────────────────────────
-install_compose_alias() {
-    cat >/usr/local/bin/docker-compose <<'EOL'
+cat >/usr/local/bin/docker-compose <<'EOL'
 #!/bin/bash
 docker compose "$@"
 EOL
-    chmod +x /usr/local/bin/docker-compose
-}
-
-# ─── Prerequisites ────────────────────────────────────────────────────────────
-log "=== Phase 1: Prerequisites ==="
-
-apt-get update -y | tee -a "$LOG_FILE"
-
-if ! docker -v >/dev/null 2>&1; then
-    install_docker 2>&1 | tee -a "$LOG_FILE"
-else
-    log "Docker already installed"
-fi
-
-install_compose_alias
+chmod +x /usr/local/bin/docker-compose
 
 modprobe wireguard 2>/dev/null || apt-get install -y wireguard-dkms || apt-get install -y wireguard-tools || true
 apt-get install -y lsof iptables xz-utils || true
 
-# ─── Pre-download core Docker images ─────────────────────────────────────────
+# ─── Phase 2: Pre-download core images ───────────────────────────────────────
 log "=== Phase 2: Pre-downloading core images ==="
 
-# Download latest released profile (contains version pins)
-wget -O "$DNCORE_DIR/.dappnode_profile" \
-    "https://github.com/dappnode/DAppNode/releases/latest/download/dappnode_profile.sh"
+wget -O "$DNCORE_DIR/.dappnode_profile" "$PROFILE_URL"
 
 # Source only the version variables (up to ISOBUILD marker)
 sed '/^\#\!ISOBUILD/q' "$DNCORE_DIR/.dappnode_profile" > /tmp/vars.sh
@@ -106,7 +93,7 @@ for comp in "${COMPONENTS[@]}"; do
         log "WARNING: Failed to download $comp manifest"
 done
 
-# Grab content hashes for execution/consensus clients
+# Content hashes for execution/consensus clients
 CONTENT_HASH_PKGS=(besu geth nethermind erigon prysm teku lighthouse lodestar nimbus)
 HASH_FILE="$DNCORE_DIR/packages-content-hash.csv"
 rm -f "$HASH_FILE"
@@ -114,16 +101,15 @@ for pkg in "${CONTENT_HASH_PKGS[@]}"; do
     HASH=$(wget -q -O- "https://github.com/dappnode/DAppNodePackage-${pkg}/releases/latest/download/content-hash" || true)
     if [ -n "$HASH" ]; then
         echo "${pkg}.dnp.dappnode.eth,${HASH}" >> "$HASH_FILE"
-        log "Got content hash for $pkg"
+        log "Got content hash: $pkg"
     fi
 done
 
 log "Pre-download complete:"
-ls -lh "$DNCORE_DIR/"
 du -sh "$DNCORE_DIR/"
 
-# ─── Set up first-boot installer ─────────────────────────────────────────────
-log "=== Phase 3: First-boot installer ==="
+# ─── Phase 3: First-boot installer ───────────────────────────────────────────
+log "=== Phase 3: First-boot setup ==="
 
 wget -O "$DAPPNODE_DIR/scripts/dappnode_install.sh" https://installer.dappnode.io
 chmod +x "$DAPPNODE_DIR/scripts/dappnode_install.sh"
@@ -136,4 +122,4 @@ RC
 chmod +x /etc/rc.local
 touch "$DAPPNODE_DIR/.firstboot"
 
-log "=== AMI build complete. First boot will find pre-cached images in DNCORE/ ==="
+log "=== AMI build complete ==="
