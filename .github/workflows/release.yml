@@ -238,10 +238,64 @@ jobs:
           mv artifacts/dappnode_profile/* .
       - name: Write release content
         run: |
-          SHASUM_DEBIAN_ATTENDED=$(cat SHASUM_DEBIAN_ATTENDED.txt)
-          SHASUM_DEBIAN_UNATTENDED=$(cat SHASUM_DEBIAN_UNATTENDED.txt)
-          SHASUM_UBUNTU_UNATTENDED=$(cat SHASUM_UBUNTU_UNATTENDED.txt)
-          echo -en "# Versions\n|  Package  | Version  |\n|---|---|\nbind.dnp.dappnode.eth|${{ needs.set-versions.outputs.bind }}|\n|ipfs.dnp.dappnode.eth|${{ needs.set-versions.outputs.ipfs }}|\n|vpn.dnp.dappnode.eth |${{ needs.set-versions.outputs.vpn }}|\n|dappmanager.dnp.dappnode.eth|${{ needs.set-versions.outputs.dappmanager }}|\n|wifi.dnp.dappnode.eth|${{ needs.set-versions.outputs.wifi }}|\n|https.dnp.dappnode.eth|${{ needs.set-versions.outputs.https }}|\n|wireguard.dnp.dappnode.eth|${{ needs.set-versions.outputs.wireguard }}|\n|notifications.dnp.dappnode.eth|${{ needs.set-versions.outputs.notifications }}|\n|premium.dnp.dappnode.eth|${{ needs.set-versions.outputs.premium }}|\n# Changes\nChanges implemented in release ${{ needs.set-versions.outputs.core }}\n# Debian Attended version\nInstall and customize DAppNode using the attended ISO: **DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64.iso**\n\n## ISO SHA-256 Checksum\n```\nshasum -a 256 DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64.iso\n$SHASUM_DEBIAN_ATTENDED\n```\n# Debian Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64-unattended.iso**\nDo a reboot right after the installation\n:warning: **Warning**: This ISO will install Dappnode automatically, deleting all existing partitions on the disk\n\n## ISO SHA-256 Checksum\n```\nshasum -a 256 DAppNode-${{ needs.set-versions.outputs.core }}-debian-bookworm-amd64-unattended.iso\n$SHASUM_DEBIAN_UNATTENDED\n```\n# Ubuntu Unattended version\nInstall DAppNode easily using the unattended ISO: **DAppNode-${{ needs.set-versions.outputs.core }}-ubuntu-bookworm-amd64-unattended.iso**\n\n## ISO SHA-256 Checksum\n```\nshasum -a 256 DAppNode-${{ needs.set-versions.outputs.core }}-ubuntu-bookworm-amd64-unattended.iso\n$SHASUM_UBUNTU_UNATTENDED\n```\nUploaded at https://ubuntu.iso.dappnode.io\n# DAppNode for Raspberry Pi 4 64bit\n[Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)\n\ndefault login data:\n - **__user__**: dappnode\n - **__password__**: dappnodepi" > CHANGELOG.md
+          DEBIAN_ATTENDED_ISO=$(basename "$(find images/ -type f -name '*-debian-*-attended.iso' -print -quit)")
+          DEBIAN_UNATTENDED_ISO=$(basename "$(find images/ -type f -name '*-debian-*-unattended.iso' -print -quit)")
+          UBUNTU_UNATTENDED_ISO=$(basename "$(awk '{print $2}' SHASUM_UBUNTU_UNATTENDED.txt)")
+          SHASUM_DEBIAN_ATTENDED=$(sed "s#images/##g" SHASUM_DEBIAN_ATTENDED.txt)
+          SHASUM_DEBIAN_UNATTENDED=$(sed "s#images/##g" SHASUM_DEBIAN_UNATTENDED.txt)
+          SHASUM_UBUNTU_UNATTENDED=$(sed "s#images/##g" SHASUM_UBUNTU_UNATTENDED.txt)
+          cat > CHANGELOG.md <<EOF
+          # Versions
+          |  Package  | Version  |
+          |---|---|
+          bind.dnp.dappnode.eth|${{ needs.set-versions.outputs.bind }}|
+          |ipfs.dnp.dappnode.eth|${{ needs.set-versions.outputs.ipfs }}|
+          |vpn.dnp.dappnode.eth |${{ needs.set-versions.outputs.vpn }}|
+          |dappmanager.dnp.dappnode.eth|${{ needs.set-versions.outputs.dappmanager }}|
+          |wifi.dnp.dappnode.eth|${{ needs.set-versions.outputs.wifi }}|
+          |https.dnp.dappnode.eth|${{ needs.set-versions.outputs.https }}|
+          |wireguard.dnp.dappnode.eth|${{ needs.set-versions.outputs.wireguard }}|
+          |notifications.dnp.dappnode.eth|${{ needs.set-versions.outputs.notifications }}|
+          |premium.dnp.dappnode.eth|${{ needs.set-versions.outputs.premium }}|
+
+          # Changes
+          Changes implemented in release ${{ needs.set-versions.outputs.core }}
+
+          # Debian Attended version
+          Install and customize DAppNode using the attended ISO: **$DEBIAN_ATTENDED_ISO**
+
+          ## ISO SHA-256 Checksum
+
+              shasum -a 256 $DEBIAN_ATTENDED_ISO
+              $SHASUM_DEBIAN_ATTENDED
+
+          # Debian Unattended version
+          Install DAppNode easily using the unattended ISO: **$DEBIAN_UNATTENDED_ISO**
+          Do a reboot right after the installation
+          :warning: **Warning**: This ISO will install Dappnode automatically, deleting all existing partitions on the disk
+
+          ## ISO SHA-256 Checksum
+
+              shasum -a 256 $DEBIAN_UNATTENDED_ISO
+              $SHASUM_DEBIAN_UNATTENDED
+
+          # Ubuntu Unattended version
+          Install DAppNode easily using the unattended ISO: **$UBUNTU_UNATTENDED_ISO**
+
+          ## ISO SHA-256 Checksum
+
+              shasum -a 256 $UBUNTU_UNATTENDED_ISO
+              $SHASUM_UBUNTU_UNATTENDED
+
+          Uploaded at https://ubuntu.iso.dappnode.io
+
+          # DAppNode for Raspberry Pi 4 64bit
+          [Instructions](https://github.com/dappnode/DAppNode/wiki/DAppNodeARM-Installation-Guide)
+
+          default login data:
+           - **__user__**: dappnode
+           - **__password__**: dappnodepi
+          EOF
           cat CHANGELOG.md
       - name: Print images directory
         run: |

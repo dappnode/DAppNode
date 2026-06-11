@@ -197,7 +197,7 @@ The release will contain:
 
 - Assets:
   - Scripts: `dappnode_access_credentials.sh`, `dappnode_install.sh`, `dappnode_uninstall.sh`, `dappnode_install_pre.sh`, `dappnode_profile.sh`
-  - ISOs: `DAppNode-vX-debian-bullseye-amd64-unattended.iso`, `DAppNode-vX-debian-bullseye-amd64-unattended.iso`
+  - ISOs: `Dappnode-vX-debian-VERSION-amd64-netinst-attended.iso`, `Dappnode-vX-debian-VERSION-amd64-netinst-unattended.iso`
 - Release body:
   - Table with core packages versions
   - Changes section
