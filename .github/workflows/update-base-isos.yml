@@ -30,11 +30,21 @@ jobs:
           CURRENT_SHA=$(grep -oP 'BASE_ISO_SHASUM="\K[^" ]*' "$SCRIPT")
           echo "Current Ubuntu ISO: $CURRENT_ISO"
 
-          # Fetch the SHA256SUMS file from Ubuntu releases
-          SHA256SUMS=$(curl -fsSL "https://releases.ubuntu.com/24.04/SHA256SUMS")
+          # Discover the newest Ubuntu LTS series, then fetch its checksums
+          LATEST_LTS_VERSION=$(curl -fsSL "https://changelogs.ubuntu.com/meta-release-lts" |
+            awk '/^Version:/ { version=$2 } END { print version }')
+          LATEST_LTS_SERIES=$(echo "$LATEST_LTS_VERSION" | cut -d. -f1,2)
+          if [[ ! "$LATEST_LTS_SERIES" =~ ^[0-9]+\.[0-9]+$ ]]; then
+            echo "Could not determine the latest Ubuntu LTS series"
+            exit 1
+          fi
 
-          # Find the latest live-server ISO entry
-          LATEST_LINE=$(echo "$SHA256SUMS" | grep 'live-server-amd64.iso' | head -1 || true)
+          SHA256SUMS=$(curl -fsSL "https://releases.ubuntu.com/${LATEST_LTS_SERIES}/SHA256SUMS")
+
+          # Find the highest live-server point release in that LTS series
+          LATEST_LINE=$(echo "$SHA256SUMS" |
+            grep -E "[[:space:]]\\*?ubuntu-${LATEST_LTS_SERIES//./\\.}(\\.[0-9]+)?-live-server-amd64\\.iso$" |
+            sort -V -k2 | tail -1 || true)
           if [ -z "$LATEST_LINE" ]; then
             echo "Could not find live-server ISO in SHA256SUMS"
             exit 1
@@ -46,7 +56,7 @@ jobs:
           LATEST_ISO=$(basename "$LATEST_ISO")
 
           if [[ ! "$LATEST_SHA" =~ ^[0-9a-f]{64}$ ]] ||
-            [[ ! "$LATEST_ISO" =~ ^ubuntu-24\.04(\.[0-9]+)?-live-server-amd64\.iso$ ]]; then
+            [[ ! "$LATEST_ISO" =~ ^ubuntu-[0-9]+\.[0-9]+(\.[0-9]+)?-live-server-amd64\.iso$ ]]; then
             echo "Ubuntu SHA256SUMS contains an invalid ISO entry"
             exit 1
           fi
@@ -125,8 +135,10 @@ jobs:
           # Fetch the SHA256SUMS file from Debian current release
           SHA256SUMS=$(curl -fsSL "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA256SUMS")
 
-          # Find the latest netinst ISO entry
-          LATEST_LINE=$(echo "$SHA256SUMS" | grep 'amd64-netinst.iso' | head -1 || true)
+          # Find the standard netinst ISO, excluding the Edu and Mac variants
+          LATEST_LINE=$(echo "$SHA256SUMS" |
+            grep -E '[[:space:]]\*?debian-[0-9]+\.[0-9]+\.[0-9]+-amd64-netinst\.iso$' |
+            sort -V -k2 | tail -1 || true)
           if [ -z "$LATEST_LINE" ]; then
             echo "Could not find netinst ISO in SHA256SUMS"
             exit 1
@@ -151,20 +163,9 @@ jobs:
             exit 0
           fi
 
-          # Extract version numbers for URL update
-          CURRENT_VERSION=$(echo "$CURRENT_ISO" | grep -oP 'debian-\K[0-9]+\.[0-9]+\.[0-9]+')
-          LATEST_VERSION=$(echo "$LATEST_ISO" | grep -oP 'debian-\K[0-9]+\.[0-9]+\.[0-9]+')
-          CURRENT_MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
-          LATEST_MAJOR=$(echo "$LATEST_VERSION" | cut -d. -f1)
-
           # Update the script
           sed -i "s|${CURRENT_ISO}|${LATEST_ISO}|g" "$SCRIPT"
           sed -i "s|${CURRENT_SHA}|${LATEST_SHA}|" "$SCRIPT"
-          if [ "$CURRENT_MAJOR" != "$LATEST_MAJOR" ]; then
-            # If major version changes, update any archive URL to current
-            sed -i "s|cdimage.debian.org/mirror/cdimage/archive/${CURRENT_VERSION}|cdimage.debian.org/debian-cd/current|" "$SCRIPT"
-          fi
-          sed -i "s|${CURRENT_VERSION}|${LATEST_VERSION}|g" "$SCRIPT"
 
           echo "updated=true" >> "$GITHUB_OUTPUT"
           echo "current_iso=$CURRENT_ISO" >> "$GITHUB_OUTPUT"
