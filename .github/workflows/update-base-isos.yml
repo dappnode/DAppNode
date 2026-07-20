@@ -25,18 +25,29 @@ jobs:
         run: |
           SCRIPT="iso/scripts/generate_dappnode_iso_ubuntu.sh"
 
-          # Get current version from script
+          # Get the current ISO and checksum from the script
           CURRENT_ISO=$(grep -oP 'BASE_ISO_NAME=\K.*' "$SCRIPT")
+          CURRENT_SHA=$(grep -oP 'BASE_ISO_SHASUM="\K[^" ]*' "$SCRIPT")
           echo "Current Ubuntu ISO: $CURRENT_ISO"
 
-          # Fetch the SHA256SUMS file from Ubuntu releases
-          SHA256SUMS=$(curl -fsSL "https://releases.ubuntu.com/24.04/SHA256SUMS")
+          # Discover the newest Ubuntu LTS series, then fetch its checksums
+          LATEST_LTS_VERSION=$(curl -fsSL "https://changelogs.ubuntu.com/meta-release-lts" |
+            awk '/^Version:/ { version=$2 } END { print version }')
+          LATEST_LTS_SERIES=$(echo "$LATEST_LTS_VERSION" | cut -d. -f1,2)
+          if [[ ! "$LATEST_LTS_SERIES" =~ ^[0-9]+\.[0-9]+$ ]]; then
+            echo "Could not determine the latest Ubuntu LTS series"
+            exit 1
+          fi
 
-          # Find the latest live-server ISO entry
-          LATEST_LINE=$(echo "$SHA256SUMS" | grep 'live-server-amd64.iso' | head -1)
+          SHA256SUMS=$(curl -fsSL "https://releases.ubuntu.com/${LATEST_LTS_SERIES}/SHA256SUMS")
+
+          # Find the highest live-server point release in that LTS series
+          LATEST_LINE=$(echo "$SHA256SUMS" |
+            grep -E "[[:space:]]\\*?ubuntu-${LATEST_LTS_SERIES//./\\.}(\\.[0-9]+)?-live-server-amd64\\.iso$" |
+            sort -V -k2 | tail -1 || true)
           if [ -z "$LATEST_LINE" ]; then
             echo "Could not find live-server ISO in SHA256SUMS"
-            exit 0
+            exit 1
           fi
 
           LATEST_SHA=$(echo "$LATEST_LINE" | awk '{print $1}')
@@ -44,16 +55,22 @@ jobs:
           # Remove any leading path (e.g., "./" or directory prefix)
           LATEST_ISO=$(basename "$LATEST_ISO")
 
+          if [[ ! "$LATEST_SHA" =~ ^[0-9a-f]{64}$ ]] ||
+            [[ ! "$LATEST_ISO" =~ ^ubuntu-[0-9]+\.[0-9]+(\.[0-9]+)?-live-server-amd64\.iso$ ]]; then
+            echo "Ubuntu SHA256SUMS contains an invalid ISO entry"
+            exit 1
+          fi
+
           echo "Latest Ubuntu ISO: $LATEST_ISO (sha256: $LATEST_SHA)"
 
-          if [ "$CURRENT_ISO" = "$LATEST_ISO" ]; then
+          # Nothing to do only when both the filename and checksum match
+          if [ "$CURRENT_ISO" = "$LATEST_ISO" ] && [ "$CURRENT_SHA" = "$LATEST_SHA" ]; then
             echo "Ubuntu ISO is already up to date."
             echo "updated=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
           # Update the script
-          CURRENT_SHA=$(grep -oP 'BASE_ISO_SHASUM="\K[^"]*' "$SCRIPT" | awk '{print $1}')
           sed -i "s|${CURRENT_ISO}|${LATEST_ISO}|g" "$SCRIPT"
           sed -i "s|${CURRENT_SHA}|${LATEST_SHA}|" "$SCRIPT"
 
@@ -61,24 +78,14 @@ jobs:
           echo "current_iso=$CURRENT_ISO" >> "$GITHUB_OUTPUT"
           echo "latest_iso=$LATEST_ISO" >> "$GITHUB_OUTPUT"
 
-      - name: Close outdated Ubuntu ISO PR
+      - name: Create or update Pull Request for Ubuntu ISO
         if: steps.ubuntu.outputs.updated == 'true'
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          EXISTING_PR=$(gh pr list --head auto/update-ubuntu-iso --state open --json number --jq '.[0].number')
-          if [ -n "$EXISTING_PR" ]; then
-            gh pr close "$EXISTING_PR" --comment "Superseded by a newer Ubuntu ISO version (${{ steps.ubuntu.outputs.latest_iso }})." --delete-branch
-          fi
-
-      - name: Create Pull Request for Ubuntu ISO update
-        if: steps.ubuntu.outputs.updated == 'true'
+        id: ubuntu-pr
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ steps.app-token.outputs.token }}
           commit-message: "Update Ubuntu base ISO to ${{ steps.ubuntu.outputs.latest_iso }}"
           branch: auto/update-ubuntu-iso
-          delete-branch: true
           title: "Update Ubuntu base ISO to ${{ steps.ubuntu.outputs.latest_iso }}"
           body: |
             Automated update of the Ubuntu base ISO.
@@ -88,6 +95,19 @@ jobs:
 
             This PR was created automatically by the `update-base-isos` workflow.
           labels: automated
+
+      - name: Sync PR title and body on subsequent runs
+        if: steps.ubuntu-pr.outputs.pull-request-operation == 'updated'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_NUMBER: ${{ steps.ubuntu-pr.outputs.pull-request-number }}
+          CURRENT_ISO: ${{ steps.ubuntu.outputs.current_iso }}
+          LATEST_ISO: ${{ steps.ubuntu.outputs.latest_iso }}
+        run: |
+          BODY=$(printf 'Automated update of the Ubuntu base ISO.\n\n- **Previous**: `%s`\n- **New**: `%s`\n\nThis PR was created automatically by the `update-base-isos` workflow.' "$CURRENT_ISO" "$LATEST_ISO")
+          gh pr edit "$PR_NUMBER" \
+            --title "Update Ubuntu base ISO to $LATEST_ISO" \
+            --body "$BODY"
 
   update-debian-iso:
     name: Check for Debian ISO updates
@@ -107,75 +127,58 @@ jobs:
         run: |
           SCRIPT="iso/scripts/generate_dappnode_iso_debian.sh"
 
-          # Get current version from script
+          # Get the current ISO and checksum from the script
           CURRENT_ISO=$(grep -oP 'BASE_ISO_NAME="\K[^"]*' "$SCRIPT")
+          CURRENT_SHA=$(grep -oP 'BASE_ISO_SHASUM="\K[^" ]*' "$SCRIPT")
           echo "Current Debian ISO: $CURRENT_ISO"
 
           # Fetch the SHA256SUMS file from Debian current release
           SHA256SUMS=$(curl -fsSL "https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/SHA256SUMS")
 
-          # Find the latest netinst ISO entry
-          LATEST_LINE=$(echo "$SHA256SUMS" | grep 'amd64-netinst.iso' | head -1)
+          # Find the standard netinst ISO, excluding the Edu and Mac variants
+          LATEST_LINE=$(echo "$SHA256SUMS" |
+            grep -E '[[:space:]]\*?debian-[0-9]+\.[0-9]+\.[0-9]+-amd64-netinst\.iso$' |
+            sort -V -k2 | tail -1 || true)
           if [ -z "$LATEST_LINE" ]; then
             echo "Could not find netinst ISO in SHA256SUMS"
-            exit 0
+            exit 1
           fi
 
           LATEST_SHA=$(echo "$LATEST_LINE" | awk '{print $1}')
           LATEST_ISO=$(echo "$LATEST_LINE" | awk '{print $2}' | sed 's|^\*||')
           LATEST_ISO=$(basename "$LATEST_ISO")
 
+          if [[ ! "$LATEST_SHA" =~ ^[0-9a-f]{64}$ ]] ||
+            [[ ! "$LATEST_ISO" =~ ^debian-[0-9]+\.[0-9]+\.[0-9]+-amd64-netinst\.iso$ ]]; then
+            echo "Debian SHA256SUMS contains an invalid ISO entry"
+            exit 1
+          fi
+
           echo "Latest Debian ISO: $LATEST_ISO (sha256: $LATEST_SHA)"
 
-          if [ "$CURRENT_ISO" = "$LATEST_ISO" ]; then
+          # Nothing to do only when both the filename and checksum match
+          if [ "$CURRENT_ISO" = "$LATEST_ISO" ] && [ "$CURRENT_SHA" = "$LATEST_SHA" ]; then
             echo "Debian ISO is already up to date."
             echo "updated=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          # Extract version numbers for URL update
-          CURRENT_VERSION=$(echo "$CURRENT_ISO" | grep -oP 'debian-\K[0-9]+\.[0-9]+\.[0-9]+')
-          LATEST_VERSION=$(echo "$LATEST_ISO" | grep -oP 'debian-\K[0-9]+\.[0-9]+\.[0-9]+')
-
           # Update the script
-          CURRENT_SHA=$(grep -oP 'BASE_ISO_SHASUM="\K[^ ]*' "$SCRIPT")
           sed -i "s|${CURRENT_ISO}|${LATEST_ISO}|g" "$SCRIPT"
           sed -i "s|${CURRENT_SHA}|${LATEST_SHA}|" "$SCRIPT"
-
-          # Update the source comment and URL if the major version changed
-          CURRENT_MAJOR=$(echo "$CURRENT_VERSION" | cut -d. -f1)
-          LATEST_MAJOR=$(echo "$LATEST_VERSION" | cut -d. -f1)
-
-          if [ "$CURRENT_MAJOR" != "$LATEST_MAJOR" ]; then
-            # If major version changes, update any archive URL to current
-            sed -i "s|cdimage.debian.org/mirror/cdimage/archive/${CURRENT_VERSION}|cdimage.debian.org/debian-cd/current|" "$SCRIPT"
-          fi
-
-          # Update version in the source comment
-          sed -i "s|${CURRENT_VERSION}|${LATEST_VERSION}|g" "$SCRIPT"
 
           echo "updated=true" >> "$GITHUB_OUTPUT"
           echo "current_iso=$CURRENT_ISO" >> "$GITHUB_OUTPUT"
           echo "latest_iso=$LATEST_ISO" >> "$GITHUB_OUTPUT"
 
-      - name: Close outdated Debian ISO PR
+      - name: Create or update Pull Request for Debian ISO
         if: steps.debian.outputs.updated == 'true'
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          EXISTING_PR=$(gh pr list --head auto/update-debian-iso --state open --json number --jq '.[0].number')
-          if [ -n "$EXISTING_PR" ]; then
-            gh pr close "$EXISTING_PR" --comment "Superseded by a newer Debian ISO version (${{ steps.debian.outputs.latest_iso }})." --delete-branch
-          fi
-
-      - name: Create Pull Request for Debian ISO update
-        if: steps.debian.outputs.updated == 'true'
+        id: debian-pr
         uses: peter-evans/create-pull-request@v7
         with:
           token: ${{ steps.app-token.outputs.token }}
           commit-message: "Update Debian base ISO to ${{ steps.debian.outputs.latest_iso }}"
           branch: auto/update-debian-iso
-          delete-branch: true
           title: "Update Debian base ISO to ${{ steps.debian.outputs.latest_iso }}"
           body: |
             Automated update of the Debian base ISO.
@@ -185,3 +188,16 @@ jobs:
 
             This PR was created automatically by the `update-base-isos` workflow.
           labels: automated
+
+      - name: Sync PR title and body on subsequent runs
+        if: steps.debian-pr.outputs.pull-request-operation == 'updated'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_NUMBER: ${{ steps.debian-pr.outputs.pull-request-number }}
+          CURRENT_ISO: ${{ steps.debian.outputs.current_iso }}
+          LATEST_ISO: ${{ steps.debian.outputs.latest_iso }}
+        run: |
+          BODY=$(printf 'Automated update of the Debian base ISO.\n\n- **Previous**: `%s`\n- **New**: `%s`\n\nThis PR was created automatically by the `update-base-isos` workflow.' "$CURRENT_ISO" "$LATEST_ISO")
+          gh pr edit "$PR_NUMBER" \
+            --title "Update Debian base ISO to $LATEST_ISO" \
+            --body "$BODY"
