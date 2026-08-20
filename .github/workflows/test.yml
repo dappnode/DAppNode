@@ -30,24 +30,3 @@ jobs:
       - name: Uninstall DAppNode
         run: |
           sudo /bin/bash ./scripts/dappnode_uninstall.sh y
-
-  iso:
-    name: test Ubuntu ISO
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      # Create Ubuntu ISO
-      - name: create Ubuntu ISO
-        run: |
-          export BASE_OS=ubuntu
-          export UNATTENDED=true
-          docker compose up --build
-          ls images/
-
-      # Verify Ubuntu ISO creation
-      - name: verify Ubuntu ISO
-        run: |
-          ls -lrt images/Dappnode-ubuntu-*.iso

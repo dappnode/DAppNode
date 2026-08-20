@@ -1,0 +1,52 @@
+name: Ubuntu ISO end-to-end
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: ubuntu-iso-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install:
+    name: Build and install Ubuntu ISO
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build Ubuntu unattended ISO
+        run: |
+          export BASE_OS=ubuntu
+          export UNATTENDED=true
+          docker compose up --build
+          ls -lrt images/Dappnode-ubuntu-*.iso
+
+      - name: Install QEMU test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils xorriso sshpass
+          if [ -e /dev/kvm ]; then
+            sudo chmod a+rw /dev/kvm
+          fi
+
+      - name: Install Ubuntu ISO end to end
+        run: |
+          ubuntu_iso=$(find images -maxdepth 1 -type f -name 'Dappnode-ubuntu-*-live-server-amd64.iso' -print -quit)
+          test -n "${ubuntu_iso}"
+          bash test/e2e_ubuntu_iso.sh "${ubuntu_iso}"
+
+      - name: Upload installation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-installation-e2e-logs
+          path: test-output/ubuntu-e2e/
+          if-no-files-found: ignore
+          retention-days: 7
