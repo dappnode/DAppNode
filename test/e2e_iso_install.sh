@@ -84,15 +84,53 @@ run_e2e_iso_install() {
     }
     trap cleanup_e2e_vm EXIT INT TERM
 
+    monitor_command() {
+        local socket=$1
+        local command=$2
+        [ -S "${socket}" ] || return 0
+        printf '%s\n' "${command}" | \
+            socat - "UNIX-CONNECT:${socket}" >/dev/null 2>&1 || true
+    }
+
+    capture_vt_screens() {
+        # d-i draws its UI on VT1 and streams its syslog to VT4, so a failed
+        # installer step is only diagnosable if every console is captured.
+        local socket=$1
+        local prefix=$2
+        local vt
+        [ -S "${socket}" ] || return 0
+        for vt in 1 2 3 4; do
+            monitor_command "${socket}" "sendkey alt-f${vt}"
+            sleep 1
+            monitor_command "${socket}" "screendump ${prefix}-vt${vt}.ppm"
+        done
+        monitor_command "${socket}" "sendkey alt-f1"
+    }
+
+    dump_guest_diagnostics() {
+        # SSH is already up whenever a first-boot wait times out, and the
+        # installer logs there explain far more than the serial console can.
+        declare -F ssh_guest >/dev/null 2>&1 || return 0
+        echo "[INFO] Collecting guest diagnostics over SSH:"
+        ssh_guest "
+            echo '--- .firstboot ---'; ls -la /usr/src/dappnode/.firstboot 2>&1
+            echo '--- dappnode processes ---'; ps aux | grep -E '[d]appnode_(test_)?install' 2>&1
+            echo '--- docker ps ---'; docker ps --format '{{.Names}}\t{{.Status}}' 2>&1
+            echo '--- docker images ---'; docker images 2>&1
+            echo '--- connectivity ---'
+            ping -c 1 -W 5 google.com 2>&1 | tail -3
+            curl -sS -o /dev/null -w 'curl https: %{http_code}\n' --max-time 10 https://www.google.com/generate_204 2>&1
+            echo '--- iso_install.log ---'; tail -n 60 /usr/src/dappnode/logs/iso_install.log 2>&1
+            echo '--- dappnode_install.log ---'; tail -n 80 /usr/src/dappnode/logs/dappnode_install.log 2>&1
+        " 2>&1 | sed 's/^/    /' || echo "    [WARN] Could not collect guest diagnostics"
+    }
+
     show_failure_logs() {
-        if [ -S "${installer_monitor_socket}" ]; then
-            printf 'screendump %s\n' "${installer_screenshot}" | \
-                socat - "UNIX-CONNECT:${installer_monitor_socket}" >/dev/null 2>&1 || true
-        fi
-        if [ -S "${first_boot_monitor_socket}" ]; then
-            printf 'screendump %s\n' "${first_boot_screenshot}" | \
-                socat - "UNIX-CONNECT:${first_boot_monitor_socket}" >/dev/null 2>&1 || true
-        fi
+        capture_vt_screens "${installer_monitor_socket}" "${output_dir}/installer-screen"
+        capture_vt_screens "${first_boot_monitor_socket}" "${output_dir}/first-boot-screen"
+        monitor_command "${installer_monitor_socket}" "screendump ${installer_screenshot}"
+        monitor_command "${first_boot_monitor_socket}" "screendump ${first_boot_screenshot}"
+        dump_guest_diagnostics
         echo "[INFO] Last installer serial output:"
         tail -n 200 "${installer_serial_log}" 2>/dev/null || true
         echo "[INFO] Last first-boot serial output:"
