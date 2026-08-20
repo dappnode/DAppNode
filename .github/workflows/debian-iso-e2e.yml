@@ -1,0 +1,55 @@
+name: Debian ISO end-to-end
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: debian-iso-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install:
+    name: Build and install Debian ISO
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Verify Debian release alignment
+        run: bash iso/scripts/check_debian_release_alignment.sh
+
+      - name: Build Debian unattended ISO
+        run: |
+          export BASE_OS=debian
+          export UNATTENDED=true
+          docker compose up --build
+          ls -lrt images/Dappnode-debian-*.iso
+
+      - name: Install QEMU test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils xorriso sshpass
+          if [ -e /dev/kvm ]; then
+            sudo chmod a+rw /dev/kvm
+          fi
+
+      - name: Install Debian ISO end to end
+        run: |
+          debian_iso=$(find images -maxdepth 1 -type f -name 'Dappnode-debian-*-amd64-netinst.iso' -print -quit)
+          test -n "${debian_iso}"
+          bash test/e2e_debian_iso.sh "${debian_iso}"
+
+      - name: Upload installation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-installation-e2e-logs
+          path: test-output/debian-e2e/
+          if-no-files-found: ignore
+          retention-days: 7

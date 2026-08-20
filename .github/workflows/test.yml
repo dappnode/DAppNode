@@ -32,28 +32,12 @@ jobs:
           sudo /bin/bash ./scripts/dappnode_uninstall.sh y
 
   iso:
-    name: test Debian and Ubuntu ISO
+    name: test Ubuntu ISO
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-
-      - name: Verify Debian release alignment
-        run: bash iso/scripts/check_debian_release_alignment.sh
-
-      # Create Debian ISO
-      - name: create Debian ISO
-        run: |
-          export BASE_OS=debian
-          export UNATTENDED=true
-          docker compose up --build
-          ls images/
-
-      # Verify Debian ISO creation
-      - name: verify Debian ISO
-        run: |
-          ls -lrt images/Dappnode-debian-*.iso
 
       # Create Ubuntu ISO
       - name: create Ubuntu ISO
