@@ -1,6 +1,6 @@
 #!/bin/bash
-# Shared QEMU harness that installs a DAppNode ISO onto a virtual disk.
-# It boots the result and validates the OS, packages, Docker, and DAppNode files.
+# Boots an unattended DAppNode ISO as USB media and installs it onto a virtual disk.
+# It completes the first-boot flow, reboots, and validates the running DAppNode system.
 set -Eeuo pipefail
 
 run_e2e_iso_install() {
@@ -16,7 +16,7 @@ run_e2e_iso_install() {
         return 1
     fi
 
-    local required_commands=(qemu-img qemu-system-x86_64 xorriso ssh sshpass)
+    local required_commands=(qemu-img qemu-system-x86_64 ssh sshpass socat)
     local command_name
     for command_name in "${required_commands[@]}"; do
         if ! command -v "${command_name}" >/dev/null 2>&1; then
@@ -32,12 +32,16 @@ run_e2e_iso_install() {
     temp_root=${RUNNER_TEMP:-/tmp}
     vm_dir=$(mktemp -d "${temp_root%/}/dappnode-${E2E_DISTRO}-e2e.XXXXXX")
     local disk_path="${vm_dir}/${E2E_DISTRO}.qcow2"
-    local kernel_path="${vm_dir}/vmlinuz"
-    local initrd_path="${vm_dir}/initrd"
     local installer_serial_log="${output_dir}/installer-serial.log"
     local installer_process_log="${output_dir}/installer-qemu.log"
-    local system_serial_log="${output_dir}/installed-system-serial.log"
-    local system_process_log="${output_dir}/installed-system-qemu.log"
+    local installer_monitor_socket="${vm_dir}/installer-monitor.sock"
+    local installer_screenshot="${output_dir}/installer-screen.ppm"
+    local first_boot_monitor_socket="${vm_dir}/first-boot-monitor.sock"
+    local first_boot_screenshot="${output_dir}/first-boot-screen.ppm"
+    local first_boot_serial_log="${output_dir}/first-boot-serial.log"
+    local first_boot_process_log="${output_dir}/first-boot-qemu.log"
+    local system_serial_log="${output_dir}/final-system-serial.log"
+    local system_process_log="${output_dir}/final-system-qemu.log"
     local installed_system_report="${output_dir}/installed-system-report.log"
 
     local vm_disk_size=${E2E_VM_DISK_SIZE:-32G}
@@ -45,9 +49,18 @@ run_e2e_iso_install() {
     local vm_cpus=${E2E_VM_CPUS:-2}
     local install_timeout_seconds=${E2E_INSTALL_TIMEOUT_SECONDS:-3600}
     local boot_timeout_seconds=${E2E_BOOT_TIMEOUT_SECONDS:-600}
+    local first_boot_timeout_seconds=${E2E_FIRST_BOOT_TIMEOUT_SECONDS:-1800}
+    local postinstall_timeout_seconds=${E2E_POSTINSTALL_TIMEOUT_SECONDS:-1200}
     local ssh_port=${E2E_SSH_PORT:-2222}
     local ssh_password=${E2E_SSH_PASSWORD:-dappnode.s0}
+    local boot_mode=${E2E_BOOT_MODE:-usb}
+    local firmware=${E2E_FIRMWARE:-uefi}
     qemu_pid=""
+
+    if [ "${boot_mode}" != "usb" ] || [ "${firmware}" != "uefi" ]; then
+        echo "[ERROR] This unattended ISO test requires E2E_BOOT_MODE=usb and E2E_FIRMWARE=uefi"
+        return 1
+    fi
 
     cleanup_e2e_vm() {
         local exit_code=$?
@@ -72,12 +85,23 @@ run_e2e_iso_install() {
     trap cleanup_e2e_vm EXIT INT TERM
 
     show_failure_logs() {
+        if [ -S "${installer_monitor_socket}" ]; then
+            printf 'screendump %s\n' "${installer_screenshot}" | \
+                socat - "UNIX-CONNECT:${installer_monitor_socket}" >/dev/null 2>&1 || true
+        fi
+        if [ -S "${first_boot_monitor_socket}" ]; then
+            printf 'screendump %s\n' "${first_boot_screenshot}" | \
+                socat - "UNIX-CONNECT:${first_boot_monitor_socket}" >/dev/null 2>&1 || true
+        fi
         echo "[INFO] Last installer serial output:"
         tail -n 200 "${installer_serial_log}" 2>/dev/null || true
-        echo "[INFO] Last installed-system serial output:"
+        echo "[INFO] Last first-boot serial output:"
+        tail -n 200 "${first_boot_serial_log}" 2>/dev/null || true
+        echo "[INFO] Last final-system serial output:"
         tail -n 200 "${system_serial_log}" 2>/dev/null || true
         echo "[INFO] QEMU process output:"
         tail -n 100 "${installer_process_log}" 2>/dev/null || true
+        tail -n 100 "${first_boot_process_log}" 2>/dev/null || true
         tail -n 100 "${system_process_log}" 2>/dev/null || true
     }
 
@@ -106,26 +130,57 @@ run_e2e_iso_install() {
         echo "[WARN] /dev/kvm is unavailable; using slower TCG emulation"
     fi
 
-    echo "[INFO] Extracting the ${E2E_DISTRO} installer kernel and initrd from ${iso_path}"
-    xorriso -osirrox on -indev "${iso_path}" -extract "${E2E_KERNEL_ISO_PATH}" "${kernel_path}" >/dev/null 2>&1
-    xorriso -osirrox on -indev "${iso_path}" -extract "${E2E_INITRD_ISO_PATH}" "${initrd_path}" >/dev/null 2>&1
+    local ovmf_code=""
+    local ovmf_vars=""
+    local ovmf_candidate
+    for ovmf_candidate in /usr/share/OVMF/OVMF_CODE_4M.fd /usr/share/OVMF/OVMF_CODE.fd; do
+        if [ -f "${ovmf_candidate}" ]; then
+            ovmf_code=${ovmf_candidate}
+            break
+        fi
+    done
+    for ovmf_candidate in /usr/share/OVMF/OVMF_VARS_4M.fd /usr/share/OVMF/OVMF_VARS.fd; do
+        if [ -f "${ovmf_candidate}" ]; then
+            ovmf_vars=${ovmf_candidate}
+            break
+        fi
+    done
+    if [ -z "${ovmf_code}" ] || [ -z "${ovmf_vars}" ]; then
+        echo "[ERROR] UEFI firmware files were not found; install the ovmf package"
+        return 1
+    fi
+    local writable_ovmf_vars="${vm_dir}/OVMF_VARS.fd"
+    cp "${ovmf_vars}" "${writable_ovmf_vars}"
+    local firmware_args=(
+        -drive "if=pflash,format=raw,readonly=on,file=${ovmf_code}"
+        -drive "if=pflash,format=raw,file=${writable_ovmf_vars}"
+    )
 
     echo "[INFO] Creating ${vm_disk_size} virtual installation disk"
     qemu-img create -q -f qcow2 "${disk_path}" "${vm_disk_size}"
 
-    echo "[INFO] Booting the unattended ${E2E_DISTRO} installer"
+    local target_disk_install_args=(
+        -drive "file=${disk_path},format=qcow2,if=none,id=target_disk"
+        -device "virtio-blk-pci,drive=target_disk,bootindex=2"
+    )
+    local installer_media_args=(
+        -device "qemu-xhci,id=installer_xhci"
+        -drive "file=${iso_path},format=raw,if=none,readonly=on,id=installer_media"
+        -device "usb-storage,drive=installer_media,bootindex=1"
+    )
+
+    echo "[INFO] Booting the unattended ${E2E_DISTRO} ISO as ${firmware}/${boot_mode}"
     qemu-system-x86_64 \
         "${qemu_acceleration[@]}" \
+        "${firmware_args[@]}" \
         -m "${vm_memory_mb}" \
         -smp "${vm_cpus}" \
-        -drive "file=${disk_path},format=qcow2,if=virtio" \
-        -cdrom "${iso_path}" \
-        -kernel "${kernel_path}" \
-        -initrd "${initrd_path}" \
-        -append "${E2E_KERNEL_ARGS}" \
+        "${target_disk_install_args[@]}" \
+        "${installer_media_args[@]}" \
+        -boot menu=off \
         -nic user,model=virtio-net-pci \
         -display none \
-        -monitor none \
+        -monitor "unix:${installer_monitor_socket},server=on,wait=off" \
         -serial "file:${installer_serial_log}" \
         -no-reboot \
         >"${installer_process_log}" 2>&1 &
@@ -137,18 +192,21 @@ run_e2e_iso_install() {
     fi
     qemu_pid=""
 
-    echo "[INFO] Installer completed; booting the installed virtual disk"
+    echo "[INFO] Installer completed and virtual USB removed; starting the first disk boot"
     qemu-system-x86_64 \
         "${qemu_acceleration[@]}" \
+        "${firmware_args[@]}" \
         -m "${vm_memory_mb}" \
         -smp "${vm_cpus}" \
-        -drive "file=${disk_path},format=qcow2,if=virtio" \
-        -boot order=c \
+        -drive "file=${disk_path},format=qcow2,if=none,id=target_disk" \
+        -device "virtio-blk-pci,drive=target_disk,bootindex=1" \
+        -boot menu=off \
         -nic "user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:${ssh_port}-:22" \
         -display none \
-        -monitor none \
-        -serial "file:${system_serial_log}" \
-        >"${system_process_log}" 2>&1 &
+        -monitor "unix:${first_boot_monitor_socket},server=on,wait=off" \
+        -serial "file:${first_boot_serial_log}" \
+        -no-reboot \
+        >"${first_boot_process_log}" 2>&1 &
     qemu_pid=$!
 
     local ssh_options=(
@@ -164,23 +222,108 @@ run_e2e_iso_install() {
         SSHPASS="${ssh_password}" sshpass -e ssh "${ssh_options[@]}" dappnode@127.0.0.1 "$@"
     }
 
-    echo "[INFO] Waiting for SSH on the installed system"
-    local boot_deadline=$((SECONDS + boot_timeout_seconds))
-    while ! ssh_guest true >/dev/null 2>&1; do
-        if ! kill -0 "${qemu_pid}" 2>/dev/null; then
-            echo "[ERROR] Installed-system VM exited before SSH became available"
-            show_failure_logs
-            return 1
-        fi
-        if [ "${SECONDS}" -ge "${boot_deadline}" ]; then
-            echo "[ERROR] Timed out waiting for SSH on the installed system"
-            show_failure_logs
-            return 1
-        fi
-        sleep 10
-    done
+    wait_for_ssh() {
+        local description=$1
+        local timeout_seconds=$2
+        local deadline=$((SECONDS + timeout_seconds))
 
-    echo "[INFO] Validating the installed ${E2E_DISTRO} and DAppNode system"
+        echo "[INFO] Waiting for SSH on ${description}"
+        while ! ssh_guest true >/dev/null 2>&1; do
+            if ! kill -0 "${qemu_pid}" 2>/dev/null; then
+                echo "[ERROR] ${description} VM exited before SSH became available"
+                return 1
+            fi
+            if [ "${SECONDS}" -ge "${deadline}" ]; then
+                echo "[ERROR] Timed out waiting for SSH on ${description}"
+                return 1
+            fi
+            sleep 10
+        done
+    }
+
+    wait_for_guest_command() {
+        local timeout_seconds=$1
+        local description=$2
+        local guest_command=$3
+        local deadline=$((SECONDS + timeout_seconds))
+
+        echo "[INFO] Waiting for ${description}"
+        while ! ssh_guest "${guest_command}" >/dev/null 2>&1; do
+            if ! kill -0 "${qemu_pid}" 2>/dev/null; then
+                echo "[ERROR] VM exited while waiting for ${description}"
+                return 1
+            fi
+            if [ "${SECONDS}" -ge "${deadline}" ]; then
+                echo "[ERROR] Timed out waiting for ${description}"
+                return 1
+            fi
+            sleep 10
+        done
+    }
+
+    if ! wait_for_ssh "the first installed-system boot" "${boot_timeout_seconds}"; then
+        show_failure_logs
+        return 1
+    fi
+
+    if ! wait_for_guest_command \
+        "${first_boot_timeout_seconds}" \
+        "DAppNode's first-boot installation test" \
+        "test ! -e /usr/src/dappnode/.firstboot"; then
+        show_failure_logs
+        return 1
+    fi
+
+    echo "[INFO] Acknowledging the completed first-boot test"
+    printf 'sendkey ret\n' | \
+        socat - "UNIX-CONNECT:${first_boot_monitor_socket}" >/dev/null
+
+    if ! wait_for_guest_command \
+        120 \
+        "the first-boot installer process to exit" \
+        "! pgrep -f '[d]appnode_test_install.sh|[/]usr/src/dappnode/scripts/dappnode_install.sh' >/dev/null"; then
+        show_failure_logs
+        return 1
+    fi
+
+    echo "[INFO] Rebooting after the completed first-boot test"
+    ssh_guest "sudo -S -p '' systemctl reboot" <<<"${ssh_password}" >/dev/null 2>&1 || true
+    if ! wait_for_process_exit "${qemu_pid}" 120 "the first-boot VM to request its reboot"; then
+        show_failure_logs
+        return 1
+    fi
+    qemu_pid=""
+
+    echo "[INFO] Starting the final installed system without the virtual USB"
+    qemu-system-x86_64 \
+        "${qemu_acceleration[@]}" \
+        "${firmware_args[@]}" \
+        -m "${vm_memory_mb}" \
+        -smp "${vm_cpus}" \
+        -drive "file=${disk_path},format=qcow2,if=none,id=target_disk" \
+        -device "virtio-blk-pci,drive=target_disk,bootindex=1" \
+        -boot menu=off \
+        -nic "user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:${ssh_port}-:22" \
+        -display none \
+        -monitor none \
+        -serial "file:${system_serial_log}" \
+        >"${system_process_log}" 2>&1 &
+    qemu_pid=$!
+
+    if ! wait_for_ssh "the final installed system" "${boot_timeout_seconds}"; then
+        show_failure_logs
+        return 1
+    fi
+
+    if ! wait_for_guest_command \
+        "${postinstall_timeout_seconds}" \
+        "DAppNode core services to start" \
+        "test ! -e /usr/src/dappnode/.firstboot && ! grep -Fq '/usr/src/dappnode/scripts/dappnode_install.sh' /etc/rc.local && docker ps --format '{{.Names}}' | grep -Fxq 'DAppNodeCore-dappmanager.dnp.dappnode.eth'"; then
+        show_failure_logs
+        return 1
+    fi
+
+    echo "[INFO] Validating the completed unattended ${E2E_DISTRO} USB installation"
     ssh_guest bash -s -- \
         "${E2E_DISTRO}" \
         "${E2E_EXPECTED_ID}" \
@@ -270,13 +413,17 @@ esac
 
 test -x /usr/src/dappnode/scripts/dappnode_install.sh
 test -s /usr/src/dappnode/logs/iso_install.log
+test -s /usr/src/dappnode/logs/dappnode_install.log
+test ! -e /usr/src/dappnode/.firstboot
+! grep -Fq '/usr/src/dappnode/scripts/dappnode_install.sh' /etc/rc.local
 docker --version
 docker compose version
 docker info >/dev/null
+docker ps --format '{{.Names}}' | grep -Fxq 'DAppNodeCore-dappmanager.dnp.dappnode.eth'
 
 echo "Installed OS: ${PRETTY_NAME}"
-echo "[INFO] End-to-end ${expected_distro} ISO installation checks passed"
+echo "[INFO] End-to-end unattended ${expected_distro} UEFI USB installation checks passed"
 REMOTE_CHECKS
 
-    echo "[INFO] Complete ${E2E_DISTRO} ISO installation succeeded"
+    echo "[INFO] Complete unattended ${E2E_DISTRO} UEFI USB installation succeeded"
 }

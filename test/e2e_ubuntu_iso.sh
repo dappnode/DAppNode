@@ -1,6 +1,6 @@
 #!/bin/bash
-# Configures the shared ISO installation harness for Ubuntu's autoinstall layout.
-# The Ubuntu end-to-end workflow calls this wrapper with its unattended ISO.
+# Runs the generated unattended Ubuntu ISO through the complete UEFI USB test.
+# It adds Ubuntu release and repository checks to the shared harness.
 set -Eeuo pipefail
 
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
@@ -17,9 +17,6 @@ E2E_DISTRO="ubuntu"
 E2E_EXPECTED_ID="ubuntu"
 E2E_EXPECTED_VERSION="${BASH_REMATCH[1]}"
 E2E_EXPECTED_CODENAME="AUTO"
-E2E_KERNEL_ISO_PATH="/casper/vmlinuz"
-E2E_INITRD_ISO_PATH="/casper/initrd"
-E2E_KERNEL_ARGS="autoinstall console=ttyS0,115200n8 --- quiet"
 
 source "${SCRIPT_DIR}/e2e_iso_install.sh"
 run_e2e_iso_install "$@"

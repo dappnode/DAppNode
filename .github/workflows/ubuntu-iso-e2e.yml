@@ -1,11 +1,10 @@
-name: Ubuntu ISO end-to-end
+# Builds the unattended Ubuntu ISO and installs it from UEFI USB media in QEMU.
+# It completes the required reboots and verifies the installed DAppNode system.
+name: Ubuntu unattended USB ISO end-to-end
 
 on:
   workflow_dispatch:
-  push:
-    branches-ignore: [master]
   pull_request:
-    branches: [master]
 
 permissions:
   contents: read
@@ -16,9 +15,9 @@ concurrency:
 
 jobs:
   install:
-    name: Build and install Ubuntu ISO
+    name: Install Ubuntu unattended ISO via UEFI USB
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
 
     steps:
       - name: Checkout
@@ -34,12 +33,15 @@ jobs:
       - name: Install QEMU test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils xorriso sshpass
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf socat sshpass
           if [ -e /dev/kvm ]; then
             sudo chmod a+rw /dev/kvm
           fi
 
-      - name: Install Ubuntu ISO end to end
+      - name: Complete Ubuntu unattended UEFI USB installation
+        env:
+          E2E_BOOT_MODE: usb
+          E2E_FIRMWARE: uefi
         run: |
           ubuntu_iso=$(find images -maxdepth 1 -type f -name 'Dappnode-ubuntu-*-live-server-amd64.iso' -print -quit)
           test -n "${ubuntu_iso}"
@@ -49,7 +51,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: ubuntu-installation-e2e-logs
+          name: ubuntu-unattended-usb-installation-logs
           path: test-output/ubuntu-e2e/
           if-no-files-found: ignore
           retention-days: 7
