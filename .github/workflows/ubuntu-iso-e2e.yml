@@ -38,6 +38,9 @@ jobs:
             sudo chmod a+rw /dev/kvm
           fi
 
+      - name: Enable ICMP for QEMU user networking
+        run: sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
+
       - name: Complete Ubuntu unattended UEFI USB installation
         env:
           E2E_BOOT_MODE: usb
