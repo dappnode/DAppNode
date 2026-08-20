@@ -39,6 +39,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      - name: Verify Debian release alignment
+        run: bash iso/scripts/check_debian_release_alignment.sh
+
       # Create Debian ISO
       - name: create Debian ISO
         run: |
