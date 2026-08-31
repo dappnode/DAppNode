@@ -1198,7 +1198,9 @@ main() {
         # Run test in interactive terminal (first boot only)
         if [ -f "${DAPPNODE_DIR}/.firstboot" ]; then
             apt-get update
-            apt-get install -y kbd
+            # A package upgrade may leave console-setup pending configuration.
+            # Never let debconf open a hidden prompt while rc.local owns tty1.
+            DEBIAN_FRONTEND=noninteractive apt-get install -y kbd
             openvt -s -w -- sudo -u root "${DAPPNODE_DIR}/scripts/dappnode_test_install.sh"
             exit 0
         fi
