@@ -1,0 +1,60 @@
+# Builds the unattended Ubuntu ISO and installs it from UEFI USB media in QEMU.
+# It completes the required reboots and verifies the installed DAppNode system.
+name: Ubuntu unattended USB ISO end-to-end
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ubuntu-iso-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install:
+    name: Install Ubuntu unattended ISO via UEFI USB
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build Ubuntu unattended ISO
+        run: |
+          export BASE_OS=ubuntu
+          export UNATTENDED=true
+          docker compose up --build
+          ls -lrt images/Dappnode-ubuntu-*.iso
+
+      - name: Install QEMU test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf socat sshpass
+          if [ -e /dev/kvm ]; then
+            sudo chmod a+rw /dev/kvm
+          fi
+
+      - name: Enable ICMP for QEMU user networking
+        run: sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
+
+      - name: Complete Ubuntu unattended UEFI USB installation
+        env:
+          E2E_BOOT_MODE: usb
+          E2E_FIRMWARE: uefi
+        run: |
+          ubuntu_iso=$(find images -maxdepth 1 -type f -name 'Dappnode-ubuntu-*-live-server-amd64.iso' -print -quit)
+          test -n "${ubuntu_iso}"
+          bash test/e2e_ubuntu_iso.sh "${ubuntu_iso}"
+
+      - name: Upload installation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-unattended-usb-installation-logs
+          path: test-output/ubuntu-e2e/
+          if-no-files-found: ignore
+          retention-days: 7

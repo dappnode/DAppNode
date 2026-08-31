@@ -4,6 +4,7 @@ set -e
 SCRIPTS_DIR=$(dirname "${BASH_SOURCE[0]}")
 
 source ${SCRIPTS_DIR}/common_iso_generation.sh
+source ${SCRIPTS_DIR}/../debian_release.conf
 
 BASE_ISO_NAME="debian-13.5.0-amd64-netinst.iso"
 BASE_ISO_VERSION="${BASE_ISO_NAME#debian-}"
@@ -14,6 +15,9 @@ BASE_ISO_SHASUM="95838884f5ea6c82421dfe6baaa5a639dbbe6756c1e380f9fe7a7cb0c1949d2
 
 DAPPNODE_ISO_NAME="${DAPPNODE_ISO_PREFIX}${BASE_ISO_NAME}"
 DAPPNODE_ISO_PATH="/images/${DAPPNODE_ISO_NAME}"
+
+# Fail before downloading or building if the ISO and repositories target different releases.
+bash "${SCRIPTS_DIR}/check_debian_release_alignment.sh"
 
 customize_debian_preseed() {
     local iso_build_path=$1
@@ -49,6 +53,13 @@ customize_debian_preseed() {
         echo "[ERROR] Could not copy preseed file"
         exit 1
     }
+
+    # Keep package repositories aligned with the Debian release used by the ISO.
+    sed -i "s/@DEBIAN_SUITE@/${DEBIAN_SUITE}/g" "${tmp_initrd}/preseed.cfg"
+    if grep -q "@DEBIAN_SUITE@" "${tmp_initrd}/preseed.cfg"; then
+        echo "[ERROR] Could not render the Debian suite in the preseed file"
+        exit 1
+    fi
 
     # Recreate (and recompress) the initrd
     (cd "${tmp_initrd}" && find . -print0 | cpio -0 -ov -H newc | gzip >"${install_dir}/initrd.gz") || {

@@ -1,0 +1,63 @@
+# Builds the unattended Debian ISO and installs it from UEFI USB media in QEMU.
+# It completes the required reboots and verifies the installed DAppNode system.
+name: Debian unattended USB ISO end-to-end
+
+on:
+  workflow_dispatch:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: debian-iso-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install:
+    name: Install Debian unattended ISO via UEFI USB
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Verify Debian release alignment
+        run: bash iso/scripts/check_debian_release_alignment.sh
+
+      - name: Build Debian unattended ISO
+        run: |
+          export BASE_OS=debian
+          export UNATTENDED=true
+          docker compose up --build
+          ls -lrt images/Dappnode-debian-*.iso
+
+      - name: Install QEMU test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf socat sshpass
+          if [ -e /dev/kvm ]; then
+            sudo chmod a+rw /dev/kvm
+          fi
+
+      - name: Enable ICMP for QEMU user networking
+        run: sudo sysctl -w net.ipv4.ping_group_range="0 2147483647"
+
+      - name: Complete Debian unattended UEFI USB installation
+        env:
+          E2E_BOOT_MODE: usb
+          E2E_FIRMWARE: uefi
+        run: |
+          debian_iso=$(find images -maxdepth 1 -type f -name 'Dappnode-debian-*-amd64-netinst.iso' -print -quit)
+          test -n "${debian_iso}"
+          bash test/e2e_debian_iso.sh "${debian_iso}"
+
+      - name: Upload installation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: debian-unattended-usb-installation-logs
+          path: test-output/debian-e2e/
+          if-no-files-found: ignore
+          retention-days: 7

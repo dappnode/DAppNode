@@ -22,9 +22,33 @@ detect_installation_type() {
     fi
 }
 
+# ICMP is filtered on many corporate, hotel and cloud networks, so a failed
+# ping alone does not mean the machine is offline. Confirm over HTTPS before
+# declaring the installation broken.
+check_connectivity() {
+    ping -c 1 -q google.com >/dev/null 2>&1 && return 0
+
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsS --max-time 10 -o /dev/null https://www.google.com/generate_204 && return 0
+    fi
+
+    if command -v wget >/dev/null 2>&1; then
+        wget -q --timeout=10 -O /dev/null https://www.google.com/generate_204 && return 0
+    fi
+
+    # Neither downloader is guaranteed to be present this early, so fall back to
+    # a plain TCP connect, which bash can do on its own.
+    if (exec 3<>/dev/tcp/www.google.com/443) 2>/dev/null; then
+        exec 3<&- 3>&-
+        return 0
+    fi
+
+    return 1
+}
+
 components=(BIND IPFS VPN DAPPMANAGER WIFI)
 detect_installation_type
-if ping -c 1 -q google.com >&/dev/null; then
+if check_connectivity; then
     echo -e "\e[32m Connectivity OK\n \e[0m"
 else
     error_exit
