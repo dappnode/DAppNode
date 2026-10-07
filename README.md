@@ -188,7 +188,7 @@ sudo wget -O - https://installer.dappnode.io | sudo UPDATE=true bash
 
 ## Releases
 
-Create releases manually with Github actions, the Github action to run is: **Pre-release**. The requirements are:
+Create releases manually with GitHub actions, the GitHub action to run is: **Pre-release**. The requirements are:
 
 - Introduce the core packages versions
 - There must exist the corresponding core package release for the specified version
@@ -206,7 +206,7 @@ The release will contain:
 
 ## Testing with artifacts
 
-Generate ISOs and test them by running the Github action: **Artifacts**. This action will generate an artifacts with the same assets as the release, useful for testing purposes.
+Generate ISOs and test them by running the GitHub action: **Artifacts**. This action will generate an artifacts with the same assets as the release, useful for testing purposes.
 
 ## Versioning
 
