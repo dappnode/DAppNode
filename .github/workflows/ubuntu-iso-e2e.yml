@@ -53,6 +53,10 @@ jobs:
           test -n "${ubuntu_iso}"
           bash test/e2e_ubuntu_iso.sh "${ubuntu_iso}"
 
+      - name: Make network logs readable
+        if: always()
+        run: sudo chmod -R a+rX test-output || true
+
       - name: Upload installation logs
         if: always()
         uses: actions/upload-artifact@v4

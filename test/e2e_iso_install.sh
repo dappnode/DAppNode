@@ -53,6 +53,9 @@ run_e2e_iso_install() {
     local postinstall_timeout_seconds=${E2E_POSTINSTALL_TIMEOUT_SECONDS:-1200}
     local ssh_port=${E2E_SSH_PORT:-2222}
     local ssh_password=${E2E_SSH_PASSWORD:-dappnode.s0}
+    local tap_iface=${E2E_TAP_IFACE:-}
+    local guest_ip=${E2E_GUEST_IP:-192.168.77.10}
+    local guest_mac=${E2E_GUEST_MAC:-52:54:00:d4:00:10}
     local boot_mode=${E2E_BOOT_MODE:-usb}
     local firmware=${E2E_FIRMWARE:-uefi}
     qemu_pid=""
