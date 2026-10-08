@@ -27,7 +27,13 @@ jobs:
         run: |
           export BASE_OS=debian
           export UNATTENDED=true
-          docker compose up --build
+          # Retry so a transient mirror outage does not fail the whole E2E run.
+          for attempt in 1 2 3; do
+            docker compose up --build --abort-on-container-exit --exit-code-from dappnode_installer && break
+            [ "${attempt}" -lt 3 ] || exit 1
+            echo "::warning::ISO build attempt ${attempt} failed; retrying in 30s"
+            sleep 30
+          done
           ls -lrt images/Dappnode-debian-*.iso
 
       - name: Install QEMU test dependencies
