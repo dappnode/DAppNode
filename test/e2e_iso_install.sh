@@ -47,10 +47,13 @@ run_e2e_iso_install() {
     local vm_disk_size=${E2E_VM_DISK_SIZE:-32G}
     local vm_memory_mb=${E2E_VM_MEMORY_MB:-4096}
     local vm_cpus=${E2E_VM_CPUS:-2}
-    local install_timeout_seconds=${E2E_INSTALL_TIMEOUT_SECONDS:-3600}
+    # Healthy runs take 4-8 min to install, 1-3 min for the first-boot test and
+    # well under a minute to start core services. A stuck installer waits on a
+    # dialog forever, so keep the limits a few times the normal duration.
+    local install_timeout_seconds=${E2E_INSTALL_TIMEOUT_SECONDS:-1800}
     local boot_timeout_seconds=${E2E_BOOT_TIMEOUT_SECONDS:-600}
-    local first_boot_timeout_seconds=${E2E_FIRST_BOOT_TIMEOUT_SECONDS:-1800}
-    local postinstall_timeout_seconds=${E2E_POSTINSTALL_TIMEOUT_SECONDS:-1200}
+    local first_boot_timeout_seconds=${E2E_FIRST_BOOT_TIMEOUT_SECONDS:-900}
+    local postinstall_timeout_seconds=${E2E_POSTINSTALL_TIMEOUT_SECONDS:-600}
     local ssh_port=${E2E_SSH_PORT:-2222}
     local ssh_password=${E2E_SSH_PASSWORD:-dappnode.s0}
     local tap_iface=${E2E_TAP_IFACE:-}

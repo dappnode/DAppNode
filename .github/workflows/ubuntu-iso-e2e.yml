@@ -17,7 +17,7 @@ jobs:
   install:
     name: Install Ubuntu unattended ISO via UEFI USB
     runs-on: ubuntu-latest
-    timeout-minutes: 180
+    timeout-minutes: 90
 
     steps:
       - name: Checkout
