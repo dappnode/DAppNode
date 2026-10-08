@@ -197,10 +197,35 @@ run_e2e_iso_install() {
     echo "[INFO] Creating ${vm_disk_size} virtual installation disk"
     qemu-img create -q -f qcow2 "${disk_path}" "${vm_disk_size}"
 
+    # NVMe matches the disks DAppNode hardware ships with, including how the
+    # installer enumerates it next to the USB stick.
     local target_disk_install_args=(
         -drive "file=${disk_path},format=qcow2,if=none,id=target_disk"
-        -device "virtio-blk-pci,drive=target_disk,bootindex=2"
+        -device "nvme,serial=dappnode-e2e,drive=target_disk,bootindex=2"
     )
+    local target_disk_boot_args=(
+        -drive "file=${disk_path},format=qcow2,if=none,id=target_disk"
+        -device "nvme,serial=dappnode-e2e,drive=target_disk,bootindex=1"
+    )
+
+    # On a TAP network (see test/e2e_network.sh) the guest sees a regular LAN,
+    # including replies to ping. User networking needs no root but drops ICMP.
+    local installer_network_args guest_network_args ssh_host
+    if [ -n "${tap_iface}" ]; then
+        installer_network_args=(
+            -netdev "tap,id=net0,ifname=${tap_iface},script=no,downscript=no"
+            -device "virtio-net-pci,netdev=net0,mac=${guest_mac}"
+        )
+        guest_network_args=("${installer_network_args[@]}")
+        ssh_host=${guest_ip}
+        ssh_port=22
+        echo "[INFO] Using TAP network ${tap_iface}; guest address ${guest_ip}"
+    else
+        installer_network_args=(-nic user,model=virtio-net-pci)
+        guest_network_args=(-nic "user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:${ssh_port}-:22")
+        ssh_host=127.0.0.1
+        echo "[WARN] E2E_TAP_IFACE is unset; using user networking, where the guest cannot ping"
+    fi
     local installer_media_args=(
         -device "qemu-xhci,id=installer_xhci"
         -drive "file=${iso_path},format=raw,if=none,readonly=on,id=installer_media"
@@ -216,7 +241,7 @@ run_e2e_iso_install() {
         "${target_disk_install_args[@]}" \
         "${installer_media_args[@]}" \
         -boot menu=off \
-        -nic user,model=virtio-net-pci \
+        "${installer_network_args[@]}" \
         -display none \
         -monitor "unix:${installer_monitor_socket},server=on,wait=off" \
         -serial "file:${installer_serial_log}" \
@@ -236,10 +261,9 @@ run_e2e_iso_install() {
         "${firmware_args[@]}" \
         -m "${vm_memory_mb}" \
         -smp "${vm_cpus}" \
-        -drive "file=${disk_path},format=qcow2,if=none,id=target_disk" \
-        -device "virtio-blk-pci,drive=target_disk,bootindex=1" \
+        "${target_disk_boot_args[@]}" \
         -boot menu=off \
-        -nic "user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:${ssh_port}-:22" \
+        "${guest_network_args[@]}" \
         -display none \
         -monitor "unix:${first_boot_monitor_socket},server=on,wait=off" \
         -serial "file:${first_boot_serial_log}" \
@@ -257,7 +281,7 @@ run_e2e_iso_install() {
     )
 
     ssh_guest() {
-        SSHPASS="${ssh_password}" sshpass -e ssh "${ssh_options[@]}" dappnode@127.0.0.1 "$@"
+        SSHPASS="${ssh_password}" sshpass -e ssh "${ssh_options[@]}" "dappnode@${ssh_host}" "$@"
     }
 
     wait_for_ssh() {
@@ -338,10 +362,9 @@ run_e2e_iso_install() {
         "${firmware_args[@]}" \
         -m "${vm_memory_mb}" \
         -smp "${vm_cpus}" \
-        -drive "file=${disk_path},format=qcow2,if=none,id=target_disk" \
-        -device "virtio-blk-pci,drive=target_disk,bootindex=1" \
+        "${target_disk_boot_args[@]}" \
         -boot menu=off \
-        -nic "user,model=virtio-net-pci,hostfwd=tcp:127.0.0.1:${ssh_port}-:22" \
+        "${guest_network_args[@]}" \
         -display none \
         -monitor none \
         -serial "file:${system_serial_log}" \

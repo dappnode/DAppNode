@@ -428,16 +428,7 @@ normalize_ipfs_version_ref() {
         local cid_path="$ref"
         local manifest_url="${IPFS_ENDPOINT%/}${cid_path}/dappnode_package.json"
         local manifest
-        local attempt
-        for attempt in 1 2 3 4 5; do
-            manifest="$(download_stdout "$manifest_url" 2>/dev/null || true)"
-            if [[ -n "$manifest" ]]; then
-                break
-            fi
-            if [[ "$attempt" -lt 5 ]]; then
-                sleep 2
-            fi
-        done
+        manifest="$(download_stdout "$manifest_url" 2>/dev/null || true)"
         if [[ -z "$manifest" ]]; then
             error "Could not fetch IPFS manifest for ${comp} from: $manifest_url"
             error "Provide ${comp}_VERSION as /ipfs/<cid>:<version> (example: /ipfs/Qm...:0.2.11)"
