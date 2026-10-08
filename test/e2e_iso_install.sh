@@ -215,9 +215,12 @@ run_e2e_iso_install() {
     # including replies to ping. User networking needs no root but drops ICMP.
     local installer_network_args guest_network_args ssh_host
     if [ -n "${tap_iface}" ]; then
+        # Pin the PCI slot: the USB controller only exists while installing, and
+        # without a fixed address the NIC name would change after the install
+        # (enp0s5 -> enp0s4), unlike on real hardware.
         installer_network_args=(
             -netdev "tap,id=net0,ifname=${tap_iface},script=no,downscript=no"
-            -device "virtio-net-pci,netdev=net0,mac=${guest_mac}"
+            -device "virtio-net-pci,netdev=net0,mac=${guest_mac},addr=0x10"
         )
         guest_network_args=("${installer_network_args[@]}")
         ssh_host=${guest_ip}
