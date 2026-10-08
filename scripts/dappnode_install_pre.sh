@@ -107,8 +107,21 @@ install_iptables() {
     fi
 }
 
+# The Debian installer comments out the install media's cdrom: APT source only
+# after the late-commands have run. Until then apt-get update fails on it, so
+# disable it now as the installer would (apt-setup/disable-cdrom-entries).
+disable_iso_cdrom_sources() {
+    [ "$ISO_INSTALLATION" = "true" ] || return 0
+    local sources_file
+    for sources_file in /etc/apt/sources.list /etc/apt/sources.list.d/*.list; do
+        [ -f "$sources_file" ] || continue
+        sed -i -E 's/^(deb(-src)?[[:space:]]+(\[[^]]*\][[:space:]]+)?cdrom:)/# \1/' "$sources_file"
+    done
+}
+
 # HOST UPDATE
 host_update() {
+    disable_iso_cdrom_sources
     # Process substitution keeps apt-get's exit status while still logging its
     # output. A regular pipeline would return tee's status and hide dpkg errors.
     apt-get update > >(tee -a "$LOG_FILE") 2>&1 || return $?
