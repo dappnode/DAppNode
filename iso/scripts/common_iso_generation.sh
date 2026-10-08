@@ -4,16 +4,32 @@ WORKDIR="/usr/src/app"
 ISO_BUILD_PATH="${WORKDIR}/dappnode-iso"
 DAPPNODE_ISO_PREFIX="Dappnode-"
 
+# Usage: download_iso <path> <name> <url> [fallback_url...]
+# URLs are tried in order, which covers mirrors that move older releases elsewhere.
 download_iso() {
     local iso_path=$1
     local iso_name=$2
-    local iso_url=$3
+    shift 2
 
     echo "[INFO] Downloading base ISO image: ${iso_name}..."
-    if [ ! -f "${iso_path}" ]; then
-        wget "${iso_url}" -O "${iso_path}"
+    if [ -f "${iso_path}" ]; then
+        echo "[INFO] Download complete!"
+        return 0
     fi
-    echo "[INFO] Download complete!"
+
+    local iso_url
+    for iso_url in "$@"; do
+        if wget "${iso_url}" -O "${iso_path}"; then
+            echo "[INFO] Download complete!"
+            return 0
+        fi
+        # wget leaves a partial file behind, which would be reused on the next run
+        rm -f "${iso_path}"
+        echo "[WARN] Could not download ${iso_url}"
+    done
+
+    echo "[ERROR] Could not download ${iso_name} from any known location"
+    exit 1
 }
 
 verify_download() {
