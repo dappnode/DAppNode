@@ -1,0 +1,77 @@
+# Builds the unattended Ubuntu ISO and installs it from UEFI USB media in QEMU.
+# It completes the required reboots and verifies the installed DAppNode system.
+name: Ubuntu unattended USB ISO end-to-end
+
+on:
+  workflow_dispatch:
+  pull_request:
+  # Weekly run against master to catch breakage from upstream package changes.
+  schedule:
+    - cron: "0 7 * * 1"
+      timezone: "Europe/Madrid"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ubuntu-iso-e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  install:
+    name: Install Ubuntu unattended ISO via UEFI USB
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Build Ubuntu unattended ISO
+        run: |
+          export BASE_OS=ubuntu
+          export UNATTENDED=true
+          # Retry so a transient mirror outage does not fail the whole E2E run.
+          for attempt in 1 2 3; do
+            docker compose up --build --abort-on-container-exit --exit-code-from dappnode_installer && break
+            [ "${attempt}" -lt 3 ] || exit 1
+            echo "::warning::ISO build attempt ${attempt} failed; retrying in 30s"
+            sleep 30
+          done
+          ls -lrt images/Dappnode-ubuntu-*.iso
+
+      - name: Install QEMU test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf socat sshpass dnsmasq-base
+          if [ -e /dev/kvm ]; then
+            sudo chmod a+rw /dev/kvm
+          fi
+
+      - name: Create the guest network
+        run: |
+          mkdir -p test-output/ubuntu-e2e
+          sudo E2E_NETWORK_STATE_DIR="${PWD}/test-output/ubuntu-e2e/network" bash test/e2e_network.sh up
+
+      - name: Complete Ubuntu unattended UEFI USB installation
+        env:
+          E2E_BOOT_MODE: usb
+          E2E_FIRMWARE: uefi
+          E2E_TAP_IFACE: dne2e0
+        run: |
+          ubuntu_iso=$(find images -maxdepth 1 -type f -name 'Dappnode-ubuntu-*-live-server-amd64.iso' -print -quit)
+          test -n "${ubuntu_iso}"
+          bash test/e2e_ubuntu_iso.sh "${ubuntu_iso}"
+
+      - name: Make network logs readable
+        if: always()
+        run: sudo chmod -R a+rX test-output || true
+
+      - name: Upload installation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-unattended-usb-installation-logs
+          path: test-output/ubuntu-e2e/
+          if-no-files-found: ignore
+          retention-days: 7
