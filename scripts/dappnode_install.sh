@@ -428,7 +428,17 @@ normalize_ipfs_version_ref() {
         local cid_path="$ref"
         local manifest_url="${IPFS_ENDPOINT%/}${cid_path}/dappnode_package.json"
         local manifest
-        manifest="$(download_stdout "$manifest_url" 2>/dev/null || true)"
+        # On the first boot after an ISO install this runs from rc.local, which
+        # does not wait for DHCP (Debian's allow-hotplug interfaces are not part
+        # of network-online.target), so give the network up to ~2 minutes.
+        local attempt
+        for attempt in $(seq 1 24); do
+            manifest="$(download_stdout "$manifest_url" 2>/dev/null || true)"
+            [[ -n "$manifest" ]] && break
+            # stdout is this function's return value, so report on stderr
+            [[ "$attempt" -eq 1 ]] && warn "Could not fetch IPFS manifest for ${comp} yet, retrying..." >&2
+            [[ "$attempt" -lt 24 ]] && sleep 5
+        done
         if [[ -z "$manifest" ]]; then
             error "Could not fetch IPFS manifest for ${comp} from: $manifest_url"
             error "Provide ${comp}_VERSION as /ipfs/<cid>:<version> (example: /ipfs/Qm...:0.2.11)"
