@@ -2,6 +2,10 @@
 
 # Execute script with flag UPDATE to update the host: ./dappnode_install_pre.sh UPDATE
 
+# This script also runs from unattended ISO late-commands, where debconf has no
+# terminal on which it can safely ask package-configuration questions.
+export DEBIAN_FRONTEND=noninteractive
+
 DAPPNODE_DIR="/usr/src/dappnode"
 LOGS_DIR="$DAPPNODE_DIR/logs"
 lsb_dist="$(. /etc/os-release && echo "$ID")"
@@ -105,8 +109,10 @@ install_iptables() {
 
 # HOST UPDATE
 host_update() {
-    apt-get update 2>&1 | tee -a $LOG_FILE
-    apt-get -y upgrade 2>&1 | tee -a $LOG_FILE
+    # Process substitution keeps apt-get's exit status while still logging its
+    # output. A regular pipeline would return tee's status and hide dpkg errors.
+    apt-get update > >(tee -a "$LOG_FILE") 2>&1 || return $?
+    apt-get -y upgrade > >(tee -a "$LOG_FILE") 2>&1
 }
 
 check_ubuntu_connectivity() {
@@ -152,7 +158,10 @@ touch $LOG_FILE
 # Only update && upgrade host if needed
 if [ "$1" == "UPDATE" ]; then
     echo -e "\e[32m \n\n Updating && upgrading host \n\n \e[0m" 2>&1 | tee -a $LOG_FILE
-    host_update 2>&1 | tee -a $LOG_FILE
+    if ! host_update; then
+        echo -e "\e[31m \n\n ERROR: host update failed \n\n \e[0m" 2>&1 | tee -a "$LOG_FILE"
+        exit 1
+    fi
 fi
 
 if find /etc/apt/ -name "*.list" -print0 | xargs --null cat | grep -q "https://download.docker.com/linux/$lsb_dist"; then
