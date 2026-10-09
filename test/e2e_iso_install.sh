@@ -485,7 +485,26 @@ test -x /usr/src/dappnode/scripts/dappnode_install.sh
 test -s /usr/src/dappnode/logs/iso_install.log
 test -s /usr/src/dappnode/logs/dappnode_install.log
 test ! -e /usr/src/dappnode/.firstboot
-! grep -Fq '/usr/src/dappnode/scripts/dappnode_install.sh' /etc/rc.local
+# `! cmd` never trips `set -e`, so negative checks need an explicit exit.
+if grep -Fq '/usr/src/dappnode/scripts/dappnode_install.sh' /etc/rc.local; then
+    echo "[ERROR] rc.local still runs the DAppNode installer"
+    exit 1
+fi
+
+# The first-boot self-test runs on its own console; its log is the only record.
+first_boot_test_log=/usr/src/dappnode/logs/dappnode_test_install.log
+test -s "${first_boot_test_log}"
+if grep -Fq 'Corrupted' "${first_boot_test_log}"; then
+    echo "[ERROR] The first-boot test reported corrupted images:"
+    grep -F 'Image ' "${first_boot_test_log}"
+    exit 1
+fi
+if ! grep -Fq 'Test completed successfully' "${first_boot_test_log}"; then
+    echo "[ERROR] The first-boot test did not report success:"
+    tail -n 30 "${first_boot_test_log}"
+    exit 1
+fi
+grep -F 'Image ' "${first_boot_test_log}"
 docker --version
 docker compose version
 docker info >/dev/null
