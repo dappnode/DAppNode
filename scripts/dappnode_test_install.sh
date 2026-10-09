@@ -2,6 +2,11 @@
 
 HOME=${HOME:-/home/dappnode}
 DAPPNODE_DIR="/usr/src/dappnode"
+LOG_FILE="${DAPPNODE_DIR}/logs/dappnode_test_install.log"
+
+# This runs on its own console, so also keep a log for support and the E2E tests.
+mkdir -p "$(dirname "${LOG_FILE}")"
+exec > >(tee -a "${LOG_FILE}") 2>&1
 
 error_exit() {
     echo -e "\e[31m Error on installation!!! \n \e[0m"
@@ -51,16 +56,27 @@ for comp in "${components[@]}"; do
     fi
 done
 
+# Use explicit formats: the default `docker images` columns differ between
+# Docker versions, and newer ones put the image size where the ID used to be.
 echo -e "\e[32m docker image versions:\e[0m"
-docker images | grep dappnode | awk '{print $1, $2}'
+docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | grep dappnode
 
 echo -e "\e[32m doing docker image integrity test...\e[0m"
-imgs=$(docker images | grep dappnode | awk '{print $3}')
+imgs=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep dappnode)
 
+corrupted_imgs=()
 for img in $imgs; do
-    # shellcheck disable=SC2028
-    docker save "$img" >/dev/null && echo -ne "\e[32mImage $img OK\n\e[0m" || echo "\e[31mImage $img Corrupted!\n\e[0m"
+    if docker save "$img" >/dev/null; then
+        echo -e "\e[32mImage $img OK\e[0m"
+    else
+        echo -e "\e[31mImage $img Corrupted!\e[0m"
+        corrupted_imgs+=("$img")
+    fi
 done
 
 rm -f /usr/src/dappnode/.firstboot
-read -r -p "Test completed successfully. Press enter to continue"
+if [ "${#corrupted_imgs[@]}" -gt 0 ]; then
+    read -r -p "Test completed with corrupted images: ${corrupted_imgs[*]}. Press enter to continue"
+else
+    read -r -p "Test completed successfully. Press enter to continue"
+fi
