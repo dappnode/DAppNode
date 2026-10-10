@@ -1,4 +1,5 @@
-name: Pre-release
+name: Release
+
 on:
   workflow_dispatch:
     inputs:
@@ -301,11 +302,11 @@ jobs:
         run: |
           echo "Images directory content:"
           ls -lrt images/
-      - name: Create pre-release
+      - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ needs.set-versions.outputs.core }}
-          prerelease: true
+          prerelease: false
           files: |
             ./images/Dappnode-*-debian-*-attended.iso
             ./images/Dappnode-*-debian-*-unattended.iso
