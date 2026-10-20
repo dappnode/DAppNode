@@ -74,9 +74,24 @@ for img in $imgs; do
     fi
 done
 
+# Boot messages keep printing on this console and can bury a single prompt, so
+# repeat the result until someone answers. Rebooting is just as good as Enter.
+wait_for_user() {
+    local result=$1
+    local status
+    while true; do
+        echo -e "\n${result}"
+        echo "Press Enter to continue, or reboot the machine (e.g. sudo reboot) to start DAppNode."
+        read -r -t 30
+        status=$?
+        # Only a timeout (status > 128) repeats the prompt; input or EOF ends it.
+        [ "${status}" -gt 128 ] || break
+    done
+}
+
 rm -f /usr/src/dappnode/.firstboot
 if [ "${#corrupted_imgs[@]}" -gt 0 ]; then
-    read -r -p "Test completed with corrupted images: ${corrupted_imgs[*]}. Press enter to continue"
+    wait_for_user "\e[31mTest completed with corrupted images: ${corrupted_imgs[*]}\e[0m"
 else
-    read -r -p "Test completed successfully. Press enter to continue"
+    wait_for_user "\e[32mTest completed successfully.\e[0m"
 fi
