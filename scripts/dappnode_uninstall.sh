@@ -90,9 +90,37 @@ uninstall() {
         docker volume rm "$volume" &>/dev/null
     done
 
-    # Remove dncore_network
-    echo "Removing docker dncore_network"
-    docker network remove dncore_network || echo "dncore_network already removed"
+    # Remove dncore_network dnprivate_network dnpublic_network gnosis_network holesky_network hoodi_network lukso_network mainnet_network prater_network sepolia_network starknet_network starknet_sepolia_network
+    echo "Removing dappnode networks..."
+    docker network remove dncore_network dnprivate_network dnpublic_network gnosis_network holesky_network hoodi_network lukso_network mainnet_network prater_network sepolia_network starknet_network starknet_sepolia_network &>/dev/null || true
+
+    # Clean up host DNS resolution artifacts (--resolve-from-host)
+    if $IS_LINUX; then
+        # systemd-resolved path: remove service, timer, and script
+        if [ -f /etc/systemd/system/dappnode-dns.timer ] || [ -f /etc/systemd/system/dappnode-dns.service ] || [ -f /usr/local/bin/dappnode-dns.sh ]; then
+            echo "Removing dappnode-dns systemd timer and service..."
+            systemctl disable dappnode-dns.timer 2>/dev/null || true
+            systemctl stop dappnode-dns.timer 2>/dev/null || true
+            systemctl disable dappnode-dns.service 2>/dev/null || true
+            systemctl stop dappnode-dns.service 2>/dev/null || true
+            rm -f /etc/systemd/system/dappnode-dns.service
+            rm -f /etc/systemd/system/dappnode-dns.timer
+            rm -f /usr/local/bin/dappnode-dns.sh
+            systemctl daemon-reload || true
+        fi
+
+        # dnsmasq path: remove dappnode config and restore resolv.conf
+        if [ -f /etc/dnsmasq.d/dappnode.conf ]; then
+            echo "Removing dnsmasq DAppNode config..."
+            rm -f /etc/dnsmasq.d/dappnode.conf
+            systemctl restart dnsmasq 2>/dev/null || true
+        fi
+        if [ -f /etc/resolv.conf.dappnode.bak ]; then
+            echo "Restoring /etc/resolv.conf from backup..."
+            cp /etc/resolv.conf.dappnode.bak /etc/resolv.conf
+            rm -f /etc/resolv.conf.dappnode.bak
+        fi
+    fi
 
     # Remove DAppNode directory
     echo "Removing DAppNode directory: ${DAPPNODE_DIR}"
