@@ -17,6 +17,8 @@ jobs:
       - name: Setup Test Environment
         run: |
           sudo /bin/bash ./test/environment_setup.sh
+      - name: Test network pool bootstrap
+        run: bash test/network_pool.sh
       - name: Install Prerequisites
         run: |
           sudo /bin/bash ./scripts/dappnode_install_pre.sh UPDATE
