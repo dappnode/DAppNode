@@ -1,5 +1,10 @@
 # Builds the unattended Ubuntu ISO and installs it from UEFI USB media in QEMU.
 # It completes the required reboots and verifies the installed DAppNode system.
+#
+# Runs on the self-hosted runner named by the ISO_E2E_RUNNER repository variable,
+# or on ubuntu-latest when it is unset. Pull requests from forks always use
+# ubuntu-latest, so outside code never runs on our machines.
+# A self-hosted runner needs /dev/kvm, Docker, apt and passwordless sudo.
 name: Ubuntu unattended USB ISO end-to-end
 
 on:
@@ -20,10 +25,22 @@ concurrency:
 jobs:
   install:
     name: Install Ubuntu unattended ISO via UEFI USB
-    runs-on: ubuntu-latest
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) && 'ubuntu-latest' || vars.ISO_E2E_RUNNER || 'ubuntu-latest' }}
     timeout-minutes: 90
+    env:
+      # Distinct from the Debian job, so both can run on the same host at once.
+      E2E_TAP_IFACE: dne2e1
+      E2E_HOST_IP: 192.168.78.1
+      E2E_GUEST_IP: 192.168.78.10
+      E2E_GUEST_MAC: "52:54:00:d4:00:11"
 
     steps:
+      # A cancelled run on a self-hosted runner can leave root-owned build output
+      # that would stop checkout from cleaning the workspace.
+      - name: Reclaim the workspace
+        if: runner.environment == 'self-hosted'
+        run: sudo chown -R "$(id -u):$(id -g)" "${GITHUB_WORKSPACE}"
+
       - name: Checkout
         uses: actions/checkout@v6
 
@@ -44,20 +61,26 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf socat sshpass dnsmasq-base
-          if [ -e /dev/kvm ]; then
+          if [ -e /dev/kvm ] && ! { [ -r /dev/kvm ] && [ -w /dev/kvm ]; }; then
             sudo chmod a+rw /dev/kvm
           fi
+          [ -e /dev/kvm ] || echo "::warning::/dev/kvm is missing; the install falls back to slow TCG emulation"
 
       - name: Create the guest network
         run: |
           mkdir -p test-output/ubuntu-e2e
-          sudo E2E_NETWORK_STATE_DIR="${PWD}/test-output/ubuntu-e2e/network" bash test/e2e_network.sh up
+          state_dir="${PWD}/test-output/ubuntu-e2e/network"
+          # Clear anything a cancelled run left behind on a reused host.
+          sudo E2E_TAP_IFACE="${E2E_TAP_IFACE}" E2E_HOST_IP="${E2E_HOST_IP}" \
+            E2E_NETWORK_STATE_DIR="${state_dir}" bash test/e2e_network.sh down
+          sudo E2E_TAP_IFACE="${E2E_TAP_IFACE}" E2E_HOST_IP="${E2E_HOST_IP}" \
+            E2E_GUEST_IP="${E2E_GUEST_IP}" E2E_GUEST_MAC="${E2E_GUEST_MAC}" \
+            E2E_NETWORK_STATE_DIR="${state_dir}" bash test/e2e_network.sh up
 
       - name: Complete Ubuntu unattended UEFI USB installation
         env:
           E2E_BOOT_MODE: usb
           E2E_FIRMWARE: uefi
-          E2E_TAP_IFACE: dne2e0
         run: |
           ubuntu_iso=$(find images -maxdepth 1 -type f -name 'Dappnode-ubuntu-*-live-server-amd64.iso' -print -quit)
           test -n "${ubuntu_iso}"
@@ -75,3 +98,11 @@ jobs:
           path: test-output/ubuntu-e2e/
           if-no-files-found: ignore
           retention-days: 7
+
+      # Ephemeral GitHub-hosted runners are discarded; a self-hosted host is not.
+      - name: Remove the guest network and build output
+        if: always() && runner.environment == 'self-hosted'
+        run: |
+          sudo E2E_TAP_IFACE="${E2E_TAP_IFACE}" E2E_HOST_IP="${E2E_HOST_IP}" \
+            E2E_NETWORK_STATE_DIR="${PWD}/test-output/ubuntu-e2e/network" bash test/e2e_network.sh down
+          sudo rm -rf images test-output
