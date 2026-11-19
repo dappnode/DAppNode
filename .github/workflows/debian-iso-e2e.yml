@@ -1,5 +1,9 @@
 # Builds the unattended Debian ISO and installs it from UEFI USB media in QEMU.
 # It completes the required reboots and verifies the installed DAppNode system.
+#
+# Runs on our archive-1 org runners. Pull requests from forks use
+# ubuntu-latest instead, so outside code never runs on our machines.
+# The runner needs /dev/kvm, Docker, apt and passwordless sudo.
 name: Debian unattended USB ISO end-to-end
 
 on:
@@ -20,10 +24,25 @@ concurrency:
 jobs:
   install:
     name: Install Debian unattended ISO via UEFI USB
-    runs-on: ubuntu-latest
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) && 'ubuntu-latest' || 'archive-1' }}
     timeout-minutes: 90
+    env:
+      # Own Compose project, so a parallel ISO job on the same Docker host cannot
+      # reuse or remove this job's installer container.
+      COMPOSE_PROJECT_NAME: dappnode-iso-e2e-debian
+      # Distinct from the Ubuntu job, so both can run on the same host at once.
+      E2E_TAP_IFACE: dne2e0
+      E2E_HOST_IP: 192.168.77.1
+      E2E_GUEST_IP: 192.168.77.10
+      E2E_GUEST_MAC: "52:54:00:d4:00:10"
 
     steps:
+      # A cancelled run on a self-hosted runner can leave root-owned build output
+      # that would stop checkout from cleaning the workspace.
+      - name: Reclaim the workspace
+        if: runner.environment == 'self-hosted'
+        run: sudo chown -R "$(id -u):$(id -g)" "${GITHUB_WORKSPACE}"
+
       - name: Checkout
         uses: actions/checkout@v6
 
@@ -44,20 +63,26 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf socat sshpass dnsmasq-base
-          if [ -e /dev/kvm ]; then
+          if [ -e /dev/kvm ] && ! { [ -r /dev/kvm ] && [ -w /dev/kvm ]; }; then
             sudo chmod a+rw /dev/kvm
           fi
+          [ -e /dev/kvm ] || echo "::warning::/dev/kvm is missing; the install falls back to slow TCG emulation"
 
       - name: Create the guest network
         run: |
           mkdir -p test-output/debian-e2e
-          sudo E2E_NETWORK_STATE_DIR="${PWD}/test-output/debian-e2e/network" bash test/e2e_network.sh up
+          state_dir="${PWD}/test-output/debian-e2e/network"
+          # Clear anything a cancelled run left behind on a reused host.
+          sudo E2E_TAP_IFACE="${E2E_TAP_IFACE}" E2E_HOST_IP="${E2E_HOST_IP}" \
+            E2E_NETWORK_STATE_DIR="${state_dir}" bash test/e2e_network.sh down
+          sudo E2E_TAP_IFACE="${E2E_TAP_IFACE}" E2E_HOST_IP="${E2E_HOST_IP}" \
+            E2E_GUEST_IP="${E2E_GUEST_IP}" E2E_GUEST_MAC="${E2E_GUEST_MAC}" \
+            E2E_NETWORK_STATE_DIR="${state_dir}" bash test/e2e_network.sh up
 
       - name: Complete Debian unattended UEFI USB installation
         env:
           E2E_BOOT_MODE: usb
           E2E_FIRMWARE: uefi
-          E2E_TAP_IFACE: dne2e0
         run: |
           debian_iso=$(find images -maxdepth 1 -type f -name 'Dappnode-debian-*-amd64-netinst.iso' -print -quit)
           test -n "${debian_iso}"
@@ -75,3 +100,14 @@ jobs:
           path: test-output/debian-e2e/
           if-no-files-found: ignore
           retention-days: 7
+
+      # Ephemeral GitHub-hosted runners are discarded; a self-hosted host is not.
+      - name: Remove the guest network and build output
+        if: always() && runner.environment == 'self-hosted'
+        run: |
+          # Only this project's installer container, network and image; the image is
+          # rebuilt from the checkout, so each commit would otherwise leave one behind.
+          docker compose down --rmi local --remove-orphans || true
+          sudo E2E_TAP_IFACE="${E2E_TAP_IFACE}" E2E_HOST_IP="${E2E_HOST_IP}" \
+            E2E_NETWORK_STATE_DIR="${PWD}/test-output/debian-e2e/network" bash test/e2e_network.sh down
+          sudo rm -rf images test-output

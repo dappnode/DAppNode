@@ -65,6 +65,8 @@ network_down() {
     if [ -f "${STATE_DIR}/dnsmasq.pid" ]; then
         kill "$(cat "${STATE_DIR}/dnsmasq.pid")" 2>/dev/null || true
     fi
+    # A cancelled run may have lost its pid file; on a reused host its dnsmasq lives on.
+    pkill -f "^dnsmasq --interface=${E2E_TAP_IFACE} " 2>/dev/null || true
     iptables -D FORWARD -o "${E2E_TAP_IFACE}" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || true
     iptables -D FORWARD -i "${E2E_TAP_IFACE}" -j ACCEPT 2>/dev/null || true
     iptables -t nat -D PREROUTING -i "${E2E_TAP_IFACE}" -p icmp --icmp-type echo-request \
