@@ -27,6 +27,9 @@ jobs:
     runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) && 'ubuntu-latest' || 'ipfs-dev-gateway' }}
     timeout-minutes: 90
     env:
+      # Own Compose project, so a parallel ISO job on the same Docker host cannot
+      # reuse or remove this job's installer container.
+      COMPOSE_PROJECT_NAME: dappnode-iso-e2e-debian
       # Distinct from the Ubuntu job, so both can run on the same host at once.
       E2E_TAP_IFACE: dne2e0
       E2E_HOST_IP: 192.168.77.1
@@ -102,6 +105,9 @@ jobs:
       - name: Remove the guest network and build output
         if: always() && runner.environment == 'self-hosted'
         run: |
+          # Only this project's installer container, network and image; the image is
+          # rebuilt from the checkout, so each commit would otherwise leave one behind.
+          docker compose down --rmi local --remove-orphans || true
           sudo E2E_TAP_IFACE="${E2E_TAP_IFACE}" E2E_HOST_IP="${E2E_HOST_IP}" \
             E2E_NETWORK_STATE_DIR="${PWD}/test-output/debian-e2e/network" bash test/e2e_network.sh down
           sudo rm -rf images test-output
