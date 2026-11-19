@@ -1,10 +1,9 @@
 # Builds the unattended Ubuntu ISO and installs it from UEFI USB media in QEMU.
 # It completes the required reboots and verifies the installed DAppNode system.
 #
-# Runs on the self-hosted runner named by the ISO_E2E_RUNNER repository variable,
-# or on ubuntu-latest when it is unset. Pull requests from forks always use
-# ubuntu-latest, so outside code never runs on our machines.
-# A self-hosted runner needs /dev/kvm, Docker, apt and passwordless sudo.
+# Runs on our ipfs-dev-gateway org runners. Pull requests from forks use
+# ubuntu-latest instead, so outside code never runs on our machines.
+# The runner needs /dev/kvm, Docker, apt and passwordless sudo.
 name: Ubuntu unattended USB ISO end-to-end
 
 on:
@@ -25,7 +24,7 @@ concurrency:
 jobs:
   install:
     name: Install Ubuntu unattended ISO via UEFI USB
-    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) && 'ubuntu-latest' || vars.ISO_E2E_RUNNER || 'ubuntu-latest' }}
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) && 'ubuntu-latest' || 'ipfs-dev-gateway' }}
     timeout-minutes: 90
     env:
       # Distinct from the Debian job, so both can run on the same host at once.
