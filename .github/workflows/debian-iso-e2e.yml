@@ -1,7 +1,7 @@
 # Builds the unattended Debian ISO and installs it from UEFI USB media in QEMU.
 # It completes the required reboots and verifies the installed DAppNode system.
 #
-# Runs on our ipfs-dev-gateway org runners. Pull requests from forks use
+# Runs on our archive-1 org runners. Pull requests from forks use
 # ubuntu-latest instead, so outside code never runs on our machines.
 # The runner needs /dev/kvm, Docker, apt and passwordless sudo.
 name: Debian unattended USB ISO end-to-end
@@ -24,7 +24,7 @@ concurrency:
 jobs:
   install:
     name: Install Debian unattended ISO via UEFI USB
-    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) && 'ubuntu-latest' || 'ipfs-dev-gateway' }}
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) && 'ubuntu-latest' || 'archive-1' }}
     timeout-minutes: 90
     env:
       # Own Compose project, so a parallel ISO job on the same Docker host cannot
