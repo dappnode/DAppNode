@@ -48,6 +48,21 @@ die() {
     exit 1
 }
 
+# Keep the bootstrap pool aligned with DNP_DAPPMANAGER's dockerNetworkPolicy.json.
+# Existing bridges require the manager's journaled migration, never replacement here.
+ensure_dncore_network() {
+    local pool
+    if docker network inspect dncore_network >/dev/null 2>&1; then
+        pool=$(docker network inspect --format '{{range .IPAM.Config}}{{.IPRange}}{{end}}' dncore_network)
+        if [[ "$pool" != "172.33.128.0/17" ]]; then
+            warn "Existing dncore_network does not reserve core IPs. Run Dappmanager's scripts/migrate-docker-networks.sh plan after upgrading."
+        fi
+    else
+        docker network create --driver bridge --subnet 172.33.0.0/16 \
+            --gateway 172.33.0.1 --ip-range 172.33.128.0/17 dncore_network 2>&1 | tee -a "$LOGFILE"
+    fi
+}
+
 ##############################
 # Script Guards               #
 ##############################
@@ -1183,7 +1198,7 @@ main() {
 
     # --- Common steps (Linux and macOS) ---
     log "Creating dncore_network if needed..."
-    docker network create --driver bridge --subnet 172.33.0.0/16 dncore_network 2>&1 | tee -a "$LOGFILE" || true
+    ensure_dncore_network
 
     log "Building DAppNode Core if needed..."
     dappnode_core_build
