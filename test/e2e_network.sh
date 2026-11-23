@@ -1,5 +1,7 @@
 #!/bin/bash
 # Creates the TAP network the E2E guests boot on. Run as root: up | down
+# CI runs it in a container of its own (test/e2e_in_docker.sh), so the fixed
+# interface name and addresses never clash with another job on the host.
 # The guest gets DHCP, DNS and NAT like on a home LAN. CI providers drop outbound
 # ICMP, so echo requests from the guest are answered by this host instead: the
 # DAppNode first-boot check pings google.com and must see a reply.
@@ -26,7 +28,8 @@ network_up() {
     ip addr add "${E2E_HOST_IP}/24" dev "${E2E_TAP_IFACE}"
     ip link set "${E2E_TAP_IFACE}" up
 
-    sysctl -q -w net.ipv4.ip_forward=1
+    # In a container /proc/sys is read-only; docker run --sysctl turns this on instead.
+    [ "$(cat /proc/sys/net/ipv4/ip_forward)" = 1 ] || sysctl -q -w net.ipv4.ip_forward=1
     iptables -t nat -A POSTROUTING -s "${SUBNET}" ! -o "${E2E_TAP_IFACE}" -j MASQUERADE
     iptables -t nat -A PREROUTING -i "${E2E_TAP_IFACE}" -p icmp --icmp-type echo-request \
         -j DNAT --to-destination "${E2E_HOST_IP}"
@@ -65,6 +68,8 @@ network_down() {
     if [ -f "${STATE_DIR}/dnsmasq.pid" ]; then
         kill "$(cat "${STATE_DIR}/dnsmasq.pid")" 2>/dev/null || true
     fi
+    # A cancelled run may have lost its pid file; on a reused host its dnsmasq lives on.
+    pkill -f "^dnsmasq --interface=${E2E_TAP_IFACE} " 2>/dev/null || true
     iptables -D FORWARD -o "${E2E_TAP_IFACE}" -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || true
     iptables -D FORWARD -i "${E2E_TAP_IFACE}" -j ACCEPT 2>/dev/null || true
     iptables -t nat -D PREROUTING -i "${E2E_TAP_IFACE}" -p icmp --icmp-type echo-request \

@@ -1,5 +1,10 @@
 # Builds the unattended Ubuntu ISO and installs it from UEFI USB media in QEMU.
 # It completes the required reboots and verifies the installed DAppNode system.
+#
+# Runs on our archive-1 org runners. Pull requests from forks use
+# ubuntu-latest instead, so outside code never runs on our machines.
+# The runner needs only Docker and /dev/kvm: the test runs in a container of its
+# own (test/e2e_in_docker.sh), so it needs no sudo and leaves nothing on the host.
 name: Ubuntu unattended USB ISO end-to-end
 
 on:
@@ -20,10 +25,19 @@ concurrency:
 jobs:
   install:
     name: Install Ubuntu unattended ISO via UEFI USB
-    runs-on: ubuntu-latest
+    runs-on: ${{ (github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository) && 'ubuntu-latest' || 'archive-1' }}
     timeout-minutes: 90
+    env:
+      # A Compose project per run, so parallel ISO builds on one Docker host never
+      # share or remove each other's installer container.
+      COMPOSE_PROJECT_NAME: dappnode-iso-${{ github.run_id }}-${{ github.run_attempt }}
 
     steps:
+      # A cancelled run on a self-hosted runner can leave root-owned build output
+      # that would stop checkout from cleaning the workspace.
+      - name: Reclaim the workspace
+        run: docker run --rm -v "${GITHUB_WORKSPACE}:/workspace" ubuntu:24.04 chown -R "$(id -u):$(id -g)" /workspace
+
       - name: Checkout
         uses: actions/checkout@v6
 
@@ -40,32 +54,15 @@ jobs:
           done
           ls -lrt images/Dappnode-ubuntu-*.iso
 
-      - name: Install QEMU test dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends qemu-system-x86 qemu-utils ovmf socat sshpass dnsmasq-base
-          if [ -e /dev/kvm ]; then
-            sudo chmod a+rw /dev/kvm
-          fi
-
-      - name: Create the guest network
-        run: |
-          mkdir -p test-output/ubuntu-e2e
-          sudo E2E_NETWORK_STATE_DIR="${PWD}/test-output/ubuntu-e2e/network" bash test/e2e_network.sh up
-
       - name: Complete Ubuntu unattended UEFI USB installation
         env:
           E2E_BOOT_MODE: usb
           E2E_FIRMWARE: uefi
-          E2E_TAP_IFACE: dne2e0
+          E2E_NETWORK_STATE_DIR: ${{ github.workspace }}/test-output/ubuntu-e2e/network
         run: |
           ubuntu_iso=$(find images -maxdepth 1 -type f -name 'Dappnode-ubuntu-*-live-server-amd64.iso' -print -quit)
           test -n "${ubuntu_iso}"
-          bash test/e2e_ubuntu_iso.sh "${ubuntu_iso}"
-
-      - name: Make network logs readable
-        if: always()
-        run: sudo chmod -R a+rX test-output || true
+          bash test/e2e_in_docker.sh test/e2e_ubuntu_iso.sh "${ubuntu_iso}"
 
       - name: Upload installation logs
         if: always()
@@ -75,3 +72,16 @@ jobs:
           path: test-output/ubuntu-e2e/
           if-no-files-found: ignore
           retention-days: 7
+
+      # A self-hosted runner keeps its workspace and Docker state between jobs.
+      - name: Remove the build output
+        if: always()
+        run: |
+          # A cancelled job can be killed before test/e2e_in_docker.sh removes its
+          # test container, which would otherwise hold KVM for up to 85 minutes.
+          bash test/e2e_in_docker.sh --remove || true
+          # Only this run's installer container, network and image; the image is
+          # rebuilt from the checkout, so each commit would otherwise leave one behind.
+          docker compose down --rmi local --remove-orphans || true
+          # The ISO build writes as root, so remove its output as root too.
+          docker run --rm -v "${GITHUB_WORKSPACE}:/workspace" ubuntu:24.04 rm -rf /workspace/images /workspace/test-output
