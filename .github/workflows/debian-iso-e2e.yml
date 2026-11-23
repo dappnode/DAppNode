@@ -77,6 +77,9 @@ jobs:
       - name: Remove the build output
         if: always()
         run: |
+          # A cancelled job can be killed before test/e2e_in_docker.sh removes its
+          # test container, which would otherwise hold KVM for up to 85 minutes.
+          bash test/e2e_in_docker.sh --remove || true
           # Only this run's installer container, network and image; the image is
           # rebuilt from the checkout, so each commit would otherwise leave one behind.
           docker compose down --rmi local --remove-orphans || true

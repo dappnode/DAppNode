@@ -16,8 +16,19 @@ SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 REPO_ROOT=$(cd "${SCRIPT_DIR}/.." && pwd)
 
 if [ "$#" -eq 0 ]; then
-    echo "Usage: $0 <test script> [args...]"
+    echo "Usage: $0 <test script> [args...] | --remove"
     exit 2
+fi
+
+# Marks this run's container, so --remove finds it even when this script was
+# killed before its own trap could remove it, as when a job is cancelled.
+run_label="dappnode-iso-e2e.run=${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}"
+
+if [ "${1}" = "--remove" ]; then
+    docker ps --all --quiet --filter "label=${run_label}" | while IFS= read -r id; do
+        docker rm --force --volumes "${id}" >/dev/null
+    done
+    exit
 fi
 
 give_back_output() {
@@ -77,6 +88,7 @@ trap 'exit 143' TERM
 # the host. VM disks go to an anonymous volume (RUNNER_TEMP), which --rm removes.
 docker run --rm --init \
     --name "${container}" \
+    --label "${run_label}" \
     --cap-add NET_ADMIN \
     --sysctl net.ipv4.ip_forward=1 \
     "${device_args[@]}" \
